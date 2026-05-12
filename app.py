@@ -21,6 +21,7 @@ from main import build_report, build_comparison_report, build_single_report_fram
 
 
 APP_TITLE = "CiscoIQ Performance Report App"
+APP_NAME_TOKEN = "CiscoIQ"
 SAVED_REPORT_LIMIT = 15
 PROGRAM_SAAS = "Cisco IQ SaaS Support Services"
 TRACK_API = "API"
@@ -718,6 +719,87 @@ def infer_program_track(label: str) -> Tuple[str, str]:
     return PROGRAM_SAAS, TRACK_API
 
 
+def sanitize_token(value: str) -> str:
+    token = re.sub(r"[^A-Za-z0-9]+", "-", str(value or "").strip())
+    token = re.sub(r"-+", "-", token).strip("-")
+    return token or "NA"
+
+
+def normalize_users_token(value: str) -> str:
+    text = str(value or "").strip()
+    text = re.sub(r"(?i)\s*(concurrent\s*)?users?\s*", "", text)
+    text = re.sub(r"\s+", "", text)
+    if not text or text.upper() == "N/A":
+        return "NAUsers"
+    text = re.sub(r"(?i)vu", "", text).strip()
+    return f"{text}Users"
+
+
+def normalize_devices_token(value: str) -> str:
+    text = str(value or "").strip()
+    text = re.sub(r"(?i)\s*devices?\s*", "", text)
+    text = re.sub(r"\s+", "", text)
+    if not text or text.upper() == "N/A":
+        return "NA-Devices"
+    return f"{text}Devices"
+
+
+def extract_env_token(file_name: str) -> str:
+    upper = str(file_name or "").upper()
+    for env in ["PROD", "UAT", "QA", "DEV", "STAGE", "STG", "TEST"]:
+        if re.search(rf"(?:^|[_\-\s]){env}(?:$|[_\-\s])", upper):
+            return env
+    return "PROD"
+
+
+def to_mmddyyyy(date_value: str) -> str:
+    text = str(date_value or "").strip()
+    if re.fullmatch(r"\d{8}", text):
+        return text
+    match = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[-\s_]*(\d{1,2})[-\s_,]*(\d{4})", text)
+    if match:
+        month_map = {
+            "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
+            "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
+            "aug": "08", "august": "08", "sep": "09", "september": "09", "oct": "10", "october": "10",
+            "nov": "11", "november": "11", "dec": "12", "december": "12",
+        }
+        month = month_map.get(match.group(1).lower(), datetime.now().strftime("%m"))
+        day = f"{int(match.group(2)):02d}"
+        year = match.group(3)
+        return f"{month}{day}{year}"
+    iso = re.search(r"(20\d{2})[-_\s]?(\d{1,2})[-_\s]?(\d{1,2})", text)
+    if iso:
+        year, month, day = iso.groups()
+        return f"{int(month):02d}{int(day):02d}{year}"
+    return datetime.now().strftime("%m%d%Y")
+
+
+def build_standard_report_name(track_name: str, program_name: str, original_name: str, extension: str) -> str:
+    info = infer_saved_report_info(original_name)
+    date_token = to_mmddyyyy(info.get("date", ""))
+    epoch_token = f"EPOC-{int(datetime.now().timestamp())}"
+    users_token = normalize_users_token(info.get("users", "N/A"))
+    devices_token = normalize_devices_token(info.get("devices", "N/A"))
+    region_token = sanitize_token(info.get("region", "Unknown")).upper()
+    env_token = sanitize_token(info.get("env", "") or extract_env_token(original_name)).upper()
+    run_token = sanitize_token(info.get("run_id", "") or f"RUN-{uuid.uuid4().hex[:8].upper()}")
+    track_token = sanitize_token(track_name)
+    app_token = sanitize_token(APP_NAME_TOKEN)
+    program_token = sanitize_token(program_name)
+    ext = extension if extension.startswith(".") else f".{extension}"
+    return f"{track_token}_{app_token}_{program_token}_{date_token}_{epoch_token}_{users_token}_{devices_token}_{region_token}_{env_token}_{run_token}{ext.lower()}"
+
+
+def report_title(region: str, users: str, devices: str) -> str:
+    user_value = re.sub(r"(?i)\s*(concurrent\s*)?users?\s*", "", str(users or "").strip())
+    user_value = re.sub(r"(?i)vu", "", user_value).strip() or "NA"
+    user_token = f"{user_value}VU"
+    device_token = normalize_devices_token(devices)
+    device_token = re.sub(r"(?i)devices$", " Devices", device_token)
+    return f"{region}-{user_token}-{device_token}"
+
+
 def add_ui_sla_columns(apis_df: pd.DataFrame) -> pd.DataFrame:
     df = apis_df.copy()
     if df.empty:
@@ -750,6 +832,15 @@ def process_uploaded_file(path: Path, label: str) -> Dict[str, pd.DataFrame]:
     frames["APIs"] = add_ui_sla_columns(frames["APIs"])
     frames["Label"] = label
     frames["Region"] = region_from_frames(frames)
+    info = infer_saved_report_info(label)
+    program_name, track_name = infer_program_track(label)
+    if "Run_Info" in frames and frames["Run_Info"] is not None and not frames["Run_Info"].empty:
+        frames["Run_Info"]["Application"] = info.get("application", APP_NAME_TOKEN)
+        frames["Run_Info"]["Program"] = program_name
+        frames["Run_Info"]["Track"] = track_name
+        frames["Run_Info"]["Environment"] = info.get("env", "PROD")
+        frames["Run_Info"]["Run ID"] = info.get("run_id", "N/A")
+        frames["Run_Info"]["Epoch"] = info.get("epoch", "N/A")
     return frames
 
 
@@ -1189,6 +1280,10 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
             "Date": date,
             "Duration": duration,
             "Track": infer_program_track(label)[1],
+            "Application": str(info_row.get("Application", inferred.get("application", APP_NAME_TOKEN))),
+            "Program": str(info_row.get("Program", inferred.get("program", PROGRAM_SAAS))),
+            "Environment": str(info_row.get("Environment", inferred.get("env", "PROD"))),
+            "Run ID": str(info_row.get("Run ID", inferred.get("run_id", "N/A"))),
         })
     meta = pd.DataFrame(rows)
     if meta.empty:
@@ -1200,7 +1295,12 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
 
     meta = meta.head(9).copy()
 
-    files = meta["Display"].tolist()
+    meta["Detailed Display"] = meta.apply(
+        lambda r: f"{r['Display']} | {r['Date']} | {r.get('Environment', 'PROD')} | {r.get('Run ID', 'N/A')}",
+        axis=1,
+    )
+
+    files = meta["Detailed Display"].tolist()
     dates = sorted(meta["Date"].astype(str).unique().tolist())
     regions = sorted(meta["Region"].astype(str).unique().tolist())
 
@@ -1268,7 +1368,7 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
         return []
 
     keep_labels = meta[
-        meta["Display"].isin(selected_files)
+        meta["Detailed Display"].isin(selected_files)
         & meta["Date"].astype(str).isin(selected_dates)
         & meta["Region"].astype(str).isin(selected_regions)
     ]["Label"].tolist()
@@ -1921,6 +2021,15 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
     stem = Path(file_name).stem
     upper = stem.upper()
 
+    standard_parts = stem.split("_")
+    track_from_name = "N/A"
+    app_from_name = "N/A"
+    program_from_name = "N/A"
+    if len(standard_parts) >= 10:
+        track_from_name = standard_parts[0]
+        app_from_name = standard_parts[1]
+        program_from_name = standard_parts[2]
+
     region = "Unknown"
     for item in ["APJC", "EMEA", "US", "AMER", "EU", "LATAM", "INDIA"]:
         if re.search(rf"(?:^|[_\-\s]){item}(?:$|[_\-\s])", upper):
@@ -1942,6 +2051,14 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
         day = date_match.group(2)
         year = date_match.group(3)
         date = f"{month}-{day}-{year}"
+    if date == "N/A":
+        mmddyyyy = re.search(r"(?:^|[_\-\s])(\d{8})(?:$|[_\-\s])", upper)
+        if mmddyyyy:
+            token = mmddyyyy.group(1)
+            mm = token[0:2]
+            dd = token[2:4]
+            yyyy = token[4:8]
+            date = f"{mm}-{dd}-{yyyy}"
 
     users = "N/A"
     user_patterns = [
@@ -1972,12 +2089,39 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
     if devices != "N/A":
         devices = f"{devices} Devices"
 
+    env = extract_env_token(file_name)
+    run_id = "N/A"
+    run_match = re.search(r"(?:^|[_\-\s])(RUN[_\-]?ID|RUN)[_\-]?([A-Z0-9]+)(?:$|[_\-\s])", upper)
+    if run_match:
+        run_id = f"RUN-{run_match.group(2)}"
+    epoch = "N/A"
+    epoch_match = re.search(r"EPOC[_\-]?(\d{9,13})", upper)
+    if epoch_match:
+        epoch = epoch_match.group(1)
+    if len(standard_parts) >= 10:
+        users = standard_parts[5].replace("Users", "").replace("users", "") or users
+        devices = standard_parts[6].replace("Devices", " Devices").replace("devices", " Devices") or devices
+        region = standard_parts[7].upper() if standard_parts[7] else region
+        env = standard_parts[8].upper() if standard_parts[8] else env
+        run_id = standard_parts[9] if standard_parts[9].upper().startswith("RUN") else run_id
+        if len(standard_parts) > 4 and re.fullmatch(r"\d{8}", standard_parts[3]):
+            mmddyyyy_token = standard_parts[3]
+            date = f"{mmddyyyy_token[:2]}-{mmddyyyy_token[2:4]}-{mmddyyyy_token[4:8]}"
+        if len(standard_parts) > 4 and standard_parts[4].upper().startswith("EPOC"):
+            epoch = re.sub(r"[^0-9]", "", standard_parts[4]) or epoch
+
     return {
         "region": region,
         "duration": duration,
         "date": date,
         "users": users,
         "devices": devices,
+        "env": env,
+        "run_id": run_id,
+        "epoch": epoch,
+        "track": track_from_name,
+        "application": app_from_name,
+        "program": program_from_name,
     }
 
 
@@ -2016,7 +2160,7 @@ def run_display_label(frames: Dict[str, pd.DataFrame]) -> str:
     devices_clean = clean_devices(devices)
     region_clean = region if region and region != "Unknown" else "Region"
 
-    return f"{region_clean} {users_clean}VU-{devices_clean}"
+    return f"{region_clean}-{users_clean}VU-{devices_clean}"
 
 
 
@@ -2096,7 +2240,8 @@ def save_uploaded_files_to_latest(uploaded_files) -> None:
     skipped_duplicates = []
 
     for uploaded_file in uploaded_files:
-        clean_name = Path(uploaded_file.name).name.replace(" ", "_")
+        original_name = Path(uploaded_file.name).name.replace(" ", "_")
+        clean_name = build_standard_report_name(TRACK_API, PROGRAM_SAAS, original_name, ".json")
         file_bytes = uploaded_file.getvalue()
         file_hash = hashlib.sha256(file_bytes).hexdigest()
 
@@ -2116,6 +2261,7 @@ def save_uploaded_files_to_latest(uploaded_files) -> None:
         existing.insert(0, {
             "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "file_name": clean_name,
+            "original_file_name": original_name,
             "saved_name": saved_name,
             "file_hash": file_hash,
             "region": info["region"],
@@ -2123,6 +2269,9 @@ def save_uploaded_files_to_latest(uploaded_files) -> None:
             "duration": info["duration"],
             "users": info["users"],
             "devices": info["devices"],
+            "environment": info.get("env", "PROD"),
+            "run_id": info.get("run_id", "N/A"),
+            "application": APP_NAME_TOKEN,
             "program": program_name,
             "track": track_name,
         })
@@ -2164,7 +2313,9 @@ def save_uploaded_files_for_track(uploaded_files, track_name: str, program_name:
     skipped_duplicates = []
 
     for uploaded_file in uploaded_files:
-        clean_name = Path(uploaded_file.name).name.replace(" ", "_")
+        original_name = Path(uploaded_file.name).name.replace(" ", "_")
+        extension = Path(original_name).suffix or ".csv"
+        clean_name = build_standard_report_name(track_name, program_name, original_name, extension)
         file_bytes = uploaded_file.getvalue()
         file_hash = hashlib.sha256(file_bytes).hexdigest()
         if file_hash in existing_hashes or clean_name in existing_names:
@@ -2180,6 +2331,7 @@ def save_uploaded_files_for_track(uploaded_files, track_name: str, program_name:
         existing.insert(0, {
             "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "file_name": clean_name,
+            "original_file_name": original_name,
             "saved_name": saved_name,
             "file_hash": file_hash,
             "region": info["region"],
@@ -2187,6 +2339,9 @@ def save_uploaded_files_for_track(uploaded_files, track_name: str, program_name:
             "duration": info["duration"],
             "users": info["users"],
             "devices": info["devices"],
+            "environment": info.get("env", "PROD"),
+            "run_id": info.get("run_id", "N/A"),
+            "application": APP_NAME_TOKEN,
             "program": program_name,
             "track": track_name,
         })
@@ -2425,8 +2580,12 @@ def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dic
         "Date": (item or {}).get("date") or inferred.get("date", "N/A"),
         "Duration": (item or {}).get("duration") or inferred.get("duration", "N/A"),
         "Region": region,
+        "Application": (item or {}).get("application", APP_NAME_TOKEN),
         "Program": (item or {}).get("program", PROGRAM_SAAS),
         "Track": track_name,
+        "Environment": (item or {}).get("environment", inferred.get("env", "PROD")),
+        "Run ID": (item or {}).get("run_id", inferred.get("run_id", "N/A")),
+        "Epoch": inferred.get("epoch", "N/A"),
     }])
 
     run_frames = [{
@@ -2469,8 +2628,12 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
             "Date": inferred.get("date", "N/A"),
             "Duration": inferred.get("duration", "N/A"),
             "Region": inferred.get("region", "Unknown"),
+            "Application": inferred.get("application", APP_NAME_TOKEN),
             "Program": PROGRAM_SAAS,
             "Track": track_name,
+            "Environment": inferred.get("env", "PROD"),
+            "Run ID": inferred.get("run_id", "N/A"),
+            "Epoch": inferred.get("epoch", "N/A"),
         }])
         run_frames.append({
             "Label": Path(uploaded_file.name).stem,
@@ -2708,6 +2871,13 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     padding: 10px;
     margin-bottom: 8px;
 }
+.compact-saved-spacer {
+    height: 28px;
+    border: 1px solid #dbe4f0;
+    border-radius: 999px;
+    background: #f2f6fc;
+    margin: 2px 0 10px 0;
+}
 .compact-saved-cell-name {
     font-size: 14px;
     font-weight: 700;
@@ -2723,6 +2893,8 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         unsafe_allow_html=True,
     )
 
+    st.markdown('<div class="compact-saved-spacer"></div>', unsafe_allow_html=True)
+
     for index, item in enumerate(track_uploads, start=1):
         file_path = SAVED_REPORTS_DIR / item.get("saved_name", "")
         inferred = infer_saved_report_info(item.get("file_name", ""))
@@ -2730,7 +2902,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         users = item.get("users") or inferred.get("users", "N/A")
         devices = item.get("devices") or inferred.get("devices", "N/A")
         date = item.get("date") or inferred.get("date", "N/A")
-        report_name = f"{region}, {users}VU, {devices}"
+        report_name = report_title(region, users, devices)
 
         st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
         info_col, date_col = st.columns([2.2, 1], gap="small")
@@ -2765,6 +2937,7 @@ def saved_reports_rows(uploads: List[Dict[str, str]]) -> pd.DataFrame:
         inferred = infer_saved_report_info(item.get("file_name", ""))
         rows.append({
             "File": item.get("file_name", ""),
+            "Application": item.get("application") or inferred.get("application", APP_NAME_TOKEN),
             "Program": item.get("program") or infer_program_track(item.get("file_name", ""))[0],
             "Track": item.get("track") or infer_program_track(item.get("file_name", ""))[1],
             "Region": item.get("region") or inferred.get("region", "Unknown"),
@@ -2772,6 +2945,8 @@ def saved_reports_rows(uploads: List[Dict[str, str]]) -> pd.DataFrame:
             "Duration": item.get("duration") or inferred.get("duration", "N/A"),
             "Users": item.get("users") or inferred.get("users", "N/A"),
             "Devices": item.get("devices") or inferred.get("devices", "N/A"),
+            "Environment": item.get("environment") or inferred.get("env", "PROD"),
+            "Run ID": item.get("run_id") or inferred.get("run_id", "N/A"),
             "Uploaded At": item.get("uploaded_at", ""),
         })
     return pd.DataFrame(rows)
