@@ -3020,7 +3020,8 @@ def latest_saved_report_paths() -> Tuple[List[Path], List[str]]:
     labels = []
     for item in uploads:
         path = SAVED_REPORTS_DIR / item.get("saved_name", "")
-        if path.exists():
+        track_name = item.get("track") or infer_program_track(item.get("file_name", ""))[1]
+        if path.exists() and str(path.suffix).lower() == ".json" and track_name == TRACK_API:
             paths.append(path)
             labels.append(Path(item.get("file_name", path.name)).stem)
     return paths, labels
@@ -3033,7 +3034,21 @@ def load_static_saved_dashboard() -> bool:
     signature = "|".join(f"{path.name}:{path.stat().st_mtime_ns}" for path in paths if path.exists())
     if st.session_state.get("saved_dashboard_signature") == signature and st.session_state.get("run_frames"):
         return True
-    generate_dashboard_from_json_paths(paths, labels)
+    try:
+        generate_dashboard_from_json_paths(paths, labels)
+    except Exception:
+        valid_paths = []
+        valid_labels = []
+        for path, label in zip(paths, labels):
+            try:
+                path.read_text(encoding="utf-8-sig")
+                valid_paths.append(path)
+                valid_labels.append(label)
+            except Exception:
+                continue
+        if not valid_paths:
+            return False
+        generate_dashboard_from_json_paths(valid_paths, valid_labels)
     st.session_state["saved_dashboard_signature"] = signature
     st.session_state["run_id"] = "saved-dashboard"
     return True
