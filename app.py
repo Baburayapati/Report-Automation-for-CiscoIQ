@@ -2424,6 +2424,13 @@ def to_numeric_series(df: pd.DataFrame, col: str | None) -> pd.Series:
     return series.astype(float)
 
 
+def numeric_scalar(value, default: float = 0.0) -> float:
+    parsed = pd.to_numeric(value, errors="coerce")
+    if pd.isna(parsed):
+        return float(default)
+    return float(parsed)
+
+
 def make_api_like_row(feature: str, scenario: str, values: pd.Series, sla_sec: float, higher_is_better: bool = False) -> Dict[str, object]:
     if values.empty:
         avg_v = min_v = max_v = p90_v = p95_v = p99_v = 0.0
@@ -2512,15 +2519,16 @@ def build_api_like_df_from_csv(csv_path: Path, track_name: str) -> pd.DataFrame:
 
         sla_sec = NON_API_LATENCY_SLA_SEC.get(track_name, 2.0)
         for idx, row in raw.iterrows():
-            avg_v = float(pd.to_numeric(row.get(avg_col), errors="coerce") or 0)
-            min_v = float(pd.to_numeric(row.get(min_col), errors="coerce") or avg_v)
-            max_v = float(pd.to_numeric(row.get(max_col), errors="coerce") or avg_v)
-            p90_v = float(pd.to_numeric(row.get(p90_col), errors="coerce") or avg_v)
-            p95_v = float(pd.to_numeric(row.get(p95_col), errors="coerce") or avg_v)
-            p99_v = float(pd.to_numeric(row.get(p99_col), errors="coerce") or avg_v)
-            sample_count = int(pd.to_numeric(row.get(sample_col), errors="coerce") or 1)
-            error_count = int(pd.to_numeric(row.get(error_col), errors="coerce") or 0)
-            error_pct = float(pd.to_numeric(row.get(error_pct_col), errors="coerce") or (error_count / sample_count * 100 if sample_count else 0))
+            avg_v = numeric_scalar(row.get(avg_col), 0)
+            min_v = numeric_scalar(row.get(min_col), avg_v)
+            max_v = numeric_scalar(row.get(max_col), avg_v)
+            p90_v = numeric_scalar(row.get(p90_col), avg_v)
+            p95_v = numeric_scalar(row.get(p95_col), avg_v)
+            p99_v = numeric_scalar(row.get(p99_col), avg_v)
+            sample_count = max(1, int(numeric_scalar(row.get(sample_col), 1)))
+            error_count = max(0, int(numeric_scalar(row.get(error_col), 0)))
+            error_pct_raw = numeric_scalar(row.get(error_pct_col), -1)
+            error_pct = error_pct_raw if error_pct_raw >= 0 else (error_count / sample_count * 100 if sample_count else 0)
             feature = str(row.get(feature_col) or track_name)
             scenario = str(row.get(scenario_col) or f"{track_name}-{idx+1}")
             pass_status = (avg_v <= sla_sec and min_v <= sla_sec and max_v <= sla_sec and p95_v <= sla_sec)
