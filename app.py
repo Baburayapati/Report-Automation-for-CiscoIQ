@@ -2353,11 +2353,7 @@ def render_latest_uploads_panel() -> None:
 
 
 def render_main_page(show_subtitle: bool = True) -> None:
-    subtitle_html = "" if not show_subtitle else """
-<div class="hero-subtitle">
-  Upload one JMeter statistics.json file for a normal dashboard report. Upload two or more files for comparison.
-</div>
-"""
+    subtitle_html = ""
     st.markdown(
         f"""
 <div class="hero-title-box">
@@ -2414,6 +2410,53 @@ def render_management_landing_page() -> None:
                 st.error(f"Failed to generate dashboard from saved reports: {exc}")
 
     render_saved_reports_table(uploads)
+
+
+def render_api_saved_reports_compact() -> None:
+    uploads = normalize_saved_uploads(load_saved_uploads())
+    api_uploads = [
+        item for item in uploads
+        if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == TRACK_API
+    ]
+    if not api_uploads:
+        st.info("No saved API reports yet.")
+        return
+
+    st.markdown("**Saved API Reports**")
+    h1, h2, h3, h4 = st.columns([2.3, 1.2, 1.1, 0.9])
+    h1.markdown("**Report Name**")
+    h2.markdown("**Date**")
+    h3.markdown("**Generate**")
+    h4.markdown("**Remove**")
+
+    for index, item in enumerate(api_uploads, start=1):
+        file_path = SAVED_REPORTS_DIR / item.get("saved_name", "")
+        inferred = infer_saved_report_info(item.get("file_name", ""))
+        region = item.get("region") or inferred.get("region", "Unknown")
+        users = item.get("users") or inferred.get("users", "N/A")
+        devices = item.get("devices") or inferred.get("devices", "N/A")
+        date = item.get("date") or inferred.get("date", "N/A")
+        report_name = f"{region}, {users}VU, {devices}"
+
+        c1, c2, c3, c4 = st.columns([2.3, 1.2, 1.1, 0.9])
+        c1.write(report_name)
+        c2.write(date)
+
+        if file_path.exists():
+            if c3.button("Generate", key=f"api_compact_generate_{index}_{item.get('saved_name','')}", use_container_width=True):
+                try:
+                    generate_dashboard_from_json_paths([file_path], [Path(item.get("file_name", file_path.name)).stem])
+                    st.success(f"Generated dashboard for {item.get('file_name', file_path.name)}")
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f"Failed to generate saved report: {exc}")
+        else:
+            c3.warning("Missing")
+
+        if c4.button("Remove", key=f"api_compact_remove_{index}_{item.get('saved_name','')}", use_container_width=True):
+            remove_saved_upload(item.get("saved_name", ""))
+            st.success("Removed saved report.")
+            st.rerun()
 
 
 def saved_reports_rows(uploads: List[Dict[str, str]]) -> pd.DataFrame:
@@ -2627,7 +2670,6 @@ elif team_upload_view:
     render_main_page(show_subtitle=st.session_state.get("team_authenticated", False))
     access_granted = team_upload_access_granted()
     if access_granted:
-        render_latest_uploads_panel()
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
         api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
 
@@ -2652,6 +2694,7 @@ elif team_upload_view:
                     key="generate_api_results",
                     use_container_width=True,
                 )
+                render_api_saved_reports_compact()
 
         if uploaded_files and generate_clicked:
             if st.session_state.get('save_reports_checkbox', True):
