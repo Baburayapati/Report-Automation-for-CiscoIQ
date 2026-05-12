@@ -806,33 +806,7 @@ def combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
 
 
 
-def top_nav() -> str:
-    current_tab = params.get("tab", "") or st.session_state.get("dashboard_tab", "Overview")
-    if "nav_target" in st.session_state:
-        current_tab = st.session_state.pop("nav_target")
-
-    valid_tabs = ["Overview", "Track Comparison", "Detailed Report", "Chatbot"]
-    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Track Comparison", "Reports": "Overview", "Trends": "Overview"}
-    current_tab = legacy_tabs.get(current_tab, current_tab)
-    if current_tab not in valid_tabs:
-        current_tab = "Overview"
-    st.session_state["dashboard_tab"] = current_tab
-
-    current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
-    tabs = [
-        ("Overview", "Overview"),
-        ("Track Comparison", "Track Comparison"),
-        ("Detailed Report", "Detailed Report"),
-        ("Chatbot", "AI Chatbot"),
-    ]
-
-    icons = {
-        "Overview": "◆",
-        "Track Comparison": "▦",
-        "Detailed Report": "⌕",
-        "Chatbot": "●",
-    }
-
+def render_dashboard_header() -> None:
     st.markdown(
         f"""
 <div class="top-nav">
@@ -849,18 +823,43 @@ def top_nav() -> str:
         unsafe_allow_html=True,
     )
 
-    tab_cols = st.columns(len(tabs), gap="small")
-    for col, (tab_value, tab_label) in zip(tab_cols, tabs):
-        button_label = f"{icons[tab_value]} {tab_label}"
-        if col.button(button_label, key=f"dashboard_tab_{tab_value}", type="primary" if current_tab == tab_value else "secondary", use_container_width=True):
-            st.session_state["dashboard_tab"] = tab_value
-            if current_run_id:
-                st.query_params["view"] = "dashboard"
-                st.query_params["run_id"] = current_run_id
-                st.query_params["tab"] = tab_value
-            st.rerun()
 
-    return current_tab
+def dashboard_view_tabs() -> str:
+    current_tab = params.get("tab", "") or st.session_state.get("dashboard_tab", "Overview")
+    if "nav_target" in st.session_state:
+        current_tab = st.session_state.pop("nav_target")
+
+    valid_tabs = ["Overview", "Track Comparison", "Detailed Report", "Chatbot"]
+    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Track Comparison", "Reports": "Overview", "Trends": "Overview"}
+    current_tab = legacy_tabs.get(current_tab, current_tab)
+    if current_tab not in valid_tabs:
+        current_tab = "Overview"
+    st.session_state["dashboard_tab"] = current_tab
+    label_map = {
+        "Overview": "Overview",
+        "Track Comparison": "Track Comparison",
+        "Detailed Report": "Detailed Report",
+        "Chatbot": "AI Chatbot",
+    }
+    reverse_map = {v: k for k, v in label_map.items()}
+    current_label = label_map[current_tab]
+    if st.session_state.get("dashboard_view_selector_label") != current_label:
+        st.session_state["dashboard_view_selector_label"] = current_label
+
+    current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
+
+    selected_label = st.selectbox(
+        "View",
+        options=[label_map[t] for t in valid_tabs],
+        key="dashboard_view_selector_label",
+    )
+    selected_tab = reverse_map.get(selected_label, "Overview")
+    st.session_state["dashboard_tab"] = selected_tab
+    if current_run_id:
+        st.query_params["view"] = "dashboard"
+        st.query_params["run_id"] = current_run_id
+        st.query_params["tab"] = selected_tab
+    return selected_tab
 
 
 def kpi_cards(df: pd.DataFrame, previous_df: pd.DataFrame | None = None, title: str = "AGGREGATED PERFORMANCE OVERVIEW METRICS", compact: bool = False) -> None:
@@ -1475,7 +1474,7 @@ def goto_tab_button(label: str, tab_name: str, key: str) -> None:
 
 
 def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    selected_tab = top_nav()
+    render_dashboard_header()
 
     st.markdown('<div class="panel-title">PROGRAMS</div>', unsafe_allow_html=True)
     program_options = [
@@ -1524,6 +1523,10 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
             else:
                 st.info("Customer Inventory Benchmarking dashboard is being enabled for DDC and DNAC first; other platforms will show Coming Soon.")
         return
+
+    view_col, _ = st.columns([1.25, 3.75], gap="small")
+    with view_col:
+        selected_tab = dashboard_view_tabs()
 
     main_col, side_col = st.columns([4.35, .95], gap="medium")
 
