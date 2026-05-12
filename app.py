@@ -22,6 +22,10 @@ from main import build_report, build_comparison_report, build_single_report_fram
 APP_TITLE = "CiscoIQ Performance Report App"
 SAVED_REPORT_LIMIT = 15
 PROGRAM_SAAS = "Cisco IQ SaaS Support Services"
+TRACK_API = "API"
+TRACK_UI = "UI"
+TRACK_CLOUD = "Cloud Assist Connector"
+TRACK_INVENTORY = "Customer Inventory Benchmarking"
 
 st.set_page_config(page_title=APP_TITLE, layout="wide")
 
@@ -98,6 +102,22 @@ st.markdown("""
 .nav-time {
     font-size:12px !important;
     opacity:.88 !important;
+}
+
+.region-field-label {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #0f2b68 !important;
+    margin: 0 0 6px 2px !important;
+}
+
+.track-upload-card {
+    background: #ffffff;
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(15,23,42,.05);
+    margin-bottom: 10px;
 }
 
 /* Streamlit radio used as dashboard tabs */
@@ -666,19 +686,19 @@ def get_store():
 def infer_program_track(label: str) -> Tuple[str, str]:
     name = str(label or "").upper()
     if "ONPREM" in name and "RISK" in name:
-        return "Cisco IQ Onprem - Risk App", "API"
+        return "Cisco IQ Onprem - Risk App", TRACK_API
     if "ONPREM" in name and "ASSET" in name:
-        return "Cisco IQ Onprem - Assets", "API"
+        return "Cisco IQ Onprem - Assets", TRACK_API
     if "CX AI ASSISTANT" in name or "CX_AI_ASSISTANT" in name:
-        return "CX AI Assistant", "API"
+        return "CX AI Assistant", TRACK_API
 
     if "CLOUD" in name and "CONNECTOR" in name:
-        return PROGRAM_SAAS, "Cloud Assist Connector"
+        return PROGRAM_SAAS, TRACK_CLOUD
     if "BENCHMARK" in name or "INVENTORY" in name:
-        return PROGRAM_SAAS, "Customer Inventory Benchmarking"
+        return PROGRAM_SAAS, TRACK_INVENTORY
     if "LIGHTHOUSE" in name or re.search(r"(?:^|[_\-])UI(?:[_\-]|$)", name):
-        return PROGRAM_SAAS, "UI"
-    return PROGRAM_SAAS, "API"
+        return PROGRAM_SAAS, TRACK_UI
+    return PROGRAM_SAAS, TRACK_API
 
 
 def add_ui_sla_columns(apis_df: pd.DataFrame) -> pd.DataFrame:
@@ -835,25 +855,24 @@ def dashboard_view_tabs() -> str:
     if current_tab not in valid_tabs:
         current_tab = "Overview"
     st.session_state["dashboard_tab"] = current_tab
-    label_map = {
-        "Overview": "Overview",
-        "Track Comparison": "Track Comparison",
-        "Detailed Report": "Detailed Report",
-        "Chatbot": "AI Chatbot",
-    }
-    reverse_map = {v: k for k, v in label_map.items()}
-    current_label = label_map[current_tab]
-    if st.session_state.get("dashboard_view_selector_label") != current_label:
-        st.session_state["dashboard_view_selector_label"] = current_label
-
     current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
-
-    selected_label = st.selectbox(
-        "View",
-        options=[label_map[t] for t in valid_tabs],
-        key="dashboard_view_selector_label",
-    )
-    selected_tab = reverse_map.get(selected_label, "Overview")
+    tabs = [
+        ("Overview", "Overview"),
+        ("Track Comparison", "Track Comparison"),
+        ("Detailed Report", "Detailed Report"),
+        ("Chatbot", "AI Chatbot"),
+    ]
+    icons = {
+        "Overview": "◆",
+        "Track Comparison": "▦",
+        "Detailed Report": "⌕",
+        "Chatbot": "●",
+    }
+    tab_cols = st.columns(len(tabs), gap="small")
+    selected_tab = current_tab
+    for col, (tab_value, tab_label) in zip(tab_cols, tabs):
+        if col.button(f"{icons[tab_value]} {tab_label}", key=f"dashboard_view_{tab_value}", type="primary" if current_tab == tab_value else "secondary", use_container_width=True):
+            selected_tab = tab_value
     st.session_state["dashboard_tab"] = selected_tab
     if current_run_id:
         st.query_params["view"] = "dashboard"
@@ -1505,28 +1524,25 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
     active_track = st.session_state.get("active_track", "API")
     if active_track not in track_options:
         active_track = "API"
-    t1, t2, t3, t4, t5 = st.columns([1.2, 1, 1.3, 1.6, .8], gap="small")
+    top_track_row = st.columns([4.3, 1.2], gap="small")
+    with top_track_row[1]:
+        st.markdown('<div class="region-field-label">Region</div>', unsafe_allow_html=True)
+        region_focus = st.selectbox("Region", ["All", "US", "EMEA", "APJC"], key="dashboard_region_focus", label_visibility="collapsed")
+
+    t1, t2, t3, t4 = top_track_row[0].columns([1.2, 1, 1.3, 1.6], gap="small")
     for col, track_name in zip([t1, t2, t3, t4], track_options):
         if col.button(track_name, key=f"track_tab_{track_name}", type="primary" if active_track == track_name else "secondary", use_container_width=True):
             st.session_state["active_track"] = track_name
             active_track = track_name
             st.rerun()
-    region_focus = t5.selectbox("Region", ["All", "US", "EMEA", "APJC"], key="dashboard_region_focus")
 
     if active_track != "API":
         with st.container(border=True):
             st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
-            if active_track == "UI":
-                st.info("UI Lighthouse metrics dashboard (FCP, LCP, TBT, CLS, SI, Performance Score) is being enabled in the next phase.")
-            elif active_track == "Cloud Assist Connector":
-                st.info("Cloud Assist Connector dashboard with 24-hour SLA metrics will be enabled once static input files are finalized.")
-            else:
-                st.info("Customer Inventory Benchmarking dashboard is being enabled for DDC and DNAC first; other platforms will show Coming Soon.")
+            render_non_api_track_view(active_track)
         return
 
-    view_col, _ = st.columns([1.25, 3.75], gap="small")
-    with view_col:
-        selected_tab = dashboard_view_tabs()
+    selected_tab = dashboard_view_tabs()
 
     main_col, side_col = st.columns([4.35, .95], gap="medium")
 
@@ -1829,6 +1845,38 @@ def render_chatbot(run_frames: List[Dict[str, pd.DataFrame]], key_suffix: str = 
     st.markdown("</div>", unsafe_allow_html=True)
 
 
+def build_non_api_track_summary(track_name: str) -> pd.DataFrame:
+    uploads = normalize_saved_uploads(load_saved_uploads())
+    rows = []
+    for item in uploads:
+        item_track = item.get("track") or infer_program_track(item.get("file_name", ""))[1]
+        if item_track != track_name:
+            continue
+        rows.append({
+            "File": item.get("file_name", ""),
+            "Region": item.get("region", "Unknown"),
+            "Date": item.get("date", "N/A"),
+            "Duration": item.get("duration", "N/A"),
+            "Uploaded At": item.get("uploaded_at", ""),
+        })
+    return pd.DataFrame(rows)
+
+
+def render_non_api_track_view(track_name: str) -> None:
+    if track_name == TRACK_UI:
+        st.info("UI Lighthouse metrics dashboard (FCP, LCP, TBT, CLS, SI, Performance Score) is enabled for CSV uploads and summary view.")
+    elif track_name == TRACK_CLOUD:
+        st.info("Cloud Assist Connector dashboard is enabled for CSV uploads and latest report listing.")
+    else:
+        st.info("Customer Inventory Benchmarking dashboard is enabled for CSV uploads and latest report listing.")
+
+    df = build_non_api_track_summary(track_name)
+    if df.empty:
+        st.warning(f"No saved {track_name} CSV reports yet. Upload from the main page to populate this view.")
+        return
+    st.dataframe(df, use_container_width=True, hide_index=True, height=min(440, 72 + 38 * len(df)))
+
+
 
 
 
@@ -2076,7 +2124,9 @@ def save_uploaded_files_to_latest(uploaded_files) -> None:
         except Exception:
             pass
 
-    for file_path in SAVED_REPORTS_DIR.glob("*.json"):
+    for file_path in SAVED_REPORTS_DIR.glob("*"):
+        if not file_path.is_file() or file_path.name == SAVED_REPORTS_META.name:
+            continue
         if file_path.name not in keep_names:
             try:
                 file_path.unlink()
@@ -2085,6 +2135,67 @@ def save_uploaded_files_to_latest(uploaded_files) -> None:
 
     SAVED_REPORTS_META.write_text(json.dumps(keep, indent=2), encoding="utf-8")
 
+    if skipped_duplicates:
+        st.info("Duplicate upload skipped: " + ", ".join(skipped_duplicates[:3]) + (" ..." if len(skipped_duplicates) > 3 else ""))
+
+
+def save_uploaded_files_for_track(uploaded_files, track_name: str, program_name: str = PROGRAM_SAAS) -> None:
+    ensure_saved_reports_dir()
+    existing = normalize_saved_uploads(load_saved_uploads())
+    existing_hashes = {item.get("file_hash") for item in existing if item.get("file_hash")}
+    existing_names = {item.get("file_name") for item in existing if item.get("file_name")}
+    skipped_duplicates = []
+
+    for uploaded_file in uploaded_files:
+        clean_name = Path(uploaded_file.name).name.replace(" ", "_")
+        file_bytes = uploaded_file.getvalue()
+        file_hash = hashlib.sha256(file_bytes).hexdigest()
+        if file_hash in existing_hashes or clean_name in existing_names:
+            skipped_duplicates.append(clean_name)
+            continue
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        saved_name = f"{timestamp}_{clean_name}"
+        saved_path = SAVED_REPORTS_DIR / saved_name
+        saved_path.write_bytes(file_bytes)
+        info = infer_saved_report_info(clean_name)
+
+        existing.insert(0, {
+            "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "file_name": clean_name,
+            "saved_name": saved_name,
+            "file_hash": file_hash,
+            "region": info["region"],
+            "date": info["date"],
+            "duration": info["duration"],
+            "users": info["users"],
+            "devices": info["devices"],
+            "program": program_name,
+            "track": track_name,
+        })
+        existing_hashes.add(file_hash)
+        existing_names.add(clean_name)
+
+    keep = existing[:SAVED_REPORT_LIMIT]
+    keep_names = {item["saved_name"] for item in keep}
+    for old in existing[SAVED_REPORT_LIMIT:]:
+        try:
+            old_path = SAVED_REPORTS_DIR / old.get("saved_name", "")
+            if old_path.exists():
+                old_path.unlink()
+        except Exception:
+            pass
+
+    for file_path in SAVED_REPORTS_DIR.glob("*"):
+        if not file_path.is_file() or file_path.name == SAVED_REPORTS_META.name:
+            continue
+        if file_path.name not in keep_names:
+            try:
+                file_path.unlink()
+            except Exception:
+                pass
+
+    SAVED_REPORTS_META.write_text(json.dumps(keep, indent=2), encoding="utf-8")
     if skipped_duplicates:
         st.info("Duplicate upload skipped: " + ", ".join(skipped_duplicates[:3]) + (" ..." if len(skipped_duplicates) > 3 else ""))
 
@@ -2517,13 +2628,10 @@ elif team_upload_view:
     access_granted = team_upload_access_granted()
     if access_granted:
         render_latest_uploads_panel()
-        uploaded_files = st.file_uploader("Upload JMeter statistics.json file(s)", type=["json"], accept_multiple_files=True)
-        save_reports = st.checkbox(
-            "Save uploaded reports for team visibility",
-            value=True,
-            key="save_reports_checkbox"
-        )
-        generate_clicked = st.button("Generate Results", type="primary", disabled=not uploaded_files)
+        st.markdown('<div class="panel-title">API Upload (.json)</div>', unsafe_allow_html=True)
+        uploaded_files = st.file_uploader("Upload JMeter statistics.json file(s)", type=["json"], accept_multiple_files=True, key="api_json_uploader")
+        save_reports = st.checkbox("Save uploaded reports for team visibility", value=True, key="save_reports_checkbox")
+        generate_clicked = st.button("Generate API Results", type="primary", disabled=not uploaded_files, key="generate_api_results")
         if uploaded_files and generate_clicked:
             if st.session_state.get('save_reports_checkbox', True):
                 save_uploaded_files_to_latest(uploaded_files)
@@ -2560,6 +2668,39 @@ elif team_upload_view:
                     st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_blank">Open Management Dashboard ↗</a>', unsafe_allow_html=True)
                 except Exception as exc:
                     st.error(f"Failed to generate report: {exc}")
+
+        st.markdown('<div class="panel-title">Program Track CSV Uploads</div>', unsafe_allow_html=True)
+        u1, u2, u3 = st.columns(3, gap="small")
+
+        with u1:
+            st.markdown('<div class="track-upload-card">', unsafe_allow_html=True)
+            st.markdown("**UI Metrics (.csv)**")
+            ui_files = st.file_uploader("Upload UI CSV files", type=["csv"], accept_multiple_files=True, key="ui_csv_uploader")
+            if st.button("Save UI CSV", key="save_ui_csv", use_container_width=True, disabled=not ui_files):
+                save_uploaded_files_for_track(ui_files, TRACK_UI)
+                st.success(f"Saved {len(ui_files)} UI CSV file(s).")
+                st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with u2:
+            st.markdown('<div class="track-upload-card">', unsafe_allow_html=True)
+            st.markdown("**Cloud Assist Connector (.csv)**")
+            cloud_files = st.file_uploader("Upload Cloud Assist CSV files", type=["csv"], accept_multiple_files=True, key="cloud_csv_uploader")
+            if st.button("Save Cloud Assist CSV", key="save_cloud_csv", use_container_width=True, disabled=not cloud_files):
+                save_uploaded_files_for_track(cloud_files, TRACK_CLOUD)
+                st.success(f"Saved {len(cloud_files)} Cloud Assist CSV file(s).")
+                st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with u3:
+            st.markdown('<div class="track-upload-card">', unsafe_allow_html=True)
+            st.markdown("**Customer Inventory (.csv)**")
+            inv_files = st.file_uploader("Upload Inventory CSV files", type=["csv"], accept_multiple_files=True, key="inv_csv_uploader")
+            if st.button("Save Inventory CSV", key="save_inventory_csv", use_container_width=True, disabled=not inv_files):
+                save_uploaded_files_for_track(inv_files, TRACK_INVENTORY)
+                st.success(f"Saved {len(inv_files)} Inventory CSV file(s).")
+                st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
         render_action_cards()
 else:
