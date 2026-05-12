@@ -775,6 +775,11 @@ def to_mmddyyyy(date_value: str) -> str:
     return datetime.now().strftime("%m%d%Y")
 
 
+def to_mm_dd_yyyy(date_value: str) -> str:
+    token = to_mmddyyyy(date_value)
+    return f"{token[:2]}-{token[2:4]}-{token[4:8]}"
+
+
 def build_standard_report_name(track_name: str, program_name: str, original_name: str, extension: str) -> str:
     info = infer_saved_report_info(original_name)
     date_token = to_mmddyyyy(info.get("date", ""))
@@ -792,12 +797,14 @@ def build_standard_report_name(track_name: str, program_name: str, original_name
 
 
 def report_title(region: str, users: str, devices: str) -> str:
+    region_token = str(region or "Unknown").strip().upper()
     user_value = re.sub(r"(?i)\s*(concurrent\s*)?users?\s*", "", str(users or "").strip())
     user_value = re.sub(r"(?i)vu", "", user_value).strip() or "NA"
-    user_token = f"{user_value}VU"
-    device_token = normalize_devices_token(devices)
-    device_token = re.sub(r"(?i)devices$", " Devices", device_token)
-    return f"{region}-{user_token}-{device_token}"
+    user_token = f"{user_value}Users"
+    device_value = re.sub(r"(?i)\s*devices?\s*", "", str(devices or "").strip())
+    device_value = device_value or "NA"
+    device_token = f"{device_value}Devices"
+    return f"{region_token}-{user_token}-{device_token}"
 
 
 def add_ui_sla_columns(apis_df: pd.DataFrame) -> pd.DataFrame:
@@ -2880,11 +2887,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     margin-bottom: 8px;
 }
 .compact-saved-spacer {
-    height: 28px;
-    border: 1px solid #dbe4f0;
-    border-radius: 999px;
-    background: #f2f6fc;
-    margin: 2px 0 10px 0;
+    display: none;
 }
 .compact-saved-cell-name {
     font-size: 14px;
@@ -2901,8 +2904,6 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="compact-saved-spacer"></div>', unsafe_allow_html=True)
-
     for index, item in enumerate(track_uploads, start=1):
         file_path = SAVED_REPORTS_DIR / item.get("saved_name", "")
         inferred = infer_saved_report_info(item.get("file_name", ""))
@@ -2910,7 +2911,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         users = item.get("users") or inferred.get("users", "N/A")
         devices = item.get("devices") or inferred.get("devices", "N/A")
         date = item.get("date") or inferred.get("date", "N/A")
-        report_name = report_title(region, users, devices)
+        report_name = f"{report_title(region, users, devices)}-{to_mm_dd_yyyy(date)}"
 
         st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
         info_col, date_col = st.columns([2.2, 1], gap="small")

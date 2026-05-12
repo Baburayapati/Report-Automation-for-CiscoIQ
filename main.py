@@ -43,7 +43,7 @@ def split_api_name(name: str) -> Tuple[str, str, str]:
 
 
 def load_statistics_json(json_path: str | Path) -> pd.DataFrame:
-    with open(json_path, "r", encoding="utf-8") as file:
+    with open(json_path, "r", encoding="utf-8-sig") as file:
         data: Dict[str, Dict[str, Any]] = json.load(file)
 
     rows: List[Dict[str, Any]] = []
