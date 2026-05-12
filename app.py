@@ -2628,10 +2628,31 @@ elif team_upload_view:
     access_granted = team_upload_access_granted()
     if access_granted:
         render_latest_uploads_panel()
-        st.markdown('<div class="panel-title">API Upload (.json)</div>', unsafe_allow_html=True)
-        uploaded_files = st.file_uploader("Upload JMeter statistics.json file(s)", type=["json"], accept_multiple_files=True, key="api_json_uploader")
-        save_reports = st.checkbox("Save uploaded reports for team visibility", value=True, key="save_reports_checkbox")
-        generate_clicked = st.button("Generate API Results", type="primary", disabled=not uploaded_files, key="generate_api_results")
+        st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
+        api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
+
+        with api_col:
+            with st.container(border=True):
+                st.markdown("**API Metrics (.json)**")
+                uploaded_files = st.file_uploader(
+                    "Upload JMeter statistics.json file(s)",
+                    type=["json"],
+                    accept_multiple_files=True,
+                    key="api_json_uploader",
+                )
+                st.checkbox(
+                    "Save for team visibility",
+                    value=True,
+                    key="save_reports_checkbox",
+                )
+                generate_clicked = st.button(
+                    "Generate API Results",
+                    type="primary",
+                    disabled=not uploaded_files,
+                    key="generate_api_results",
+                    use_container_width=True,
+                )
+
         if uploaded_files and generate_clicked:
             if st.session_state.get('save_reports_checkbox', True):
                 save_uploaded_files_to_latest(uploaded_files)
@@ -2669,38 +2690,32 @@ elif team_upload_view:
                 except Exception as exc:
                     st.error(f"Failed to generate report: {exc}")
 
-        st.markdown('<div class="panel-title">Program Track CSV Uploads</div>', unsafe_allow_html=True)
-        u1, u2, u3 = st.columns(3, gap="small")
+        with ui_col:
+            with st.container(border=True):
+                st.markdown("**UI Metrics (.csv)**")
+                ui_files = st.file_uploader("Upload UI CSV files", type=["csv"], accept_multiple_files=True, key="ui_csv_uploader")
+                if st.button("Save UI CSV", key="save_ui_csv", use_container_width=True, disabled=not ui_files):
+                    save_uploaded_files_for_track(ui_files, TRACK_UI)
+                    st.success(f"Saved {len(ui_files)} UI CSV file(s).")
+                    st.rerun()
 
-        with u1:
-            st.markdown('<div class="track-upload-card">', unsafe_allow_html=True)
-            st.markdown("**UI Metrics (.csv)**")
-            ui_files = st.file_uploader("Upload UI CSV files", type=["csv"], accept_multiple_files=True, key="ui_csv_uploader")
-            if st.button("Save UI CSV", key="save_ui_csv", use_container_width=True, disabled=not ui_files):
-                save_uploaded_files_for_track(ui_files, TRACK_UI)
-                st.success(f"Saved {len(ui_files)} UI CSV file(s).")
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+        with cloud_col:
+            with st.container(border=True):
+                st.markdown("**Cloud Assist Connector (.csv)**")
+                cloud_files = st.file_uploader("Upload Cloud Assist CSV files", type=["csv"], accept_multiple_files=True, key="cloud_csv_uploader")
+                if st.button("Save Cloud Assist CSV", key="save_cloud_csv", use_container_width=True, disabled=not cloud_files):
+                    save_uploaded_files_for_track(cloud_files, TRACK_CLOUD)
+                    st.success(f"Saved {len(cloud_files)} Cloud Assist CSV file(s).")
+                    st.rerun()
 
-        with u2:
-            st.markdown('<div class="track-upload-card">', unsafe_allow_html=True)
-            st.markdown("**Cloud Assist Connector (.csv)**")
-            cloud_files = st.file_uploader("Upload Cloud Assist CSV files", type=["csv"], accept_multiple_files=True, key="cloud_csv_uploader")
-            if st.button("Save Cloud Assist CSV", key="save_cloud_csv", use_container_width=True, disabled=not cloud_files):
-                save_uploaded_files_for_track(cloud_files, TRACK_CLOUD)
-                st.success(f"Saved {len(cloud_files)} Cloud Assist CSV file(s).")
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        with u3:
-            st.markdown('<div class="track-upload-card">', unsafe_allow_html=True)
-            st.markdown("**Customer Inventory (.csv)**")
-            inv_files = st.file_uploader("Upload Inventory CSV files", type=["csv"], accept_multiple_files=True, key="inv_csv_uploader")
-            if st.button("Save Inventory CSV", key="save_inventory_csv", use_container_width=True, disabled=not inv_files):
-                save_uploaded_files_for_track(inv_files, TRACK_INVENTORY)
-                st.success(f"Saved {len(inv_files)} Inventory CSV file(s).")
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+        with inv_col:
+            with st.container(border=True):
+                st.markdown("**Customer Inventory (.csv)**")
+                inv_files = st.file_uploader("Upload Inventory CSV files", type=["csv"], accept_multiple_files=True, key="inv_csv_uploader")
+                if st.button("Save Inventory CSV", key="save_inventory_csv", use_container_width=True, disabled=not inv_files):
+                    save_uploaded_files_for_track(inv_files, TRACK_INVENTORY)
+                    st.success(f"Saved {len(inv_files)} Inventory CSV file(s).")
+                    st.rerun()
 
         render_action_cards()
 else:
