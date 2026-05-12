@@ -2701,26 +2701,11 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     st.markdown(
         """
 <style>
-.compact-saved-wrap {
-    width: 100%;
-}
-.compact-saved-head, .compact-saved-row {
-    display: grid;
-    grid-template-columns: minmax(0, 2.4fr) minmax(110px, 1fr) minmax(120px, 0.95fr) minmax(100px, 0.8fr);
-    gap: 10px;
-    align-items: center;
-}
-.compact-saved-head {
-    padding: 2px 4px 6px 4px;
-    color: #0f2b68;
-    font-size: 13px;
-    font-weight: 800;
-}
 .compact-saved-row {
     background: #f8fbff;
     border: 1px solid #dbe4f0;
     border-radius: 10px;
-    padding: 8px;
+    padding: 10px;
     margin-bottom: 8px;
 }
 .compact-saved-cell-name {
@@ -2731,16 +2716,9 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
 .compact-saved-cell-date {
     font-size: 13px;
     color: #334155;
+    text-align: right;
 }
 </style>
-<div class="compact-saved-wrap">
-  <div class="compact-saved-head">
-    <div>Report Name</div>
-    <div>Date</div>
-    <div>Generate</div>
-    <div>Remove</div>
-  </div>
-</div>
 """,
         unsafe_allow_html=True,
     )
@@ -2754,12 +2732,14 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         date = item.get("date") or inferred.get("date", "N/A")
         report_name = f"{region}, {users}VU, {devices}"
 
-        c1, c2, c3, c4 = st.columns([2.4, 1.0, 0.95, 0.8], gap="small")
-        c1.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
-        c2.markdown(f'<div class="compact-saved-cell-date">{date}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
+        info_col, date_col = st.columns([2.2, 1], gap="small")
+        info_col.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
+        date_col.markdown(f'<div class="compact-saved-cell-date">{date}</div>', unsafe_allow_html=True)
 
+        action_generate_col, action_remove_col = st.columns(2, gap="small")
         if file_path.exists():
-            if c3.button("Generate", key=f"{key_prefix}_compact_generate_{index}_{item.get('saved_name','')}", use_container_width=True):
+            if action_generate_col.button("Generate Results", key=f"{key_prefix}_compact_generate_{index}_{item.get('saved_name','')}", use_container_width=True):
                 try:
                     if track_name == TRACK_API:
                         generate_dashboard_from_json_paths([file_path], [Path(item.get("file_name", file_path.name)).stem])
@@ -2770,12 +2750,13 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
                 except Exception as exc:
                     st.error(f"Failed to generate saved report: {exc}")
         else:
-            c3.warning("Missing")
+            action_generate_col.warning("Missing")
 
-        if c4.button("Remove", key=f"{key_prefix}_compact_remove_{index}_{item.get('saved_name','')}", use_container_width=True):
+        if action_remove_col.button("Remove", key=f"{key_prefix}_compact_remove_{index}_{item.get('saved_name','')}", use_container_width=True):
             remove_saved_upload(item.get("saved_name", ""))
             st.success("Removed saved report.")
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def saved_reports_rows(uploads: List[Dict[str, str]]) -> pd.DataFrame:
@@ -3056,12 +3037,10 @@ elif team_upload_view:
             with st.container(border=True):
                 st.markdown("**UI Metrics (.csv)**")
                 ui_files = st.file_uploader("Upload UI CSV files", type=["csv"], accept_multiple_files=True, key="ui_csv_uploader")
-                ui_save_col, ui_gen_col = st.columns(2, gap="small")
-                if ui_save_col.button("Save UI CSV", key="save_ui_csv", use_container_width=True, disabled=not ui_files):
-                    save_uploaded_files_for_track(ui_files, TRACK_UI)
-                    st.success(f"Saved {len(ui_files)} UI CSV file(s).")
-                    st.rerun()
-                if ui_gen_col.button("Generate UI Results", key="generate_ui_results", type="primary", use_container_width=True, disabled=not ui_files):
+                st.checkbox("Save for team visibility", value=True, key="save_ui_reports_checkbox")
+                if st.button("Generate UI Results", key="generate_ui_results", type="primary", use_container_width=True, disabled=not ui_files):
+                    if st.session_state.get("save_ui_reports_checkbox", True):
+                        save_uploaded_files_for_track(ui_files, TRACK_UI)
                     generate_dashboard_from_uploaded_csv_files(TRACK_UI, ui_files)
                     st.success("Generated UI dashboard and report.")
                     st.rerun()
@@ -3071,12 +3050,10 @@ elif team_upload_view:
             with st.container(border=True):
                 st.markdown("**Cloud Assist Connector (.csv)**")
                 cloud_files = st.file_uploader("Upload Cloud Assist CSV files", type=["csv"], accept_multiple_files=True, key="cloud_csv_uploader")
-                cloud_save_col, cloud_gen_col = st.columns(2, gap="small")
-                if cloud_save_col.button("Save Cloud Assist CSV", key="save_cloud_csv", use_container_width=True, disabled=not cloud_files):
-                    save_uploaded_files_for_track(cloud_files, TRACK_CLOUD)
-                    st.success(f"Saved {len(cloud_files)} Cloud Assist CSV file(s).")
-                    st.rerun()
-                if cloud_gen_col.button("Generate Cloud Results", key="generate_cloud_results", type="primary", use_container_width=True, disabled=not cloud_files):
+                st.checkbox("Save for team visibility", value=True, key="save_cloud_reports_checkbox")
+                if st.button("Generate Cloud Results", key="generate_cloud_results", type="primary", use_container_width=True, disabled=not cloud_files):
+                    if st.session_state.get("save_cloud_reports_checkbox", True):
+                        save_uploaded_files_for_track(cloud_files, TRACK_CLOUD)
                     generate_dashboard_from_uploaded_csv_files(TRACK_CLOUD, cloud_files)
                     st.success("Generated Cloud Assist dashboard and report.")
                     st.rerun()
@@ -3086,12 +3063,10 @@ elif team_upload_view:
             with st.container(border=True):
                 st.markdown("**Customer Inventory Benchmarking (.csv)**")
                 inv_files = st.file_uploader("Upload Customer Inventory Benchmarking CSV files", type=["csv"], accept_multiple_files=True, key="inv_csv_uploader")
-                inv_save_col, inv_gen_col = st.columns(2, gap="small")
-                if inv_save_col.button("Save Inventory CSV", key="save_inventory_csv", use_container_width=True, disabled=not inv_files):
-                    save_uploaded_files_for_track(inv_files, TRACK_INVENTORY)
-                    st.success(f"Saved {len(inv_files)} Inventory CSV file(s).")
-                    st.rerun()
-                if inv_gen_col.button("Generate Inventory Results", key="generate_inventory_results", type="primary", use_container_width=True, disabled=not inv_files):
+                st.checkbox("Save for team visibility", value=True, key="save_inventory_reports_checkbox")
+                if st.button("Generate Inventory Results", key="generate_inventory_results", type="primary", use_container_width=True, disabled=not inv_files):
+                    if st.session_state.get("save_inventory_reports_checkbox", True):
+                        save_uploaded_files_for_track(inv_files, TRACK_INVENTORY)
                     generate_dashboard_from_uploaded_csv_files(TRACK_INVENTORY, inv_files)
                     st.success("Generated Customer Inventory Benchmarking dashboard and report.")
                     st.rerun()
