@@ -7,6 +7,7 @@ import json
 import hashlib
 import tempfile
 import uuid
+from io import BytesIO
 from typing import Dict, List, Tuple
 from datetime import datetime
 
@@ -27,6 +28,19 @@ TRACK_UI = "UI"
 TRACK_CLOUD = "Cloud Assist Connector"
 TRACK_INVENTORY = "Customer Inventory Benchmarking"
 
+UI_SLA_THRESHOLDS = {
+    "FCP": 1.8,
+    "LCP": 2.5,
+    "TBT": 0.2,
+    "CLS": 0.1,
+    "SI": 3.4,
+    "PERFORMANCE": 90.0,
+}
+NON_API_LATENCY_SLA_SEC = {
+    TRACK_CLOUD: 2.0,
+    TRACK_INVENTORY: 2.0,
+}
+
 st.set_page_config(page_title=APP_TITLE, layout="wide")
 
 
@@ -45,6 +59,9 @@ st.markdown("""
     border-radius: 12px !important;
     font-weight: 700 !important;
     height: 48px !important;
+}
+.stButton>button {
+    white-space: nowrap !important;
 }
 
 /* v59 main page exact polish */
@@ -2233,6 +2250,256 @@ def generate_dashboard_from_json_paths(json_paths: List[Path], labels: List[str]
         st.session_state.run_id = new_run_id
 
 
+def sanitize_column_name(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", str(name).strip().lower()).strip("_")
+
+
+def pick_first_matching_column(df: pd.DataFrame, patterns: List[str]) -> str | None:
+    for col in df.columns:
+        normalized = sanitize_column_name(col)
+        if any(re.search(pattern, normalized) for pattern in patterns):
+            return col
+    return None
+
+
+def to_numeric_series(df: pd.DataFrame, col: str | None) -> pd.Series:
+    if not col or col not in df.columns:
+        return pd.Series(dtype=float)
+    series = pd.to_numeric(df[col], errors="coerce").dropna()
+    return series.astype(float)
+
+
+def make_api_like_row(feature: str, scenario: str, values: pd.Series, sla_sec: float, higher_is_better: bool = False) -> Dict[str, object]:
+    if values.empty:
+        avg_v = min_v = max_v = p90_v = p95_v = p99_v = 0.0
+        sample_count = 0
+    else:
+        avg_v = round(float(values.mean()), 3)
+        min_v = round(float(values.min()), 3)
+        max_v = round(float(values.max()), 3)
+        p90_v = round(float(values.quantile(0.90)), 3)
+        p95_v = round(float(values.quantile(0.95)), 3)
+        p99_v = round(float(values.quantile(0.99)), 3)
+        sample_count = int(values.count())
+
+    if higher_is_better:
+        pass_status = avg_v >= float(sla_sec)
+        error_count = int((values < float(sla_sec)).sum()) if not values.empty else 0
+        breach_sec = round(max(float(sla_sec) - avg_v, 0.0), 3)
+    else:
+        pass_status = avg_v <= float(sla_sec)
+        error_count = int((values > float(sla_sec)).sum()) if not values.empty else 0
+        breach_sec = round(max(avg_v - float(sla_sec), 0.0), 3)
+
+    error_pct = round((error_count / sample_count) * 100, 3) if sample_count else 0.0
+    return {
+        "Feature": feature,
+        "Scenario": scenario,
+        "Endpoint": scenario,
+        "sampleCount": sample_count,
+        "errorCount": error_count,
+        "errorPct": error_pct,
+        "Avg ResTime in sec": avg_v,
+        "Min ResTime in sec": min_v,
+        "MaxRes Time in sec": max_v,
+        "90thPercentile Resp Time in Sec": p90_v,
+        "95thPercentile Resp Time in Sec": p95_v,
+        "99thPercentile Resp Time in Sec": p99_v,
+        "SLA Sec": float(sla_sec),
+        "SLA Status": "PASS" if pass_status else "FAIL",
+        "SLA Breach Sec": breach_sec,
+        "Track Type": feature,
+    }
+
+
+def build_api_like_df_from_csv(csv_path: Path, track_name: str) -> pd.DataFrame:
+    raw = pd.read_csv(csv_path)
+    if raw.empty:
+        return pd.DataFrame(columns=standard_api_cols(pd.DataFrame(columns=[
+            "Feature", "Scenario", "Endpoint", "sampleCount", "errorCount", "errorPct",
+            "Avg ResTime in sec", "Min ResTime in sec", "MaxRes Time in sec",
+            "90thPercentile Resp Time in Sec", "95thPercentile Resp Time in Sec", "99thPercentile Resp Time in Sec",
+            "SLA Sec", "SLA Status", "SLA Breach Sec",
+        ])))
+
+    rows: List[Dict[str, object]] = []
+
+    if track_name == TRACK_UI:
+        metric_map = {
+            "FCP": [r"\bfcp\b", r"first_contentful_paint"],
+            "LCP": [r"\blcp\b", r"largest_contentful_paint"],
+            "TBT": [r"\btbt\b", r"total_blocking_time"],
+            "CLS": [r"\bcls\b", r"cumulative_layout_shift"],
+            "SI": [r"\bsi\b", r"speed_index"],
+            "PERFORMANCE": [r"performance", r"perf_score", r"score"],
+        }
+        for metric, patterns in metric_map.items():
+            col = pick_first_matching_column(raw, patterns)
+            series = to_numeric_series(raw, col)
+            if series.empty:
+                continue
+            if metric == "PERFORMANCE":
+                rows.append(make_api_like_row("UI", metric, series, UI_SLA_THRESHOLDS[metric], higher_is_better=True))
+            else:
+                rows.append(make_api_like_row("UI", metric, series, UI_SLA_THRESHOLDS[metric], higher_is_better=False))
+    else:
+        avg_col = pick_first_matching_column(raw, [r"\bavg\b", r"average", r"mean", r"response_time", r"res_time", r"latency"]) or pick_first_matching_column(raw, [r"\btime\b", r"sec", r"ms"])
+        min_col = pick_first_matching_column(raw, [r"\bmin\b"])
+        max_col = pick_first_matching_column(raw, [r"\bmax\b"])
+        p90_col = pick_first_matching_column(raw, [r"\bp90\b", r"90th"])
+        p95_col = pick_first_matching_column(raw, [r"\bp95\b", r"95th"])
+        p99_col = pick_first_matching_column(raw, [r"\bp99\b", r"99th"])
+        sample_col = pick_first_matching_column(raw, [r"sample", r"count", r"requests", r"hits"])
+        error_col = pick_first_matching_column(raw, [r"error_count", r"errors", r"failed", r"failures"])
+        error_pct_col = pick_first_matching_column(raw, [r"error_pct", r"error_percent", r"failure_pct", r"failure_percent"])
+        feature_col = pick_first_matching_column(raw, [r"feature", r"track", r"module", r"component"])
+        scenario_col = pick_first_matching_column(raw, [r"scenario", r"transaction", r"name", r"endpoint", r"api"])
+
+        sla_sec = NON_API_LATENCY_SLA_SEC.get(track_name, 2.0)
+        for idx, row in raw.iterrows():
+            avg_v = float(pd.to_numeric(row.get(avg_col), errors="coerce") or 0)
+            min_v = float(pd.to_numeric(row.get(min_col), errors="coerce") or avg_v)
+            max_v = float(pd.to_numeric(row.get(max_col), errors="coerce") or avg_v)
+            p90_v = float(pd.to_numeric(row.get(p90_col), errors="coerce") or avg_v)
+            p95_v = float(pd.to_numeric(row.get(p95_col), errors="coerce") or avg_v)
+            p99_v = float(pd.to_numeric(row.get(p99_col), errors="coerce") or avg_v)
+            sample_count = int(pd.to_numeric(row.get(sample_col), errors="coerce") or 1)
+            error_count = int(pd.to_numeric(row.get(error_col), errors="coerce") or 0)
+            error_pct = float(pd.to_numeric(row.get(error_pct_col), errors="coerce") or (error_count / sample_count * 100 if sample_count else 0))
+            feature = str(row.get(feature_col) or track_name)
+            scenario = str(row.get(scenario_col) or f"{track_name}-{idx+1}")
+            pass_status = (avg_v <= sla_sec and min_v <= sla_sec and max_v <= sla_sec and p95_v <= sla_sec)
+            rows.append({
+                "Feature": feature,
+                "Scenario": scenario,
+                "Endpoint": scenario,
+                "sampleCount": sample_count,
+                "errorCount": error_count,
+                "errorPct": round(error_pct, 3),
+                "Avg ResTime in sec": round(avg_v, 3),
+                "Min ResTime in sec": round(min_v, 3),
+                "MaxRes Time in sec": round(max_v, 3),
+                "90thPercentile Resp Time in Sec": round(p90_v, 3),
+                "95thPercentile Resp Time in Sec": round(p95_v, 3),
+                "99thPercentile Resp Time in Sec": round(p99_v, 3),
+                "SLA Sec": float(sla_sec),
+                "SLA Status": "PASS" if pass_status else "FAIL",
+                "SLA Breach Sec": round(max(avg_v - sla_sec, 0.0), 3),
+                "Track Type": feature,
+            })
+
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return pd.DataFrame(columns=[
+            "Feature", "Scenario", "Endpoint", "sampleCount", "errorCount", "errorPct",
+            "Avg ResTime in sec", "Min ResTime in sec", "MaxRes Time in sec",
+            "90thPercentile Resp Time in Sec", "95thPercentile Resp Time in Sec", "99thPercentile Resp Time in Sec",
+            "SLA Sec", "SLA Status", "SLA Breach Sec", "Track Type",
+        ])
+    return df
+
+
+def build_excel_bytes_from_frames(run_frames: List[Dict[str, pd.DataFrame]]) -> bytes:
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        for index, frames in enumerate(run_frames, start=1):
+            label = str(frames.get("Label", f"Run_{index}"))
+            safe_label = re.sub(r"[^A-Za-z0-9_-]+", "_", label)[:20] or f"Run_{index}"
+            apis_df = frames.get("APIs", pd.DataFrame())
+            run_info = frames.get("Run_Info", pd.DataFrame())
+            apis_df.to_excel(writer, index=False, sheet_name=f"{safe_label}_APIs"[:31])
+            run_info.to_excel(writer, index=False, sheet_name=f"{safe_label}_Info"[:31])
+    return output.getvalue()
+
+
+def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dict[str, str] | None = None) -> None:
+    label = Path((item or {}).get("file_name", csv_path.name)).stem
+    inferred = infer_saved_report_info((item or {}).get("file_name", csv_path.name))
+    region = (item or {}).get("region") or inferred.get("region", "Unknown")
+
+    apis_df = build_api_like_df_from_csv(csv_path, track_name)
+    run_info = pd.DataFrame([{
+        "Report File": (item or {}).get("file_name", csv_path.name),
+        "Concurrent Users": (item or {}).get("users") or inferred.get("users", "N/A"),
+        "Devices Count": (item or {}).get("devices") or inferred.get("devices", "N/A"),
+        "Date": (item or {}).get("date") or inferred.get("date", "N/A"),
+        "Duration": (item or {}).get("duration") or inferred.get("duration", "N/A"),
+        "Region": region,
+        "Program": (item or {}).get("program", PROGRAM_SAAS),
+        "Track": track_name,
+    }])
+
+    run_frames = [{
+        "Label": label,
+        "Region": region,
+        "APIs": apis_df,
+        "Transactions": pd.DataFrame(),
+        "Errors": apis_df[apis_df.get("errorCount", 0) > 0].copy() if not apis_df.empty else pd.DataFrame(),
+        "Run_Info": run_info,
+    }]
+
+    excel_bytes = build_excel_bytes_from_frames(run_frames)
+    new_run_id = uuid.uuid4().hex
+    report_name = f"{track_name.replace(' ', '_')}_Report.xlsx"
+
+    dashboard_store[new_run_id] = {
+        "run_frames": run_frames,
+        "excel_bytes": excel_bytes,
+        "report_file_name": report_name,
+    }
+    st.session_state.excel_bytes = excel_bytes
+    st.session_state.run_frames = run_frames
+    st.session_state.report_file_name = report_name
+    st.session_state.messages = []
+    st.session_state.run_id = new_run_id
+
+
+def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) -> None:
+    run_frames: List[Dict[str, pd.DataFrame]] = []
+    for uploaded_file in uploaded_files:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{Path(uploaded_file.name).name}") as tmp:
+            tmp.write(uploaded_file.getvalue())
+            temp_path = Path(tmp.name)
+        inferred = infer_saved_report_info(uploaded_file.name)
+        apis_df = build_api_like_df_from_csv(temp_path, track_name)
+        run_info = pd.DataFrame([{
+            "Report File": uploaded_file.name,
+            "Concurrent Users": inferred.get("users", "N/A"),
+            "Devices Count": inferred.get("devices", "N/A"),
+            "Date": inferred.get("date", "N/A"),
+            "Duration": inferred.get("duration", "N/A"),
+            "Region": inferred.get("region", "Unknown"),
+            "Program": PROGRAM_SAAS,
+            "Track": track_name,
+        }])
+        run_frames.append({
+            "Label": Path(uploaded_file.name).stem,
+            "Region": inferred.get("region", "Unknown"),
+            "APIs": apis_df,
+            "Transactions": pd.DataFrame(),
+            "Errors": apis_df[apis_df.get("errorCount", 0) > 0].copy() if not apis_df.empty else pd.DataFrame(),
+            "Run_Info": run_info,
+        })
+        try:
+            temp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+    excel_bytes = build_excel_bytes_from_frames(run_frames)
+    new_run_id = uuid.uuid4().hex
+    report_name = f"{track_name.replace(' ', '_')}_Report.xlsx"
+    dashboard_store[new_run_id] = {
+        "run_frames": run_frames,
+        "excel_bytes": excel_bytes,
+        "report_file_name": report_name,
+    }
+    st.session_state.excel_bytes = excel_bytes
+    st.session_state.run_frames = run_frames
+    st.session_state.report_file_name = report_name
+    st.session_state.messages = []
+    st.session_state.run_id = new_run_id
+
+
 
 def render_latest_uploads_panel() -> None:
     uploads = normalize_saved_uploads(load_saved_uploads())
@@ -2413,23 +2680,72 @@ def render_management_landing_page() -> None:
 
 
 def render_api_saved_reports_compact() -> None:
+    render_saved_reports_compact_for_track(TRACK_API, title="Saved API Reports", key_prefix="api")
+
+
+def render_saved_reports_compact_for_track(track_name: str, title: str | None = None, key_prefix: str = "track") -> None:
     uploads = normalize_saved_uploads(load_saved_uploads())
-    api_uploads = [
+    track_uploads = [
         item for item in uploads
-        if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == TRACK_API
+        if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == track_name
     ]
-    if not api_uploads:
-        st.info("No saved API reports yet.")
+    if not track_uploads:
+        st.info(f"No saved {track_name} reports yet.")
         return
 
-    st.markdown("**Saved API Reports**")
-    h1, h2, h3, h4 = st.columns([2.3, 1.2, 1.1, 0.9])
-    h1.markdown("**Report Name**")
-    h2.markdown("**Date**")
-    h3.markdown("**Generate**")
-    h4.markdown("**Remove**")
+    if title:
+        st.markdown(f"**{title}**")
+    else:
+        st.markdown(f"**Saved {track_name} Reports**")
 
-    for index, item in enumerate(api_uploads, start=1):
+    st.markdown(
+        """
+<style>
+.compact-saved-wrap {
+    width: 100%;
+}
+.compact-saved-head, .compact-saved-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2.4fr) minmax(110px, 1fr) minmax(120px, 0.95fr) minmax(100px, 0.8fr);
+    gap: 10px;
+    align-items: center;
+}
+.compact-saved-head {
+    padding: 2px 4px 6px 4px;
+    color: #0f2b68;
+    font-size: 13px;
+    font-weight: 800;
+}
+.compact-saved-row {
+    background: #f8fbff;
+    border: 1px solid #dbe4f0;
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+.compact-saved-cell-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.compact-saved-cell-date {
+    font-size: 13px;
+    color: #334155;
+}
+</style>
+<div class="compact-saved-wrap">
+  <div class="compact-saved-head">
+    <div>Report Name</div>
+    <div>Date</div>
+    <div>Generate</div>
+    <div>Remove</div>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+    for index, item in enumerate(track_uploads, start=1):
         file_path = SAVED_REPORTS_DIR / item.get("saved_name", "")
         inferred = infer_saved_report_info(item.get("file_name", ""))
         region = item.get("region") or inferred.get("region", "Unknown")
@@ -2438,22 +2754,25 @@ def render_api_saved_reports_compact() -> None:
         date = item.get("date") or inferred.get("date", "N/A")
         report_name = f"{region}, {users}VU, {devices}"
 
-        c1, c2, c3, c4 = st.columns([2.3, 1.2, 1.1, 0.9])
-        c1.write(report_name)
-        c2.write(date)
+        c1, c2, c3, c4 = st.columns([2.4, 1.0, 0.95, 0.8], gap="small")
+        c1.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
+        c2.markdown(f'<div class="compact-saved-cell-date">{date}</div>', unsafe_allow_html=True)
 
         if file_path.exists():
-            if c3.button("Generate", key=f"api_compact_generate_{index}_{item.get('saved_name','')}", use_container_width=True):
+            if c3.button("Generate", key=f"{key_prefix}_compact_generate_{index}_{item.get('saved_name','')}", use_container_width=True):
                 try:
-                    generate_dashboard_from_json_paths([file_path], [Path(item.get("file_name", file_path.name)).stem])
-                    st.success(f"Generated dashboard for {item.get('file_name', file_path.name)}")
+                    if track_name == TRACK_API:
+                        generate_dashboard_from_json_paths([file_path], [Path(item.get("file_name", file_path.name)).stem])
+                    else:
+                        generate_dashboard_from_saved_csv(track_name, file_path, item)
+                    st.success(f"Generated {track_name} results for {item.get('file_name', file_path.name)}")
                     st.rerun()
                 except Exception as exc:
                     st.error(f"Failed to generate saved report: {exc}")
         else:
             c3.warning("Missing")
 
-        if c4.button("Remove", key=f"api_compact_remove_{index}_{item.get('saved_name','')}", use_container_width=True):
+        if c4.button("Remove", key=f"{key_prefix}_compact_remove_{index}_{item.get('saved_name','')}", use_container_width=True):
             remove_saved_upload(item.get("saved_name", ""))
             st.success("Removed saved report.")
             st.rerun()
@@ -2737,28 +3056,46 @@ elif team_upload_view:
             with st.container(border=True):
                 st.markdown("**UI Metrics (.csv)**")
                 ui_files = st.file_uploader("Upload UI CSV files", type=["csv"], accept_multiple_files=True, key="ui_csv_uploader")
-                if st.button("Save UI CSV", key="save_ui_csv", use_container_width=True, disabled=not ui_files):
+                ui_save_col, ui_gen_col = st.columns(2, gap="small")
+                if ui_save_col.button("Save UI CSV", key="save_ui_csv", use_container_width=True, disabled=not ui_files):
                     save_uploaded_files_for_track(ui_files, TRACK_UI)
                     st.success(f"Saved {len(ui_files)} UI CSV file(s).")
                     st.rerun()
+                if ui_gen_col.button("Generate UI Results", key="generate_ui_results", type="primary", use_container_width=True, disabled=not ui_files):
+                    generate_dashboard_from_uploaded_csv_files(TRACK_UI, ui_files)
+                    st.success("Generated UI dashboard and report.")
+                    st.rerun()
+                render_saved_reports_compact_for_track(TRACK_UI, title="Saved UI Reports", key_prefix="ui")
 
         with cloud_col:
             with st.container(border=True):
                 st.markdown("**Cloud Assist Connector (.csv)**")
                 cloud_files = st.file_uploader("Upload Cloud Assist CSV files", type=["csv"], accept_multiple_files=True, key="cloud_csv_uploader")
-                if st.button("Save Cloud Assist CSV", key="save_cloud_csv", use_container_width=True, disabled=not cloud_files):
+                cloud_save_col, cloud_gen_col = st.columns(2, gap="small")
+                if cloud_save_col.button("Save Cloud Assist CSV", key="save_cloud_csv", use_container_width=True, disabled=not cloud_files):
                     save_uploaded_files_for_track(cloud_files, TRACK_CLOUD)
                     st.success(f"Saved {len(cloud_files)} Cloud Assist CSV file(s).")
                     st.rerun()
+                if cloud_gen_col.button("Generate Cloud Results", key="generate_cloud_results", type="primary", use_container_width=True, disabled=not cloud_files):
+                    generate_dashboard_from_uploaded_csv_files(TRACK_CLOUD, cloud_files)
+                    st.success("Generated Cloud Assist dashboard and report.")
+                    st.rerun()
+                render_saved_reports_compact_for_track(TRACK_CLOUD, title="Saved Cloud Reports", key_prefix="cloud")
 
         with inv_col:
             with st.container(border=True):
-                st.markdown("**Customer Inventory (.csv)**")
-                inv_files = st.file_uploader("Upload Inventory CSV files", type=["csv"], accept_multiple_files=True, key="inv_csv_uploader")
-                if st.button("Save Inventory CSV", key="save_inventory_csv", use_container_width=True, disabled=not inv_files):
+                st.markdown("**Customer Inventory Benchmarking (.csv)**")
+                inv_files = st.file_uploader("Upload Customer Inventory Benchmarking CSV files", type=["csv"], accept_multiple_files=True, key="inv_csv_uploader")
+                inv_save_col, inv_gen_col = st.columns(2, gap="small")
+                if inv_save_col.button("Save Inventory CSV", key="save_inventory_csv", use_container_width=True, disabled=not inv_files):
                     save_uploaded_files_for_track(inv_files, TRACK_INVENTORY)
                     st.success(f"Saved {len(inv_files)} Inventory CSV file(s).")
                     st.rerun()
+                if inv_gen_col.button("Generate Inventory Results", key="generate_inventory_results", type="primary", use_container_width=True, disabled=not inv_files):
+                    generate_dashboard_from_uploaded_csv_files(TRACK_INVENTORY, inv_files)
+                    st.success("Generated Customer Inventory Benchmarking dashboard and report.")
+                    st.rerun()
+                render_saved_reports_compact_for_track(TRACK_INVENTORY, title="Saved Inventory Reports", key_prefix="inventory")
 
         render_action_cards()
 else:
