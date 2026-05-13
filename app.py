@@ -46,6 +46,943 @@ NON_API_LATENCY_SLA_SEC = {
 st.set_page_config(page_title=APP_TITLE, layout="wide")
 
 
+st.markdown("""
+<style>
+.stFileUploader {
+    background: white;
+    border-radius: 18px;
+    padding: 14px;
+    border: 1px solid #dbe4f0;
+    box-shadow: 0 8px 24px rgba(15,23,42,.05);
+}
+.stButton>button[kind="primary"] {
+    background: linear-gradient(90deg,#2563eb,#7c3aed) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    height: 48px !important;
+}
+.stButton>button {
+    white-space: nowrap !important;
+}
+.stCheckbox input[type="checkbox"] {
+    accent-color: #2563eb !important;
+}
+[data-testid="stCheckbox"] div[role="checkbox"] {
+    border-color: #93c5fd !important;
+}
+[data-testid="stCheckbox"] div[role="checkbox"][aria-checked="true"] {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+}
+
+/* v59 main page exact polish */
+.hero-title-box {
+    display: table;
+    margin: 12px auto 8px auto;
+    width: auto;
+    max-width: fit-content;
+    background: linear-gradient(135deg,#07132f 0%, #102a63 55%, #2d2b7f 100%);
+    color: white;
+    border-radius: 13px;
+    padding: 10px 16px;
+    box-shadow: 0 10px 22px rgba(7,19,47,.16);
+}
+.hero-title-box h1 {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.12;
+    font-weight: 850;
+    white-space: nowrap;
+}
+.hero-subtitle {
+    text-align: center;
+    color: #334155;
+    font-size: 14px;
+    margin: 0 auto 16px auto;
+    max-width: 980px;
+}
+
+/* v61 dashboard header + tabs polish */
+.top-nav {
+    background: linear-gradient(90deg,#06122f 0%, #081a3f 54%, #0b1f55 100%) !important;
+    color:white !important;
+    border-radius: 0 0 16px 16px !important;
+    padding: 14px 22px !important;
+    margin: -0.6rem -1rem 12px -1rem !important;
+    box-shadow: 0 10px 28px rgba(6,18,47,.22) !important;
+}
+.brand-icon {
+    width:40px !important;
+    height:40px !important;
+    border-radius:12px !important;
+    background:linear-gradient(135deg,#2563eb,#7c3aed) !important;
+    font-size:20px !important;
+}
+.brand-title {
+    font-size:22px !important;
+    font-weight:900 !important;
+    letter-spacing:-.35px !important;
+}
+.brand-sub {
+    font-size:12px !important;
+    opacity:.82 !important;
+}
+.nav-time {
+    font-size:12px !important;
+    opacity:.88 !important;
+}
+
+.region-field-label {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #0f2b68 !important;
+    margin: 0 0 6px 2px !important;
+}
+
+.track-upload-card {
+    background: #ffffff;
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(15,23,42,.05);
+    margin-bottom: 10px;
+}
+
+/* Streamlit radio used as dashboard tabs */
+div[role="radiogroup"] {
+    display:flex !important;
+    justify-content:center !important;
+    gap:14px !important;
+    background: #ffffff !important;
+    border: 1px solid #dbe4f0 !important;
+    border-radius: 14px !important;
+    padding: 10px !important;
+    margin: 0 0 14px 0 !important;
+    box-shadow: 0 8px 20px rgba(15,23,42,.045) !important;
+}
+div[role="radiogroup"] label {
+    background: #f8fbff !important;
+    border: 1px solid #e0e7f3 !important;
+    border-radius: 12px !important;
+    padding: 8px 14px !important;
+    min-width: 118px !important;
+    text-align: center !important;
+    font-weight: 800 !important;
+    color: #0f2b68 !important;
+    transition: .15s ease-in-out !important;
+}
+div[role="radiogroup"] label:hover {
+    border-color:#2563eb !important;
+    box-shadow:0 8px 18px rgba(37,99,235,.12) !important;
+}
+div[role="radiogroup"] label[data-baseweb="radio"] > div:first-child {
+    display:none !important;
+}
+div[role="radiogroup"] label:has(input:checked) {
+    background: linear-gradient(90deg,#4f46e5,#2563eb) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 12px 24px rgba(37,99,235,.28) !important;
+}
+
+/* Overview title strip */
+.overview-title-card {
+    background:#ffffff;
+    border:1px solid #dbe4f0;
+    border-radius:16px;
+    padding:0;
+    box-shadow:0 8px 22px rgba(15,23,42,.05);
+    margin-bottom:12px;
+}
+.overview-title-pill {
+    display:inline-block;
+    background:linear-gradient(90deg,#2333a3,#3152d9);
+    color:white;
+    padding:9px 18px;
+    border-radius:12px 12px 12px 0;
+    font-size:15px;
+    font-weight:900;
+    letter-spacing:.2px;
+    margin:0 0 8px 0;
+}
+.overview-title-sub {
+    color:#667085;
+    font-size:13px;
+    padding:0 18px 12px 18px;
+}
+
+
+/* v62 Aggregated summary cards like reference image */
+.agg-summary-card {
+    background:#ffffff;
+    border:1px solid #dbe4f0;
+    border-radius:18px;
+    padding:0 0 12px 0;
+    box-shadow:0 18px 42px rgba(15,23,42,.075);
+    margin-bottom:16px;
+    overflow:hidden;
+}
+.agg-summary-title {
+    display:inline-block;
+    background:linear-gradient(90deg,#0f2b68,#2563eb 60%,#7c3aed);
+    color:#ffffff;
+    padding:9px 18px;
+    border-radius:0 0 14px 0;
+    font-size:15px;
+    font-weight:900;
+    letter-spacing:.2px;
+    margin:0 0 8px 0;
+}
+.agg-kpi-row {
+    display:grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap:0;
+    padding:10px 16px 0 16px;
+}
+.agg-kpi {
+    display:flex;
+    align-items:center;
+    gap:14px;
+    min-height:122px;
+    padding:10px 18px;
+    border-right:1px solid #e5edf7;
+}
+.agg-kpi:last-child {
+    border-right:none;
+}
+.agg-icon {
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:23px;
+    font-weight:900;
+    box-shadow:0 10px 20px rgba(15,23,42,.16);
+    flex:0 0 48px;
+}
+.agg-label {
+    font-size:13px;
+    font-weight:850;
+    color:#111827;
+    margin-bottom:8px;
+}
+.agg-value {
+    font-size:28px;
+    font-weight:900;
+    color:#111827;
+    line-height:1.0;
+    letter-spacing:-.4px;
+}
+.agg-suffix {
+    font-size:13px;
+    color:#667085;
+    font-weight:650;
+    margin-left:5px;
+}
+.agg-delta {
+    font-size:12px;
+    margin-top:10px;
+    color:#667085;
+    font-weight:650;
+}
+.agg-delta.good { color:#15803d; }
+.agg-delta.bad { color:#ef4444; }
+.agg-spark {
+    width:132px;
+    height:24px;
+    margin-top:9px;
+}
+@media(max-width:1100px){
+  .agg-kpi-row {grid-template-columns: repeat(2, 1fr);}
+  .agg-kpi:nth-child(2n){border-right:none;}
+}
+
+
+/* v66 clickable top dashboard buttons */
+.nav-button-row {
+    background:#ffffff;
+    border:1px solid #dbe4f0;
+    border-radius:14px;
+    padding:10px;
+    margin-bottom:14px;
+    box-shadow:0 8px 20px rgba(15,23,42,.045);
+}
+.nav-button-row + div button, .stButton > button {
+    border-radius:12px !important;
+    font-weight:800 !important;
+}
+
+/* v79 Executive main background polish */
+.stApp {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(37,99,235,.10), transparent 28%),
+    radial-gradient(circle at 92% 10%, rgba(124,58,237,.12), transparent 24%),
+    linear-gradient(135deg,#eef5ff 0%, #f8fbff 44%, #f2f5ff 100%) !important;
+}
+.main-page-card, .upload-card {
+  border: 1px solid rgba(37,99,235,.12) !important;
+  box-shadow: 0 14px 34px rgba(15,23,42,.08) !important;
+}
+.main-page-card {
+  background:rgba(255,255,255,.94) !important;
+  border-radius:20px !important;
+  backdrop-filter: blur(12px) !important;
+}
+.stFileUploader {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px dashed rgba(37,99,235,.28) !important;
+  border-radius: 18px !important;
+  padding: 14px !important;
+  box-shadow: 0 10px 28px rgba(15,23,42,.06) !important;
+}
+.stButton > button, .stDownloadButton > button {
+  border-radius:14px !important;
+  border:1px solid rgba(37,99,235,.18) !important;
+  box-shadow:0 10px 24px rgba(15,23,42,.07) !important;
+  min-height:44px !important;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+  border-color:#2563eb !important;
+  box-shadow:0 14px 28px rgba(37,99,235,.16) !important;
+  transform:translateY(-1px) !important;
+}
+.stDataFrame, [data-testid="stDataFrame"] {
+  border-radius:16px !important;
+  overflow:hidden !important;
+  box-shadow:0 12px 28px rgba(15,23,42,.045) !important;
+}
+
+
+/* FINAL UI POLISH: compact tabs/cards and reliable active button look */
+div[data-testid="stHorizontalBlock"] .stButton > button {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  border-radius: 10px !important;
+  line-height: 1.1 !important;
+}
+.nav-button-row {
+  padding: 6px !important;
+  margin-bottom: 8px !important;
+}
+.track-upload-card {
+  padding: 10px 12px !important;
+  margin-bottom: 8px !important;
+}
+[data-testid="stFileUploader"] {
+  padding: 10px !important;
+  min-height: 62px !important;
+}
+[data-testid="stFileUploaderDropzone"] {
+  min-height: 74px !important;
+  padding: 10px 12px !important;
+}
+[data-testid="stFileUploaderFile"] {
+  margin-top: 6px !important;
+  min-height: 34px !important;
+  border-radius: 999px !important;
+  border: 1px solid #d5e1f2 !important;
+  background: #f8fbff !important;
+  padding: 6px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+[data-testid="stFileUploaderFileName"] {
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+div[data-testid="stDataFrame"] {
+  margin-bottom: 0 !important;
+}
+
+
+/* ENTERPRISE NAV POLISH - hierarchy: Programs > Program Tracks > Dashboard Tabs */
+.enterprise-nav-shell {
+  background: rgba(255,255,255,.96);
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  padding: 12px 14px 14px 14px;
+  margin: 8px 0 14px 0;
+  box-shadow: 0 12px 30px rgba(15,23,42,.06);
+}
+.nav-section-label {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+  color: #0f2b68;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  margin: 2px 0 7px 2px;
+}
+.nav-section-sub {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 700;
+  margin: -2px 0 7px 2px;
+}
+.region-filter-card {
+  background: linear-gradient(135deg,#f8fbff,#eef4ff);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 8px 10px 10px 10px;
+  min-height: 74px;
+  box-shadow: 0 8px 20px rgba(37,99,235,.06);
+}
+.region-filter-card .region-field-label {
+  font-size: 11px !important;
+  margin: 0 0 4px 0 !important;
+}
+.region-filter-card [data-testid="stSelectbox"] {
+  margin-top: -8px !important;
+}
+.region-filter-card [data-baseweb="select"] > div {
+  min-height: 34px !important;
+  border-radius: 10px !important;
+  font-size: 12px !important;
+}
+
+/* Compact program and track tab buttons */
+div[data-testid="stHorizontalBlock"] .stButton > button {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 5px 9px !important;
+  font-size: 11.5px !important;
+  line-height: 1.05 !important;
+  border-radius: 10px !important;
+  font-weight: 850 !important;
+  box-shadow: 0 6px 14px rgba(15,23,42,.055) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Dashboard tabs should look like smaller executive tabs */
+.dashboard-tabs-row {
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 14px;
+  padding: 7px;
+  margin: 2px 0 10px 0;
+  box-shadow: 0 8px 18px rgba(15,23,42,.04);
+}
+.dashboard-tabs-row + div .stButton > button {
+  min-height: 34px !important;
+  height: 34px !important;
+  font-size: 11.5px !important;
+}
+
+/* Better exact-fit track cards / upload cards */
+.track-upload-card, .main-page-card, .upload-card {
+  border-radius: 16px !important;
+}
+.track-upload-card {
+  padding: 10px 11px !important;
+  margin-bottom: 8px !important;
+  min-height: auto !important;
+}
+[data-testid="stFileUploader"] {
+  padding: 10px !important;
+  min-height: 60px !important;
+}
+[data-testid="stFileUploaderDropzone"] {
+  min-height: 72px !important;
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+}
+[data-testid="stFileUploader"] section {
+  padding: 8px !important;
+}
+.stButton > button, .stDownloadButton > button {
+  min-height: 36px !important;
+}
+.panel-title {
+  margin-bottom: 8px !important;
+}
+.side-card {
+  padding: 12px !important;
+  border-radius: 16px !important;
+}
+.block-container {
+  max-width: 1600px !important;
+  padding-top: .4rem !important;
+}
+
+
+/* FINAL CLEANUP: remove empty pill bars and tighten enterprise nav */
+.enterprise-nav-shell {
+  padding: 8px 10px 10px 10px !important;
+  margin: 4px 0 10px 0 !important;
+  border-radius: 14px !important;
+}
+.nav-section-label {
+  margin: 0 0 4px 1px !important;
+  font-size: 10px !important;
+}
+.nav-section-sub {
+  display: none !important;
+}
+.dashboard-tabs-row {
+  padding: 5px !important;
+  margin: 0 0 6px 0 !important;
+  border-radius: 12px !important;
+}
+.region-filter-card {
+  padding: 5px 7px 7px 7px !important;
+  min-height: 50px !important;
+  border-radius: 12px !important;
+}
+.region-filter-card .region-field-label {
+  font-size: 10px !important;
+  margin-bottom: 2px !important;
+}
+.region-filter-card [data-testid="stSelectbox"] {
+  margin-top: -10px !important;
+}
+.region-filter-card [data-baseweb="select"] > div {
+  min-height: 30px !important;
+  height: 30px !important;
+  border-radius: 9px !important;
+}
+div[data-testid="stHorizontalBlock"] .stButton > button,
+.dashboard-tabs-row + div .stButton > button {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 3px 8px !important;
+  font-size: 10.5px !important;
+  border-radius: 9px !important;
+}
+
+/* remove blank saved-report filename placeholder bars */
+.saved-report-name-box,
+.empty-file-name-box,
+.report-name-placeholder,
+div:empty[class*="saved"],
+div:empty[class*="placeholder"] {
+  display: none !important;
+}
+
+/* defensive: hide empty custom html pill bars */
+div[style*="border-radius:999px"]:empty,
+div[style*="border-radius: 999px"]:empty,
+div[style*="height:34px"]:empty,
+div[style*="height: 34px"]:empty {
+  display: none !important;
+}
+
+/* reduce accidental whitespace from markdown-only separators */
+[data-testid="stMarkdownContainer"] p:empty {
+  display: none !important;
+}
+[data-testid="stMarkdownContainer"]:has(p:empty) {
+  margin: 0 !important;
+}
+
+
+/* SCREENSHOT STYLE DASHBOARD NAV - Programs left, tracks/views right */
+.sshot-wrapper {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 18px;
+  background: rgba(255,255,255,.94);
+  border: 1px solid #dbe4f0;
+  border-radius: 22px;
+  margin: 12px 0 10px 0;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 18px 44px rgba(15,23,42,.075);
+}
+.sshot-left {
+  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+  padding: 17px 16px 16px 16px;
+  min-height: 222px;
+}
+.sshot-right {
+  padding: 18px 18px 16px 0;
+}
+.sshot-title {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  margin: 0 0 10px 2px;
+  color: #0f2b68;
+}
+.sshot-left .sshot-title {
+  color: white;
+}
+.sshot-region-card {
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 10px 11px 12px 11px;
+  box-shadow: 0 12px 24px rgba(15,23,42,.055);
+  min-height: 86px;
+}
+.sshot-region-card [data-testid="stSelectbox"] {
+  margin-top: -8px !important;
+}
+.sshot-region-card [data-baseweb="select"] > div {
+  min-height: 36px !important;
+  height: 36px !important;
+  border-radius: 11px !important;
+  font-size: 12px !important;
+}
+.sshot-wrapper .stButton > button, .sshot-tabs .stButton > button {
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 6px 14px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  white-space: nowrap !important;
+  line-height: 1.05 !important;
+  border: 1px solid #dbe4f0 !important;
+  box-shadow: 0 8px 18px rgba(15,23,42,.06) !important;
+}
+.sshot-left .stButton > button {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+.sshot-left .stButton > button[kind="primary"] {
+  background: #ffffff !important;
+  color: #4f46e5 !important;
+  border-color: rgba(255,255,255,.8) !important;
+  box-shadow: 0 12px 24px rgba(15,23,42,.16) !important;
+}
+.sshot-right .stButton > button[kind="primary"], .sshot-tabs .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg,#2563eb,#7c3aed) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+.sshot-right .stButton > button[kind="secondary"], .sshot-tabs .stButton > button[kind="secondary"] {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+.sshot-wrapper [data-testid="stVerticalBlock"] {
+  gap: .38rem !important;
+}
+.sshot-tabs {
+  background: rgba(255,255,255,.94);
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  padding: 12px 14px 14px 14px;
+  margin: 0 0 14px 378px;
+  box-shadow: 0 14px 32px rgba(15,23,42,.055);
+}
+/* remove all old blank bars */
+.exec-empty-space,
+.saved-report-name-box,
+.empty-file-name-box,
+.report-name-placeholder,
+div[style*="border-radius:999px"]:empty,
+div[style*="border-radius: 999px"]:empty,
+div[style*="height:34px"]:empty,
+div[style*="height: 34px"]:empty,
+div[style*="min-height:34px"]:empty,
+div[style*="min-height: 34px"]:empty {
+  display: none !important;
+}
+@media(max-width:1100px){
+  .sshot-wrapper { grid-template-columns: 1fr; }
+  .sshot-right { padding: 14px; }
+  .sshot-tabs { margin-left: 0; }
+}
+
+
+/* HEADER REMOVED + PROGRAMS INSIDE BLUE PANEL */
+.sshot-wrapper{
+  overflow: hidden !important;
+}
+.sshot-left{
+  border-top-left-radius: 22px;
+  border-bottom-left-radius: 22px;
+}
+
+
+/* EXACT NAV LAYOUT FIX - matches requested screenshot using real Streamlit columns */
+.exact-nav-anchor {
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] {
+  background: rgba(255,255,255,.94) !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  box-shadow: 0 18px 44px rgba(15,23,42,.075) !important;
+  margin: 12px 0 14px 0 !important;
+  gap: 0 !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child {
+  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%) !important;
+  padding: 16px 16px 14px 16px !important;
+  min-height: 248px !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) {
+  padding: 16px 18px 14px 18px !important;
+}
+.exact-label {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  margin: 0 0 10px 0;
+  color: #0f2b68;
+}
+.exact-label.white {
+  color: #ffffff;
+}
+/* Button styles inside exact nav */
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] .stButton > button {
+  height: 42px !important;
+  min-height: 42px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  border: 1px solid #dbe4f0 !important;
+  box-shadow: 0 8px 18px rgba(15,23,42,.06) !important;
+  white-space: nowrap !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button[kind="secondary"] {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button[kind="primary"] {
+  background: #ffffff !important;
+  color: #4f46e5 !important;
+  border-color: rgba(255,255,255,.8) !important;
+  box-shadow: 0 12px 24px rgba(15,23,42,.16) !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg,#2563eb,#7c3aed) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button[kind="secondary"] {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+/* Region filter exact compact card */
+.exact-region-card {
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 10px 11px 12px 11px;
+  box-shadow: 0 12px 24px rgba(15,23,42,.055);
+  min-height: 88px;
+  margin-top: 0;
+}
+.exact-region-card [data-testid="stSelectbox"] { margin-top: -8px !important; }
+.exact-region-card [data-baseweb="select"] > div {
+  min-height: 36px !important;
+  height: 36px !important;
+  border-radius: 11px !important;
+  font-size: 12px !important;
+}
+/* Remove old accidental blank bars/boxes */
+.sshot-left, .sshot-right, .sshot-wrapper, .sshot-tabs,
+.exec-nav-card, .enterprise-nav-shell {
+  all: unset;
+}
+div[style*="border-radius:999px"]:empty,
+div[style*="border-radius: 999px"]:empty,
+div[style*="height:34px"]:empty,
+div[style*="height: 34px"]:empty,
+div[style*="height: 70px"]:empty,
+div[style*="height:70px"]:empty,
+.saved-report-name-box,
+.empty-file-name-box,
+.report-name-placeholder,
+.exec-empty-space {
+  display: none !important;
+}
+@media(max-width:1100px){
+  .exact-nav-anchor + div[data-testid="stHorizontalBlock"] {
+    display: block !important;
+  }
+}
+
+
+/* FINAL HTML NAV MATCH - fixed screenshot-style layout */
+.ciq-nav-wrap {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 18px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid #dbe4f0;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 18px 44px rgba(15,23,42,.075);
+  margin: 12px 0 16px 0;
+}
+.ciq-program-panel {
+  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+  padding: 18px 16px 18px 16px;
+  min-height: 224px;
+}
+.ciq-main-panel {
+  padding: 18px 18px 16px 0;
+}
+.ciq-title {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  color: #0f2b68;
+}
+.ciq-program-panel .ciq-title {
+  color: #fff;
+}
+.ciq-program-link,
+.ciq-track-link,
+.ciq-tab-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 850;
+  text-decoration: none !important;
+  box-sizing: border-box;
+}
+.ciq-program-link {
+  justify-content: flex-start;
+  padding: 0 14px;
+  color: #fff !important;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+}
+.ciq-program-link.active {
+  background: #fff;
+  color: #4f46e5 !important;
+  border-color: rgba(255,255,255,.8);
+  box-shadow: 0 12px 24px rgba(15,23,42,.16);
+}
+.ciq-track-grid {
+  display: grid;
+  grid-template-columns: .58fr .68fr 1.55fr 1.95fr 190px;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+.ciq-track-link,
+.ciq-tab-link {
+  color: #111827 !important;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  box-shadow: 0 8px 18px rgba(15,23,42,.06);
+  padding: 0 10px;
+  white-space: nowrap;
+}
+.ciq-track-link.active,
+.ciq-tab-link.active {
+  color: #fff !important;
+  background: linear-gradient(90deg,#2563eb,#7c3aed);
+  border-color: transparent;
+}
+.ciq-region-card {
+  grid-row: span 2;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 11px;
+  min-height: 92px;
+  box-shadow: 0 12px 24px rgba(15,23,42,.055);
+}
+.ciq-region-title {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #0f2b68;
+  margin-bottom: 8px;
+}
+.ciq-region-select {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #dbe4f0;
+  border-radius: 11px;
+  background: #f8fafc;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #111827;
+}
+.ciq-tab-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.42fr 1.32fr 1.15fr 190px;
+  gap: 14px;
+  align-items: start;
+}
+.ciq-spacer {
+  width: 190px;
+}
+@media(max-width:1100px){
+  .ciq-nav-wrap { grid-template-columns: 1fr; }
+  .ciq-main-panel { padding: 16px; }
+  .ciq-track-grid, .ciq-tab-grid { grid-template-columns: 1fr; }
+  .ciq-spacer { display:none; }
+}
+
+
+/* CLEAN UPLOAD PAGE ONLY - do not affect login or dashboard */
+.clean-upload-page-marker + div,
+body:has(.clean-upload-page-marker) .block-container {
+  max-width: 1480px !important;
+}
+
+/* 2x2 upload cards - neat, compact, readable */
+body:has(.clean-upload-page-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid #dbe4f0 !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.045) !important;
+}
+
+body:has(.clean-upload-page-marker) [data-testid="stFileUploader"] {
+  padding: 10px !important;
+}
+
+body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] {
+  min-height: 78px !important;
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+}
+
+body:has(.clean-upload-page-marker) .stButton > button {
+  min-height: 38px !important;
+  border-radius: 11px !important;
+}
+
+/* Hide the three lower shortcut cards only on upload page:
+   Executive Dashboard / Excel Report / AI Chatbot */
+body:has(.clean-upload-page-marker) .main-page-card,
+body:has(.clean-upload-page-marker) .feature-grid,
+body:has(.clean-upload-page-marker) .quick-grid,
+body:has(.clean-upload-page-marker) .upload-page-quick-row {
+  display: none !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 params = st.query_params
 view_param = str(params.get("view", "")).strip().strip("./ ").lower()
@@ -390,169 +1327,6 @@ div[data-testid="stMetricValue"] {
     color: #111827 !important;
 }
 
-
-/* NO BOTTOM SHORTCUT CARDS */
-body:has(.native-upload-marker) .main-page-card,
-body:has(.native-upload-marker) .feature-grid,
-body:has(.native-upload-marker) .quick-grid,
-body:has(.native-upload-marker) .upload-page-quick-row {
-  display: none !important;
-}
-
-
-/* EXPECTED UPLOAD PAGE FINAL MATCH */
-body:has(.native-upload-marker) .block-container {
-  max-width: none !important;
-  padding: 112px 28px 18px 28px !important;
-}
-
-/* Remove duplicate page title text under topbar */
-body:has(.native-upload-marker) .hero-title-box,
-body:has(.native-upload-marker) .hero-subtitle,
-body:has(.native-upload-marker) h1,
-body:has(.native-upload-marker) h2:has(+ div),
-body:has(.native-upload-marker) [data-testid="stMarkdownContainer"] > div:has(.hero-title-box) {
-  display: none !important;
-}
-
-/* Top bar */
-.native-topbar {
-  height: 82px !important;
-  left: 248px !important;
-  right: 0 !important;
-  top: 0 !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid #dbe4f0 !important;
-  padding: 0 30px 0 34px !important;
-}
-.native-top-title {
-  font-size: 22px !important;
-  font-weight: 950 !important;
-  color: #0f172a !important;
-}
-.native-actions {
-  gap: 18px !important;
-  font-size: 14px !important;
-  font-weight: 850 !important;
-}
-
-/* Dark sidebar exact style */
-body:has(.native-upload-marker) [data-testid="stSidebar"] {
-  width: 248px !important;
-  min-width: 248px !important;
-  background: linear-gradient(180deg,#061633 0%,#071e52 58%,#06142f 100%) !important;
-  border-right: 1px solid rgba(255,255,255,.08) !important;
-  box-shadow: 12px 0 30px rgba(15,23,42,.16) !important;
-}
-body:has(.native-upload-marker) [data-testid="stSidebar"] > div:first-child {
-  padding: 26px 14px !important;
-}
-body:has(.native-upload-marker) [data-testid="stSidebar"] * {
-  color: #ffffff !important;
-}
-body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton {
-  margin-bottom: 11px !important;
-}
-body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button {
-  height: 46px !important;
-  min-height: 46px !important;
-  padding: 8px 14px !important;
-  border-radius: 14px !important;
-  border: 0 !important;
-  background: transparent !important;
-  color: #ffffff !important;
-  font-size: 15px !important;
-  font-weight: 900 !important;
-  justify-content: flex-start !important;
-  text-align: left !important;
-  box-shadow: none !important;
-}
-body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
-  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
-  color: #ffffff !important;
-  box-shadow: 0 12px 28px rgba(124,58,237,.38) !important;
-}
-body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button[kind="secondary"]:hover {
-  background: rgba(255,255,255,.08) !important;
-}
-
-/* Program upload section should look like expected screenshot */
-body:has(.native-upload-marker) .panel-title {
-  display: block !important;
-  font-size: 18px !important;
-  font-weight: 950 !important;
-  color: #0f2b68 !important;
-  margin: 0 0 14px 0 !important;
-}
-
-/* 4 cards in one row; compact but readable */
-body:has(.native-upload-marker) div[data-testid="stHorizontalBlock"] {
-  gap: 14px !important;
-  margin-bottom: 14px !important;
-}
-body:has(.native-upload-marker) [data-testid="column"] {
-  min-width: 0 !important;
-}
-body:has(.native-upload-marker) [data-testid="stVerticalBlockBorderWrapper"] {
-  background: rgba(255,255,255,.96) !important;
-  border: 1px solid #dbe4f0 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 10px 24px rgba(15,23,42,.04) !important;
-  padding: 12px !important;
-  min-height: 310px !important;
-  max-height: 340px !important;
-  overflow: hidden !important;
-}
-body:has(.native-upload-marker) [data-testid="stVerticalBlockBorderWrapper"] strong {
-  font-size: 14px !important;
-}
-body:has(.native-upload-marker) [data-testid="stFileUploader"] {
-  padding: 6px !important;
-  margin-bottom: 0 !important;
-}
-body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] {
-  min-height: 78px !important;
-  height: 82px !important;
-  padding: 8px 10px !important;
-  border-radius: 14px !important;
-}
-body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] button {
-  min-height: 36px !important;
-  height: 36px !important;
-  padding: 6px 14px !important;
-  font-size: 13px !important;
-}
-body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] small,
-body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] span {
-  font-size: 11px !important;
-}
-body:has(.native-upload-marker) [data-testid="stCheckbox"] {
-  margin-top: -4px !important;
-  margin-bottom: -4px !important;
-}
-body:has(.native-upload-marker) [data-testid="stCheckbox"] label {
-  font-size: 13px !important;
-}
-body:has(.native-upload-marker) .stButton > button {
-  min-height: 36px !important;
-  height: 36px !important;
-  border-radius: 10px !important;
-  font-size: 12px !important;
-}
-body:has(.native-upload-marker) [data-testid="stAlert"] {
-  padding: 10px 12px !important;
-  border-radius: 10px !important;
-  font-size: 13px !important;
-}
-
-/* Remove all bottom shortcut cards permanently */
-body:has(.native-upload-marker) .main-page-card,
-body:has(.native-upload-marker) .feature-grid,
-body:has(.native-upload-marker) .quick-grid,
-body:has(.native-upload-marker) .upload-page-quick-row {
-  display: none !important;
-}
-
 </style>
 """,
     unsafe_allow_html=True,
@@ -833,129 +1607,6 @@ def combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
 
 
 
-
-
-
-def render_exact_upload_layout_chrome() -> None:
-    st.markdown(
-        """
-<div class="exact-upload-shell">
-  <div class="exact-sidebar">
-    <div class="exact-logo">▥</div>
-    <a class="exact-nav" href="?view=dashboard" target="_self">⌂ Dashboard</a>
-    <a class="exact-nav active" href="?page=uploads" target="_self">▣ Track Uploads</a>
-    <a class="exact-nav" href="?page=reports" target="_self">▤ Reports</a>
-    <a class="exact-nav" href="?page=excel" target="_self">▥ Excel Report</a>
-    <a class="exact-nav" href="?page=chatbot" target="_self">☻ AI Chatbot</a>
-    <a class="exact-nav" href="?page=settings" target="_self">⚙ Settings</a>
-  </div>
-  <div class="exact-topbar">
-    <div class="exact-top-title">CiscoIQ Performance Report App</div>
-    <div class="exact-actions"><span>Share</span><span>⭐</span><span>✎</span><span>◖</span></div>
-  </div>
-</div>
-""",
-        unsafe_allow_html=True,
-    )
-
-
-
-def render_native_upload_sidebar() -> str:
-    st.markdown('<div class="native-upload-marker"></div>', unsafe_allow_html=True)
-    st.markdown(
-        """
-<div class="native-topbar">
-  <div class="native-top-title">CiscoIQ Performance Report App</div>
-  <div class="native-actions"><span>Share</span><span>⭐</span><span>✎</span><span>◖</span></div>
-</div>
-""",
-        unsafe_allow_html=True,
-    )
-
-    nav_items = [
-        ("Dashboard", "⌂  Dashboard"),
-        ("Track Uploads", "▣  Track Uploads"),
-        ("Reports", "▤  Reports"),
-        ("Excel Report", "▥  Excel Report"),
-        ("AI Chatbot", "☻  AI Chatbot"),
-        ("Settings", "⚙  Settings"),
-    ]
-    current_page = st.session_state.get("upload_sidebar_page", "Track Uploads")
-
-    with st.sidebar:
-        st.markdown('<div style="font-size:30px;font-weight:900;margin:8px 4px 34px 4px;">▥</div>', unsafe_allow_html=True)
-        for page_value, page_label in nav_items:
-            if st.button(
-                page_label,
-                key=f"upload_nav_{sanitize_token(page_value)}",
-                type="primary" if current_page == page_value else "secondary",
-                use_container_width=True,
-            ):
-                st.session_state["upload_sidebar_page"] = page_value
-                current_page = page_value
-                st.rerun()
-
-    return current_page
-
-
-def render_upload_side_page(page_name: str) -> bool:
-    """Return True when a side page was rendered and upload cards should stop."""
-    if page_name == "Dashboard":
-        if st.session_state.get("run_frames"):
-            render_executive_dashboard(st.session_state.run_frames)
-        else:
-            st.markdown('<div class="panel-title">Dashboard</div>', unsafe_allow_html=True)
-            st.info("Upload and generate results first. The dashboard metrics will appear here after generation.")
-        return True
-
-    if page_name == "Reports":
-        st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
-        st.info("Uploaded JSON and CSV files saved for team visibility will appear here.")
-        render_saved_reports_table(show_title=False)
-        return True
-
-    if page_name == "Excel Report":
-        st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
-        if st.session_state.get("excel_bytes"):
-            st.download_button(
-                "Download Excel Report",
-                data=st.session_state.excel_bytes,
-                file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
-                use_container_width=True,
-            )
-        else:
-            st.info("Generate results first to enable Excel download.")
-        return True
-
-    if page_name == "AI Chatbot":
-        st.markdown('<div class="panel-title">AI Chatbot</div>', unsafe_allow_html=True)
-        if st.session_state.get("run_frames"):
-            st.session_state["dashboard_tab"] = "Chatbot"
-            render_executive_dashboard(st.session_state.run_frames)
-        else:
-            st.info("Generate a report first, then use the dashboard chatbot for SLA, slow APIs, errors, regions and comparisons.")
-        return True
-
-    if page_name == "Settings":
-        st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
-        st.markdown("""
-        <div style="background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;">
-          <h4>Account & App Settings</h4>
-          <p>• Logout / session reset</p>
-          <p>• Help and support information</p>
-          <p>• Notification preferences</p>
-          <p>• Report retention settings</p>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Logout", type="primary"):
-            st.session_state.team_authenticated = False
-            st.session_state.run_frames = []
-            st.session_state.excel_bytes = None
-            st.session_state["upload_sidebar_page"] = "Track Uploads"
-            st.rerun()
-        return True
-
-    return False
 
 
 def render_dashboard_header() -> None:
@@ -3354,11 +4005,10 @@ elif team_upload_view:
     render_main_page(show_subtitle=st.session_state.get("team_authenticated", False))
     access_granted = team_upload_access_granted()
     if access_granted:
-        upload_nav_page = render_native_upload_sidebar()
-        if render_upload_side_page(upload_nav_page):
-            st.stop()
+        st.markdown('<div class="clean-upload-page-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
-        api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
+        api_col, ui_col = st.columns(2, gap="medium")
+        cloud_col, inv_col = st.columns(2, gap="medium")
 
         with api_col:
             with st.container(border=True):
