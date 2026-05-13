@@ -30,11 +30,11 @@ TRACK_CLOUD = "Cloud Assist Connector"
 TRACK_INVENTORY = "Customer Inventory Benchmarking"
 
 UI_SLA_THRESHOLDS = {
-    "FCP": 1.8,
-    "LCP": 2.5,
-    "TBT": 0.2,
-    "CLS": 0.1,
-    "SI": 3.4,
+    "FCP": 3.0,
+    "LCP": 3.0,
+    "TBT": 3.0,
+    "CLS": 3.0,
+    "SI": 3.0,
     "PERFORMANCE": 90.0,
 }
 NON_API_LATENCY_SLA_SEC = {
@@ -1757,10 +1757,6 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
             render_trends_tab(selected_frames, compact=True, show_table=True)
 
         with st.container(border=True):
-            st.markdown('<div class="panel-title">SAVED REPORTS AVAILABLE</div>', unsafe_allow_html=True)
-            render_saved_reports_table(show_title=False)
-
-        with st.container(border=True):
             st.markdown('<div class="panel-title">TRACK COMPARISON SUMMARY <span class="tag">Total rows only</span></div>', unsafe_allow_html=True)
             askai_compare, other_compare = build_dashboard_track_comparison(selected_frames)
 
@@ -1987,18 +1983,61 @@ def build_non_api_track_summary(track_name: str) -> pd.DataFrame:
 
 
 def render_non_api_track_view(track_name: str) -> None:
-    if track_name == TRACK_UI:
-        st.info("UI Lighthouse metrics dashboard (FCP, LCP, TBT, CLS, SI, Performance Score) is enabled for CSV uploads and summary view.")
-    elif track_name == TRACK_CLOUD:
-        st.info("Cloud Assist Connector dashboard is enabled for CSV uploads and latest report listing.")
-    else:
-        st.info("Customer Inventory Benchmarking dashboard is enabled for CSV uploads and latest report listing.")
+    track_frames = []
+    for frames in st.session_state.get("run_frames", []):
+        info = frames.get("Run_Info")
+        info_row = info.iloc[0].to_dict() if info is not None and not info.empty else {}
+        frame_track = str(info_row.get("Track") or infer_program_track(frames.get("Label", ""))[1])
+        if frame_track == track_name:
+            track_frames.append(frames)
 
-    df = build_non_api_track_summary(track_name)
-    if df.empty:
+    if track_frames:
+        df = combined_df(track_frames)
+        metric_col_name = "Avg ResTime in sec"
+        focus = df.copy()
+        metric_title = "Avg Response Time (sec)"
+        if track_name == TRACK_UI:
+            si_focus = df[df["Scenario"].astype(str).str.upper().isin(["SI", "SPEED INDEX", "SPEED_INDEX"])]
+            focus = si_focus if not si_focus.empty else df
+            metric_title = "Speed Index (sec)"
+            st.info("UI SLA target is configured as Speed Index < 3 sec.")
+
+        if focus.empty:
+            st.warning(f"No {track_name} records available in generated results.")
+            return
+
+        avg_value = round(float(pd.to_numeric(focus[metric_col_name], errors="coerce").fillna(0).mean()), 2)
+        p95_value = round(float(pd.to_numeric(focus["95thPercentile Resp Time in Sec"], errors="coerce").fillna(0).mean()), 2)
+        pass_pct = round(float((focus["SLA Status"] == "PASS").mean() * 100), 2)
+        k1, k2, k3 = st.columns(3)
+        k1.metric(metric_title, f"{avg_value}s")
+        k2.metric("95th Percentile", f"{p95_value}s")
+        k3.metric("SLA Pass %", f"{pass_pct}%")
+
+        region_comp = focus.groupby(["Region", "Run"], as_index=False)[metric_col_name].mean()
+        fig = px.bar(region_comp, x="Region", y=metric_col_name, color="Run", barmode="group", title=f"{track_name}: Region Comparison")
+        fig.update_layout(height=320, xaxis_title="Region", yaxis_title=metric_title)
+        st.plotly_chart(fig, use_container_width=True)
+
+        regions = sorted(focus["Region"].dropna().astype(str).unique().tolist())
+        selected_region = st.selectbox(f"{track_name} Region Drilldown", ["All"] + regions, key=f"{track_name}_region_drilldown")
+        region_df = focus if selected_region == "All" else focus[focus["Region"].astype(str) == selected_region]
+        detail_cols = safe_cols(region_df, ["Run", "Region", "Feature", "Scenario", "Avg ResTime in sec", "95thPercentile Resp Time in Sec", "SLA Sec", "SLA Status", "errorCount", "sampleCount"])
+        st.dataframe(region_df[detail_cols].sort_values("Avg ResTime in sec", ascending=False), use_container_width=True, hide_index=True, height=min(460, 72 + 34 * len(region_df)))
+        return
+
+    if track_name == TRACK_UI:
+        st.info("UI Lighthouse metrics dashboard is enabled. Upload CSV and click Generate Results to see charts.")
+    elif track_name == TRACK_CLOUD:
+        st.info("Cloud Assist Connector dashboard is enabled. Upload CSV and click Generate Results to see charts.")
+    else:
+        st.info("Customer Inventory Benchmarking dashboard is enabled. Upload CSV and click Generate Results to see charts.")
+
+    summary_df = build_non_api_track_summary(track_name)
+    if summary_df.empty:
         st.warning(f"No saved {track_name} CSV reports yet. Upload from the main page to populate this view.")
         return
-    st.dataframe(df, use_container_width=True, hide_index=True, height=min(440, 72 + 38 * len(df)))
+    st.dataframe(summary_df, use_container_width=True, hide_index=True, height=min(440, 72 + 38 * len(summary_df)))
 
 
 
@@ -2116,6 +2155,26 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
             date = f"{mmddyyyy_token[:2]}-{mmddyyyy_token[2:4]}-{mmddyyyy_token[4:8]}"
         if len(standard_parts) > 4 and standard_parts[4].upper().startswith("EPOC"):
             epoch = re.sub(r"[^0-9]", "", standard_parts[4]) or epoch
+
+    normalized = re.sub(r"\s+", "", stem)
+    match = re.match(
+        r"^(?P<track>[^_]+)_(?P<app>[^_]+)_(?P<program>[^_]+)_(?P<date>\d{8})_(?:EPOC|EPOCH)[-_]?(?P<epoch>\d{9,13})_(?P<users>[^_]+)_(?P<devices>[^_]+)_(?P<region>[^_]+)_(?P<env>[^_]+)_(?P<runid>[^_]+)$",
+        normalized,
+        re.IGNORECASE,
+    )
+    if match:
+        track_from_name = match.group("track")
+        app_from_name = match.group("app")
+        program_from_name = match.group("program")
+        mmddyyyy_token = match.group("date")
+        date = f"{mmddyyyy_token[:2]}-{mmddyyyy_token[2:4]}-{mmddyyyy_token[4:8]}"
+        epoch = match.group("epoch")
+        users = re.sub(r"(?i)users?", "", match.group("users")) or users
+        devices_raw = re.sub(r"(?i)devices?", "", match.group("devices"))
+        devices = f"{devices_raw} Devices" if devices_raw else devices
+        region = match.group("region").upper()
+        env = match.group("env").upper()
+        run_id = match.group("runid")
 
     return {
         "region": region,
@@ -2510,7 +2569,7 @@ def build_api_like_df_from_csv(csv_path: Path, track_name: str) -> pd.DataFrame:
             if metric == "PERFORMANCE":
                 rows.append(make_api_like_row("UI", metric, series, UI_SLA_THRESHOLDS[metric], higher_is_better=True))
             else:
-                rows.append(make_api_like_row("UI", metric, series, UI_SLA_THRESHOLDS[metric], higher_is_better=False))
+                rows.append(make_api_like_row("UI", metric, series, 3.0, higher_is_better=False))
     else:
         avg_col = pick_first_matching_column(raw, [r"\bavg\b", r"average", r"mean", r"response_time", r"res_time", r"latency"]) or pick_first_matching_column(raw, [r"\btime\b", r"sec", r"ms"])
         min_col = pick_first_matching_column(raw, [r"\bmin\b"])
@@ -2911,12 +2970,13 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         users = item.get("users") or inferred.get("users", "N/A")
         devices = item.get("devices") or inferred.get("devices", "N/A")
         date = item.get("date") or inferred.get("date", "N/A")
+        date_token = to_mm_dd_yyyy(date)
         report_name = f"{report_title(region, users, devices)}-{to_mm_dd_yyyy(date)}"
 
         st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
         info_col, date_col = st.columns([2.2, 1], gap="small")
         info_col.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
-        date_col.markdown(f'<div class="compact-saved-cell-date">{date}</div>', unsafe_allow_html=True)
+        date_col.markdown(f'<div class="compact-saved-cell-date">{date_token}</div>', unsafe_allow_html=True)
 
         action_generate_col, action_remove_col = st.columns(2, gap="small")
         if file_path.exists():
