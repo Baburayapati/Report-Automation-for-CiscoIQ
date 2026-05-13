@@ -763,25 +763,65 @@ def extract_env_token(file_name: str) -> str:
 
 
 def to_mmddyyyy(date_value: str) -> str:
+    """Convert common date strings into MMDDYYYY.
+
+    Important: do NOT fall back to today's date when a filename date was already
+    extracted as MM-DD-YYYY. This function is used while saving reports, so a
+    bad fallback makes every saved report show the deploy/current date.
+    Supported: 12052026, 12/05/2026, 12-05-2026, 12_05_2026,
+    2026-12-05, 2026/12/05, Dec-05-2026, December 5 2026.
+    """
     text = str(date_value or "").strip()
+    if not text or text.upper() in {"N/A", "NA", "NONE"}:
+        return datetime.now().strftime("%m%d%Y")
+
+    # Compact MMDDYYYY, validate to avoid epochs/random numbers.
     if re.fullmatch(r"\d{8}", text):
-        return text
-    match = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[-\s_]*(\d{1,2})[-\s_,]*(\d{4})", text)
+        mm, dd, yyyy = text[:2], text[2:4], text[4:]
+        try:
+            if 1 <= int(mm) <= 12 and 1 <= int(dd) <= 31 and 2000 <= int(yyyy) <= 2100:
+                return text
+        except Exception:
+            pass
+
+    month_map = {
+        "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
+        "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
+        "aug": "08", "august": "08", "sep": "09", "sept": "09", "september": "09", "oct": "10", "october": "10",
+        "nov": "11", "november": "11", "dec": "12", "december": "12",
+    }
+
+    # Month name forms: Dec-05-2026 / December 5 2026
+    match = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[-_\/\s]*(\d{1,2})[-_\/\s,]*(20\d{2}|\d{2})", text)
     if match:
-        month_map = {
-            "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
-            "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
-            "aug": "08", "august": "08", "sep": "09", "september": "09", "oct": "10", "october": "10",
-            "nov": "11", "november": "11", "dec": "12", "december": "12",
-        }
         month = month_map.get(match.group(1).lower(), datetime.now().strftime("%m"))
         day = f"{int(match.group(2)):02d}"
-        year = match.group(3)
+        yy = match.group(3)
+        year = yy if len(yy) == 4 else "20" + yy
         return f"{month}{day}{year}"
-    iso = re.search(r"(20\d{2})[-_\s]?(\d{1,2})[-_\s]?(\d{1,2})", text)
+
+    # ISO forms: 2026-12-05 / 2026_12_05 / 2026/12/05
+    iso = re.search(r"(?<!\d)(20\d{2})[-_\/\s]+(\d{1,2})[-_\/\s]+(\d{1,2})(?!\d)", text)
     if iso:
         year, month, day = iso.groups()
         return f"{int(month):02d}{int(day):02d}{year}"
+
+    # Numeric MM-DD-YYYY / MM/DD/YYYY / MM_DD_YYYY
+    numeric = re.search(r"(?<!\d)(\d{1,2})[-_\/\s]+(\d{1,2})[-_\/\s]+(20\d{2}|\d{2})(?!\d)", text)
+    if numeric:
+        month, day, yy = numeric.groups()
+        year = yy if len(yy) == 4 else "20" + yy
+        return f"{int(month):02d}{int(day):02d}{year}"
+
+    # Last chance: scan for compact MMDDYYYY inside text.
+    for token in re.findall(r"(?<!\d)(\d{8})(?!\d)", text):
+        mm, dd, yyyy = token[:2], token[2:4], token[4:]
+        try:
+            if 1 <= int(mm) <= 12 and 1 <= int(dd) <= 31 and 2000 <= int(yyyy) <= 2100:
+                return token
+        except Exception:
+            pass
+
     return datetime.now().strftime("%m%d%Y")
 
 
@@ -986,30 +1026,32 @@ def dashboard_view_tabs() -> str:
         current_tab = st.session_state.pop("nav_target")
 
     valid_tabs = ["Overview", "Track Comparison", "Detailed Report", "Chatbot"]
-    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Track Comparison", "Reports": "Overview", "Trends": "Overview"}
+    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Track Comparison", "Reports": "Overview", "Trends": "Overview", "AI Chatbot": "Chatbot"}
     current_tab = legacy_tabs.get(current_tab, current_tab)
     if current_tab not in valid_tabs:
         current_tab = "Overview"
-    st.session_state["dashboard_tab"] = current_tab
-    current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
-    tabs = [
-        ("Overview", "Overview"),
-        ("Track Comparison", "Track Comparison"),
-        ("Detailed Report", "Detailed Report"),
-        ("Chatbot", "AI Chatbot"),
-    ]
-    icons = {
-        "Overview": "◆",
-        "Track Comparison": "▦",
-        "Detailed Report": "⌕",
-        "Chatbot": "●",
+
+    labels = {
+        "Overview": "◆ Overview",
+        "Track Comparison": "▦ Track Comparison",
+        "Detailed Report": "⌕ Detailed Report",
+        "Chatbot": "● AI Chatbot",
     }
-    tab_cols = st.columns(len(tabs), gap="small")
-    selected_tab = current_tab
-    for col, (tab_value, tab_label) in zip(tab_cols, tabs):
-        if col.button(f"{icons[tab_value]} {tab_label}", key=f"dashboard_view_{tab_value}", type="primary" if current_tab == tab_value else "secondary", use_container_width=True):
-            selected_tab = tab_value
+    reverse_labels = {v: k for k, v in labels.items()}
+    current_label = labels[current_tab]
+
+    selected_label = st.radio(
+        "Dashboard tabs",
+        [labels[t] for t in valid_tabs],
+        index=[labels[t] for t in valid_tabs].index(current_label),
+        horizontal=True,
+        label_visibility="collapsed",
+        key="dashboard_tab_radio",
+    )
+    selected_tab = reverse_labels.get(selected_label, "Overview")
     st.session_state["dashboard_tab"] = selected_tab
+
+    current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
     if current_run_id:
         st.query_params["view"] = "dashboard"
         st.query_params["run_id"] = current_run_id
@@ -1614,7 +1656,7 @@ def render_trends_tab(run_frames: List[Dict[str, pd.DataFrame]], compact: bool =
             needed_cols = ["Result", "Region", "Avg Sec", "P95 Sec", "Max Sec", "Success %", "Error %", "SLA Pass %", "Health Score"]
             st.dataframe(table[safe_cols(table, needed_cols)], use_container_width=True, hide_index=True, height=220 if compact else None)
     if not compact:
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
 
 def render_detailed_report_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
@@ -1706,12 +1748,12 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
             )
         else:
             st.info("Excel report is not available in this dashboard session.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
         st.markdown('<div class="side-card"><div class="panel-title">INSIGHTS</div>', unsafe_allow_html=True)
         for icon, color, text in insights:
             st.markdown(f'<div class="insight-item"><div class="dot" style="background:{color};">{icon}</div><div>{text}</div></div>', unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
         try:
             dashboard_url = st.secrets.get("DASHBOARD_URL", "")
@@ -1734,7 +1776,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         if selected_tab == "Chatbot":
             st.markdown('<div class="panel"><div class="panel-title">AI CHATBOT</div>', unsafe_allow_html=True)
             render_chatbot(selected_frames, key_suffix='tab')
-            st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
             return
         if selected_tab == "Detailed Report":
             render_detailed_report_tab(selected_frames)
@@ -1743,7 +1785,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
 
         st.markdown('<div class="grid-3">', unsafe_allow_html=True)
         # Streamlit does not nest into raw grid well; use columns instead.
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
         c1, c2 = st.columns([1.35, 1], gap="medium")
         tracks = track_summary(df)
@@ -2896,7 +2938,7 @@ def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dic
     st.session_state.messages = []
     st.session_state.run_id = new_run_id
     st.session_state["active_track"] = track_name
-    st.session_state["dashboard_tab"] = "Overview"
+    open_generated_dashboard(new_run_id, "Overview")
 
 
 def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) -> None:
@@ -2950,7 +2992,7 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
     st.session_state.messages = []
     st.session_state.run_id = new_run_id
     st.session_state["active_track"] = track_name
-    st.session_state["dashboard_tab"] = "Overview"
+    open_generated_dashboard(new_run_id, "Overview")
 
 
 
@@ -3154,18 +3196,18 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     st.markdown(
         """
 <style>
-.compact-saved-row {
+.compact-saved-cell-name {
     background: #f8fbff;
     border: 1px solid #dbe4f0;
     border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 8px;
-}
-.compact-saved-cell-name {
+    padding: 10px 14px;
+    margin: 10px 0 10px 0;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 800;
     color: #0f172a;
-    margin-bottom: 10px;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
 }
 </style>
 """,
@@ -3183,7 +3225,6 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         include_users = track_name in {TRACK_API, TRACK_UI}
         report_name = f"{report_title(region, users, devices, include_users=include_users)}-{date_token}"
 
-        st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
         st.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
 
         action_generate_col, action_remove_col = st.columns(2, gap="small")
@@ -3195,6 +3236,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
                     else:
                         generate_dashboard_from_saved_csv(track_name, file_path, item)
                     st.success(f"Generated {track_name} results for {item.get('file_name', file_path.name)}")
+                    open_generated_dashboard(st.session_state.get("run_id", ""), "Overview")
                     st.rerun()
                 except Exception as exc:
                     st.error(f"Failed to generate saved report: {exc}")
@@ -3205,7 +3247,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
             remove_saved_upload(item.get("saved_name", ""))
             st.success("Removed saved report.")
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
 
 def saved_reports_rows(uploads: List[Dict[str, str]]) -> pd.DataFrame:
@@ -3270,7 +3312,7 @@ def team_upload_access_granted() -> bool:
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         login_clicked = st.button("Login to Upload Reports", type="primary", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
     valid_user = True if not expected_user else username == expected_user
     valid_password = password == expected_password
@@ -3327,6 +3369,15 @@ def dashboard_url_for_run(run_id_value: str) -> str:
     if run_id_value:
         return f"?view=dashboard&run_id={run_id_value}"
     return "?view=dashboard"
+
+
+def open_generated_dashboard(run_id_value: str, tab: str = "Overview") -> None:
+    """Navigate to dashboard immediately after generating results."""
+    st.session_state["dashboard_tab"] = tab
+    st.query_params["view"] = "dashboard"
+    st.query_params["run_id"] = run_id_value
+    st.query_params["tab"] = tab
+
 
 
 
@@ -3496,6 +3547,7 @@ elif team_upload_view:
                     st.session_state.report_file_name = "JMeter_Report.xlsx"
                     st.session_state.messages = []
                     st.session_state.run_id = new_run_id
+                    open_generated_dashboard(new_run_id, "Overview")
                     st.toast("Report generated successfully.", icon="✅")
                     st.success("Dashboard generated. Share the dashboard link below with management.")
                     st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_blank">Open Management Dashboard ↗</a>', unsafe_allow_html=True)
