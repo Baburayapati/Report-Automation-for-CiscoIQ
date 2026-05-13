@@ -1133,50 +1133,71 @@ body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] {
 }
 
 
-/* REFERENCE UPLOAD PAGE STYLE - MATCH PROVIDED SCREENSHOT */
+/* NATIVE LEFT PANEL + REPORTS TAB FIX */
 body:has(.upload-left-panel-marker) .block-container {
   max-width: none !important;
   padding: 108px 26px 26px 286px !important;
 }
-
-/* left sidebar */
-.upload-left-sidebar {
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] {
   width: 244px !important;
+  min-width: 244px !important;
   background: linear-gradient(180deg,#061633 0%,#071d50 58%,#06142f 100%) !important;
+  border-right: 1px solid rgba(255,255,255,.08) !important;
   box-shadow: 10px 0 30px rgba(15,23,42,.15) !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] > div:first-child {
   padding: 24px 12px !important;
 }
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] * {
+  color: #ffffff !important;
+}
 .upload-left-logo {
-  font-size: 32px !important;
-  margin: 6px 12px 38px 12px !important;
+  font-size: 24px !important;
+  margin: 8px 8px 30px 8px !important;
   color: #ffffff !important;
+  line-height: 1 !important;
 }
-.upload-left-link {
-  height: 52px !important;
-  padding: 0 16px !important;
-  border-radius: 15px !important;
-  margin-bottom: 12px !important;
-  font-size: 15px !important;
-  font-weight: 850 !important;
-  color: #e5efff !important;
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  margin-bottom: 10px !important;
 }
-.upload-left-link.active {
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  height: 44px !important;
+  min-height: 44px !important;
+  border-radius: 12px !important;
+  padding: 0 13px !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #dbeafe !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
   background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
-  box-shadow: 0 12px 28px rgba(124,58,237,.38) !important;
+  box-shadow: 0 8px 20px rgba(124,58,237,.30) !important;
   color: #ffffff !important;
 }
-.upload-left-link:hover {
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="secondary"]:hover {
   background: rgba(255,255,255,.10) !important;
   color: #ffffff !important;
 }
 
-/* topbar */
 .upload-topbar {
+  position: fixed !important;
+  top: 0 !important;
   left: 244px !important;
+  right: 0 !important;
   height: 86px !important;
   background: #ffffff !important;
   border-bottom: 1px solid #dbe4f0 !important;
+  z-index: 9997 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
   padding: 0 32px 0 38px !important;
+  box-sizing: border-box !important;
 }
 .upload-top-title {
   font-size: 22px !important;
@@ -1192,42 +1213,19 @@ body:has(.upload-left-panel-marker) .block-container {
   color: #0f172a !important;
   white-space: nowrap !important;
 }
-
-/* remove duplicate Streamlit toolbar when custom topbar is present */
 body:has(.upload-left-panel-marker) [data-testid="stToolbar"] {
   display: none !important;
 }
-
-/* hide any previous hero centered title; topbar is source of truth */
 body:has(.upload-left-panel-marker) .hero-title-box,
 body:has(.upload-left-panel-marker) .hero-subtitle {
   display: none !important;
 }
-
-/* Program Track Uploads heading */
-body:has(.upload-left-panel-marker) .panel-title,
-body:has(.clean-upload-page-marker) .panel-title {
-  display: block !important;
-  font-size: 18px !important;
-  font-weight: 950 !important;
-  color: #0f2b68 !important;
-  margin: 0 0 18px 0 !important;
-}
-
-/* 4 cards in one row */
-body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"],
-body:has(.clean-upload-page-marker) div[data-testid="stHorizontalBlock"] {
+/* keep 4 cards and reference-like spacing */
+body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
   gap: 14px !important;
   margin-bottom: 22px !important;
 }
-body:has(.upload-left-panel-marker) [data-testid="column"],
-body:has(.clean-upload-page-marker) [data-testid="column"] {
-  min-width: 0 !important;
-}
-
-/* upload cards */
-body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"],
-body:has(.clean-upload-page-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
   background: rgba(255,255,255,.96) !important;
   border: 1px solid #dbe4f0 !important;
   border-radius: 16px !important;
@@ -1236,114 +1234,11 @@ body:has(.clean-upload-page-marker) [data-testid="stVerticalBlockBorderWrapper"]
   min-height: 360px !important;
   overflow: hidden !important;
 }
-body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] strong,
-body:has(.clean-upload-page-marker) [data-testid="stVerticalBlockBorderWrapper"] strong {
-  font-size: 15px !important;
-  color: #111827 !important;
-}
-
-/* uploader box */
-body:has(.upload-left-panel-marker) [data-testid="stFileUploader"],
-body:has(.clean-upload-page-marker) [data-testid="stFileUploader"] {
-  padding: 6px !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"],
-body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] {
+body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] {
   min-height: 86px !important;
   height: 92px !important;
   padding: 10px 12px !important;
   border-radius: 14px !important;
-  background: #f8fafc !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] button,
-body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] button {
-  min-height: 36px !important;
-  height: 36px !important;
-  padding: 6px 14px !important;
-  font-size: 13px !important;
-}
-
-/* checkbox and buttons */
-body:has(.upload-left-panel-marker) [data-testid="stCheckbox"],
-body:has(.clean-upload-page-marker) [data-testid="stCheckbox"] {
-  margin-top: -2px !important;
-  margin-bottom: 0 !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stCheckbox"] label,
-body:has(.clean-upload-page-marker) [data-testid="stCheckbox"] label {
-  font-size: 13px !important;
-}
-body:has(.upload-left-panel-marker) .stButton > button,
-body:has(.clean-upload-page-marker) .stButton > button {
-  min-height: 38px !important;
-  height: 38px !important;
-  border-radius: 10px !important;
-  font-size: 12px !important;
-}
-
-/* saved report/no report box */
-body:has(.upload-left-panel-marker) [data-testid="stAlert"],
-body:has(.clean-upload-page-marker) [data-testid="stAlert"] {
-  padding: 10px 12px !important;
-  border-radius: 10px !important;
-  font-size: 13px !important;
-  background: #eaf2ff !important;
-}
-
-/* bottom cards retained and styled */
-body:has(.upload-left-panel-marker) .main-page-card,
-body:has(.clean-upload-page-marker) .main-page-card {
-  display: block !important;
-  background: rgba(255,255,255,.96) !important;
-  border: 1px solid #dbe4f0 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 10px 24px rgba(15,23,42,.035) !important;
-}
-
-
-/* SIDEBAR REFINED TO MATCH REFERENCE */
-.upload-left-sidebar {
-  width: 236px !important;
-  padding: 18px 12px !important;
-  background: linear-gradient(180deg,#061633 0%,#071e52 58%,#06142f 100%) !important;
-}
-
-.upload-left-logo {
-  font-size: 24px !important;
-  margin: 8px 8px 30px 8px !important;
-  color: #ffffff !important;
-  line-height: 1 !important;
-}
-
-.upload-left-link {
-  height: 44px !important;
-  padding: 0 13px !important;
-  border-radius: 12px !important;
-  margin-bottom: 10px !important;
-  font-size: 13px !important;
-  font-weight: 750 !important;
-  gap: 10px !important;
-  color: #dbeafe !important;
-  text-decoration: none !important;
-}
-
-.upload-left-link.active {
-  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
-  box-shadow: 0 8px 20px rgba(124,58,237,.30) !important;
-  color: #ffffff !important;
-}
-
-.upload-topbar {
-  left: 236px !important;
-}
-
-body:has(.upload-left-panel-marker) .block-container {
-  padding-left: 272px !important;
-}
-
-/* avoid oversized text in sidebar */
-.upload-left-sidebar * {
-  font-size: inherit !important;
 }
 
 </style>
@@ -1975,19 +1870,11 @@ def combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
 
 
 
-def render_upload_left_panel() -> None:
+
+def render_upload_left_panel() -> str:
+    st.markdown('<div class="upload-left-panel-marker"></div>', unsafe_allow_html=True)
     st.markdown(
         """
-<div class="upload-left-panel-marker"></div>
-<div class="upload-left-sidebar">
-  <div class="upload-left-logo">▥</div>
-  <a class="upload-left-link" href="?view=dashboard" target="_self">⌂ Dashboard</a>
-  <a class="upload-left-link active" href="?page=uploads" target="_self">▣ Track Uploads</a>
-  <a class="upload-left-link" href="?page=reports" target="_self">▤ Reports</a>
-  <a class="upload-left-link" href="?page=excel" target="_self">▥ Excel Report</a>
-  <a class="upload-left-link" href="?page=chatbot" target="_self">☻ AI Chatbot</a>
-  <a class="upload-left-link" href="?page=settings" target="_self">⚙ Settings</a>
-</div>
 <div class="upload-topbar">
   <div class="upload-top-title">CiscoIQ Performance Report App</div>
   <div class="upload-top-actions"><span>Share</span><span>⭐</span><span>🖊️</span><span>🐙</span></div>
@@ -1995,6 +1882,97 @@ def render_upload_left_panel() -> None:
 """,
         unsafe_allow_html=True,
     )
+
+    if "upload_left_page" not in st.session_state:
+        st.session_state.upload_left_page = "Track Uploads"
+
+    nav_items = [
+        ("Dashboard", "⌂ Dashboard"),
+        ("Track Uploads", "▣ Track Uploads"),
+        ("Reports", "▤ Reports"),
+        ("Excel Report", "▥ Excel Report"),
+        ("AI Chatbot", "☻ AI Chatbot"),
+        ("Settings", "⚙ Settings"),
+    ]
+
+    with st.sidebar:
+        st.markdown('<div class="upload-left-logo">▥</div>', unsafe_allow_html=True)
+        for page_name, label in nav_items:
+            is_active = st.session_state.upload_left_page == page_name
+            if st.button(
+                label,
+                key=f"upload_left_nav_{sanitize_token(page_name)}",
+                type="primary" if is_active else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state.upload_left_page = page_name
+                st.rerun()
+
+    return st.session_state.upload_left_page
+
+
+def render_upload_left_page(page_name: str) -> bool:
+    """Return True if a left-panel page was rendered and upload cards should not be shown."""
+    if page_name == "Dashboard":
+        if st.session_state.get("run_frames"):
+            render_executive_dashboard(st.session_state.run_frames)
+        else:
+            st.markdown('<div class="panel-title">Dashboard</div>', unsafe_allow_html=True)
+            st.info("Generate results first. Dashboard metrics will appear here after upload and generation.")
+        return True
+
+    if page_name == "Reports":
+        st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
+        st.info("Saved uploaded JSON/CSV reports across tracks are listed here.")
+        col_a, col_b = st.columns(2, gap="medium")
+        with col_a:
+            render_api_saved_reports_compact()
+            render_saved_reports_compact_for_track(TRACK_CLOUD, title="Saved Cloud Reports", key_prefix="reports_cloud")
+        with col_b:
+            render_saved_reports_compact_for_track(TRACK_UI, title="Saved UI Reports", key_prefix="reports_ui")
+            render_saved_reports_compact_for_track(TRACK_INVENTORY, title="Saved Inventory Reports", key_prefix="reports_inventory")
+        return True
+
+    if page_name == "Excel Report":
+        st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
+        if st.session_state.get("excel_bytes"):
+            st.download_button(
+                "Download Excel Report",
+                data=st.session_state.excel_bytes,
+                file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
+                use_container_width=True,
+            )
+        else:
+            st.info("Generate results first to enable Excel download.")
+        return True
+
+    if page_name == "AI Chatbot":
+        st.markdown('<div class="panel-title">AI Chatbot</div>', unsafe_allow_html=True)
+        if st.session_state.get("run_frames"):
+            st.session_state["dashboard_tab"] = "Chatbot"
+            render_executive_dashboard(st.session_state.run_frames)
+        else:
+            st.info("Generate results first, then use the chatbot to ask about SLA, APIs, errors, regions and comparisons.")
+        return True
+
+    if page_name == "Settings":
+        st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;">
+          <h4>Settings</h4>
+          <p>• Logout / session reset</p>
+          <p>• Help and support details</p>
+          <p>• Notification preferences</p>
+          <p>• Report retention settings</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Logout", type="primary"):
+            st.session_state.team_authenticated = False
+            st.session_state.upload_left_page = "Track Uploads"
+            st.rerun()
+        return True
+
+    return False
 
 
 def render_dashboard_header() -> None:
@@ -4393,7 +4371,9 @@ elif team_upload_view:
     render_main_page(show_subtitle=st.session_state.get("team_authenticated", False))
     access_granted = team_upload_access_granted()
     if access_granted:
-        render_upload_left_panel()
+        upload_left_page = render_upload_left_panel()
+        if render_upload_left_page(upload_left_page):
+            st.stop()
         st.markdown('<div class="clean-upload-page-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
         api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
@@ -4419,7 +4399,7 @@ elif team_upload_view:
                     key="generate_api_results",
                     use_container_width=True,
                 )
-                render_api_saved_reports_compact()
+                st.info("No saved API reports yet.")
 
         if uploaded_files and generate_clicked:
             if st.session_state.get('save_reports_checkbox', True):
@@ -4469,7 +4449,7 @@ elif team_upload_view:
                     generate_dashboard_from_uploaded_csv_files(TRACK_UI, ui_files)
                     st.success("Generated UI dashboard and report.")
                     st.rerun()
-                render_saved_reports_compact_for_track(TRACK_UI, title="Saved UI Reports", key_prefix="ui")
+                st.info("No saved UI reports yet.")
 
         with cloud_col:
             with st.container(border=True):
@@ -4482,7 +4462,7 @@ elif team_upload_view:
                     generate_dashboard_from_uploaded_csv_files(TRACK_CLOUD, cloud_files)
                     st.success("Generated Cloud Assist dashboard and report.")
                     st.rerun()
-                render_saved_reports_compact_for_track(TRACK_CLOUD, title="Saved Cloud Reports", key_prefix="cloud")
+                st.info("No saved Cloud Assist Connector reports yet.")
 
         with inv_col:
             with st.container(border=True):
@@ -4495,7 +4475,7 @@ elif team_upload_view:
                     generate_dashboard_from_uploaded_csv_files(TRACK_INVENTORY, inv_files)
                     st.success("Generated Customer Inventory Benchmarking dashboard and report.")
                     st.rerun()
-                render_saved_reports_compact_for_track(TRACK_INVENTORY, title="Saved Inventory Reports", key_prefix="inventory")
+                st.info("No saved Customer Inventory Benchmarking reports yet.")
 
         render_action_cards()
 else:
