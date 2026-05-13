@@ -1080,6 +1080,13 @@ body:has(.upload-left-panel-marker) .hero-subtitle {
   }
 }
 
+
+/* REMOVE EXECUTIVE/EXCEL/CHATBOT BOTTOM SECTION */
+body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"]:has(button),
+body:has(.upload-left-panel-marker) .element-container:has(.main-page-card){
+    display:none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
