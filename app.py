@@ -1025,15 +1025,22 @@ def dashboard_view_tabs() -> str:
     if "nav_target" in st.session_state:
         current_tab = st.session_state.pop("nav_target")
 
-    valid_tabs = ["Overview", "Comparison Summary", "Detailed Report", "Chatbot"]
-    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Comparison Summary", "Track Comparison": "Comparison Summary", "Reports": "Overview", "Trends": "Overview", "AI Chatbot": "Chatbot"}
+    valid_tabs = ["Overview", "Track Comparison", "Detailed Report", "Chatbot"]
+    legacy_tabs = {
+        "Drilldown": "Detailed Report",
+        "Compare": "Track Comparison",
+        "Comparison Summary": "Track Comparison",
+        "Reports": "Overview",
+        "Trends": "Overview",
+        "AI Chatbot": "Chatbot",
+    }
     current_tab = legacy_tabs.get(current_tab, current_tab)
     if current_tab not in valid_tabs:
         current_tab = "Overview"
 
     labels = {
         "Overview": "◆ Overview",
-        "Comparison Summary": "▦ Comparison Summary",
+        "Track Comparison": "▦ Track Comparison",
         "Detailed Report": "⌕ Detailed Report",
         "Chatbot": "● AI Chatbot",
     }
@@ -1057,7 +1064,6 @@ def dashboard_view_tabs() -> str:
         st.query_params["run_id"] = current_run_id
         st.query_params["tab"] = selected_tab
     return selected_tab
-
 
 def kpi_cards(df: pd.DataFrame, previous_df: pd.DataFrame | None = None, title: str = "AGGREGATED PERFORMANCE OVERVIEW METRICS", compact: bool = False) -> None:
     s = summarize_run(df)
@@ -1684,19 +1690,23 @@ def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]])
         render_tableau_comparison_matrix(askai_df, "CIQ Support Capabilities (Ask AI)")
 
 def render_compare_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    st.markdown('<div class="panel"><div class="panel-title">COMPARISON SUMMARY <span class="tag">Avg response distribution</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel"><div class="panel-title">TRACK COMPARISON <span class="tag">Full details</span></div>', unsafe_allow_html=True)
 
     askai_df, other_df = build_dashboard_track_comparison(run_frames)
 
-    if not other_df.empty:
-        render_tableau_comparison_matrix(other_df, "CIQ Support Capabilities (Assets, Assessments and Support)")
-    else:
-        st.info("No non-AskAI tracks found.")
-
+    st.markdown("### AskAI Tracks")
+    st.caption("Full Track Comparison is restored here. It includes Total, every track, Avg/Min/Max metrics, bucket percentages, and Max Seconds as before.")
     if not askai_df.empty:
-        render_tableau_comparison_matrix(askai_df, "CIQ Support Capabilities (Ask AI)")
+        st.dataframe(display_track_comparison_df(askai_df), use_container_width=True, hide_index=True, height=420)
     else:
         st.info("No AskAI tracks found.")
+
+    st.markdown("### Assets / Assessments / Home / Settings / Support Tracks")
+    st.caption("Full Track Comparison is restored here. The compact screenshot-style Comparison Summary is only shown on the Overview page.")
+    if not other_df.empty:
+        st.dataframe(display_track_comparison_df(other_df), use_container_width=True, hide_index=True, height=620)
+    else:
+        st.info("No non-AskAI tracks found.")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1845,7 +1855,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
 
         df = combined_df(selected_frames)
 
-        if selected_tab == "Comparison Summary":
+        if selected_tab == "Track Comparison":
             render_compare_tab(selected_frames)
             return
 
@@ -1894,7 +1904,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         with st.container(border=True):
             st.markdown('<div class="panel-title">COMPARISON SUMMARY</div>', unsafe_allow_html=True)
             render_track_comparison_dashboard(selected_frames)
-            goto_tab_button('Open Full Comparison Summary →', 'Comparison Summary', 'overview_full_compare_btn')
+            goto_tab_button('Open Full Track Comparison →', 'Track Comparison', 'overview_full_compare_btn')
 
         with st.container(border=True):
             st.markdown('<div class="panel-title">TRENDS DASHBOARD</div>', unsafe_allow_html=True)
