@@ -2355,6 +2355,8 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
             render_saved_reports_table(show_title=False)
         return
 
+    region_focus = "All"
+
     if active_track != "API":
         with st.container(border=True):
             st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
