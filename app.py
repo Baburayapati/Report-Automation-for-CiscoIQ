@@ -762,66 +762,47 @@ def extract_env_token(file_name: str) -> str:
     return "PROD"
 
 
-def to_mmddyyyy(date_value: str) -> str:
-    """Convert common date strings into MMDDYYYY.
-
-    Important: do NOT fall back to today's date when a filename date was already
-    extracted as MM-DD-YYYY. This function is used while saving reports, so a
-    bad fallback makes every saved report show the deploy/current date.
-    Supported: 12052026, 12/05/2026, 12-05-2026, 12_05_2026,
-    2026-12-05, 2026/12/05, Dec-05-2026, December 5 2026.
-    """
-    text = str(date_value or "").strip()
-    if not text or text.upper() in {"N/A", "NA", "NONE"}:
-        return datetime.now().strftime("%m%d%Y")
-
-    # Compact MMDDYYYY, validate to avoid epochs/random numbers.
-    if re.fullmatch(r"\d{8}", text):
-        mm, dd, yyyy = text[:2], text[2:4], text[4:]
-        try:
-            if 1 <= int(mm) <= 12 and 1 <= int(dd) <= 31 and 2000 <= int(yyyy) <= 2100:
-                return text
-        except Exception:
-            pass
-
+def extract_mmddyyyy_from_text(value: str) -> str | None:
+    """Return MMDDYYYY parsed from common filename/date formats."""
+    text = str(value or "").strip()
+    if not text:
+        return None
     month_map = {
         "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
         "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
         "aug": "08", "august": "08", "sep": "09", "sept": "09", "september": "09", "oct": "10", "october": "10",
         "nov": "11", "november": "11", "dec": "12", "december": "12",
     }
-
-    # Month name forms: Dec-05-2026 / December 5 2026
-    match = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[-_\/\s]*(\d{1,2})[-_\/\s,]*(20\d{2}|\d{2})", text)
-    if match:
-        month = month_map.get(match.group(1).lower(), datetime.now().strftime("%m"))
-        day = f"{int(match.group(2)):02d}"
-        yy = match.group(3)
-        year = yy if len(yy) == 4 else "20" + yy
-        return f"{month}{day}{year}"
-
-    # ISO forms: 2026-12-05 / 2026_12_05 / 2026/12/05
-    iso = re.search(r"(?<!\d)(20\d{2})[-_\/\s]+(\d{1,2})[-_\/\s]+(\d{1,2})(?!\d)", text)
-    if iso:
-        year, month, day = iso.groups()
-        return f"{int(month):02d}{int(day):02d}{year}"
-
-    # Numeric MM-DD-YYYY / MM/DD/YYYY / MM_DD_YYYY
-    numeric = re.search(r"(?<!\d)(\d{1,2})[-_\/\s]+(\d{1,2})[-_\/\s]+(20\d{2}|\d{2})(?!\d)", text)
-    if numeric:
-        month, day, yy = numeric.groups()
-        year = yy if len(yy) == 4 else "20" + yy
-        return f"{int(month):02d}{int(day):02d}{year}"
-
-    # Last chance: scan for compact MMDDYYYY inside text.
-    for token in re.findall(r"(?<!\d)(\d{8})(?!\d)", text):
-        mm, dd, yyyy = token[:2], token[2:4], token[4:]
+    def valid(mm: str, dd: str, yyyy: str) -> str | None:
         try:
-            if 1 <= int(mm) <= 12 and 1 <= int(dd) <= 31 and 2000 <= int(yyyy) <= 2100:
-                return token
+            mm_i, dd_i, yy_i = int(mm), int(dd), int(yyyy)
+            if 1 <= mm_i <= 12 and 1 <= dd_i <= 31 and 2000 <= yy_i <= 2100:
+                return f"{mm_i:02d}{dd_i:02d}{yy_i:04d}"
         except Exception:
-            pass
+            return None
+        return None
+    m = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[_\-/\s,]*(\d{1,2})[_\-/\s,]*(20\d{2})", text)
+    if m:
+        month = month_map.get(m.group(1).lower())
+        out = valid(month, m.group(2), m.group(3)) if month else None
+        if out:
+            return out
+    m = re.search(r"(?<!\d)(20\d{2})[_\-/\s]?(\d{1,2})[_\-/\s]?(\d{1,2})(?!\d)", text)
+    if m:
+        out = valid(m.group(2), m.group(3), m.group(1))
+        if out:
+            return out
+    for m in re.finditer(r"(?<!\d)(\d{1,2})[_\-/\s]?(\d{1,2})[_\-/\s]?(20\d{2})(?!\d)", text):
+        out = valid(m.group(1), m.group(2), m.group(3))
+        if out:
+            return out
+    return None
 
+
+def to_mmddyyyy(date_value: str) -> str:
+    parsed = extract_mmddyyyy_from_text(date_value)
+    if parsed:
+        return parsed
     return datetime.now().strftime("%m%d%Y")
 
 
@@ -1026,44 +1007,36 @@ def dashboard_view_tabs() -> str:
         current_tab = st.session_state.pop("nav_target")
 
     valid_tabs = ["Overview", "Track Comparison", "Detailed Report", "Chatbot"]
-    legacy_tabs = {
-        "Drilldown": "Detailed Report",
-        "Compare": "Track Comparison",
-        "Comparison Summary": "Track Comparison",
-        "Reports": "Overview",
-        "Trends": "Overview",
-        "AI Chatbot": "Chatbot",
-    }
+    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Track Comparison", "Reports": "Overview", "Trends": "Overview"}
     current_tab = legacy_tabs.get(current_tab, current_tab)
     if current_tab not in valid_tabs:
         current_tab = "Overview"
-
-    labels = {
-        "Overview": "◆ Overview",
-        "Track Comparison": "▦ Track Comparison",
-        "Detailed Report": "⌕ Detailed Report",
-        "Chatbot": "● AI Chatbot",
-    }
-    reverse_labels = {v: k for k, v in labels.items()}
-    current_label = labels[current_tab]
-
-    selected_label = st.radio(
-        "Dashboard tabs",
-        [labels[t] for t in valid_tabs],
-        index=[labels[t] for t in valid_tabs].index(current_label),
-        horizontal=True,
-        label_visibility="collapsed",
-        key="dashboard_tab_radio",
-    )
-    selected_tab = reverse_labels.get(selected_label, "Overview")
-    st.session_state["dashboard_tab"] = selected_tab
-
+    st.session_state["dashboard_tab"] = current_tab
     current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
+    tabs = [
+        ("Overview", "Overview"),
+        ("Track Comparison", "Track Comparison"),
+        ("Detailed Report", "Detailed Report"),
+        ("Chatbot", "AI Chatbot"),
+    ]
+    icons = {
+        "Overview": "◆",
+        "Track Comparison": "▦",
+        "Detailed Report": "⌕",
+        "Chatbot": "●",
+    }
+    tab_cols = st.columns(len(tabs), gap="small")
+    selected_tab = current_tab
+    for col, (tab_value, tab_label) in zip(tab_cols, tabs):
+        if col.button(f"{icons[tab_value]} {tab_label}", key=f"dashboard_view_{tab_value}", type="primary" if current_tab == tab_value else "secondary", use_container_width=True):
+            selected_tab = tab_value
+    st.session_state["dashboard_tab"] = selected_tab
     if current_run_id:
         st.query_params["view"] = "dashboard"
         st.query_params["run_id"] = current_run_id
         st.query_params["tab"] = selected_tab
     return selected_tab
+
 
 def kpi_cards(df: pd.DataFrame, previous_df: pd.DataFrame | None = None, title: str = "AGGREGATED PERFORMANCE OVERVIEW METRICS", compact: bool = False) -> None:
     s = summarize_run(df)
@@ -1516,31 +1489,7 @@ def metric_bucket_summary(df: pd.DataFrame, track: str, metric: str, is_askai: b
 
 
 
-
-def comparison_header_label(frames: Dict[str, pd.DataFrame]) -> str:
-    """Display label used in Tableau-like comparison tables."""
-    label = str(frames.get("Label", ""))
-    info = infer_saved_report_info(label)
-
-    users = info.get("users", "N/A")
-    devices = info.get("devices", "N/A")
-
-    run_info = frames.get("Run_Info")
-    if run_info is not None and not run_info.empty:
-        row = run_info.iloc[0].to_dict()
-        if not users or str(users).upper() == "N/A":
-            users = str(row.get("Concurrent Users", row.get("Users", "N/A")))
-        if not devices or str(devices).upper() == "N/A":
-            devices = str(row.get("Devices Count", row.get("Devices", "N/A")))
-
-    users = re.sub(r"(?i)\s*(concurrent\s*)?users?\s*", "", str(users)).strip()
-    users = re.sub(r"(?i)\s*vu\s*", "", users).strip() or "NA"
-    devices = re.sub(r"(?i)\s*devices?\s*", "", str(devices)).strip() or "NA"
-    return f"{users} Concurrent Users*{devices} Devices"
-
-
 def build_dashboard_track_comparison(run_frames: List[Dict[str, pd.DataFrame]]) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Build Avg-only bucket comparison. No Min/Max/Max Seconds rows."""
     if not run_frames:
         return pd.DataFrame(), pd.DataFrame()
 
@@ -1550,41 +1499,54 @@ def build_dashboard_track_comparison(run_frames: List[Dict[str, pd.DataFrame]]) 
     askai_tracks = [t for t in all_tracks if t.upper().startswith("ASKAI")]
     other_tracks = [t for t in all_tracks if not t.upper().startswith("ASKAI")]
 
-    def avg_bucket_summary_for_rows(rows: pd.DataFrame, is_askai: bool) -> List[float]:
-        col = "Avg ResTime in sec"
-        bucket_names = ["0 - 10s", "10 - 20s", "20 - 30s", "> 30s"] if is_askai else ["0 - 2s", "3 - 4s", "4 - 6s", "> 6s"]
+    def metric_bucket_summary_for_rows(rows: pd.DataFrame, metric: str, is_askai: bool) -> List[float]:
+        col_map = {
+            "Avg": "Avg ResTime in sec",
+            "Min": "Min ResTime in sec",
+            "Max": "MaxRes Time in sec",
+        }
+        col = col_map[metric]
+        bucket_names = ["0-10sec %", "10-20sec %", "20-30sec %", ">30sec %"] if is_askai else ["0-2sec %", "3-4sec %", "4-6sec %", ">6sec %"]
         if rows.empty or col not in rows.columns:
-            return [0, 0, 0, 0]
+            return [0, 0, 0, 0, 0]
 
         counts = dict.fromkeys(bucket_names, 0)
         values = pd.to_numeric(rows[col], errors="coerce").fillna(0)
         for value in values:
-            v = float(value)
-            if is_askai:
-                bucket = "0 - 10s" if v <= 10 else "10 - 20s" if v <= 20 else "20 - 30s" if v <= 30 else "> 30s"
-            else:
-                bucket = "0 - 2s" if v <= 2 else "3 - 4s" if v <= 4 else "4 - 6s" if v <= 6 else "> 6s"
-            counts[bucket] += 1
+            bucket = response_bucket(float(value), is_askai).replace("s %", "sec %")
+            counts[bucket] = counts.get(bucket, 0) + 1
         total = len(values) if len(values) else 1
-        return [round(counts[name] / total * 100, 2) for name in bucket_names]
+        percentages = [round(counts[name] / total * 100, 2) for name in bucket_names]
+        return percentages + [round(float(values.max()), 2)]
 
     def build_section(tracks: List[str], is_askai: bool) -> pd.DataFrame:
-        # One compact card per uploaded result. Do not create/show a "Total" row.
         rows = []
-        bucket_names = ["0 - 10s", "10 - 20s", "20 - 30s", "> 30s"] if is_askai else ["0 - 2s", "3 - 4s", "4 - 6s", "> 6s"]
+        bucket_names = ["0-10sec %", "10-20sec %", "20-30sec %", ">30sec %"] if is_askai else ["0-2sec %", "3-4sec %", "4-6sec %", ">6sec %"]
+        row_targets = ["Total"] + tracks
 
-        for frames in run_frames:
-            api_df = frames["APIs"].copy()
-            api_rows = api_df[api_df["Feature"].astype(str).isin(tracks)] if tracks else pd.DataFrame()
-            if api_rows.empty:
-                continue
-            values = avg_bucket_summary_for_rows(api_rows, is_askai)
-            row = {
-                "Result": comparison_header_label(frames),
-            }
-            for name, value in zip(bucket_names, values):
-                row[name] = value
-            rows.append(row)
+        for target in row_targets:
+            first_target_row = True
+            for frames in run_frames:
+                api_df = frames["APIs"].copy()
+                if target == "Total":
+                    api_rows = api_df[api_df["Feature"].astype(str).isin(tracks)] if tracks else api_df
+                else:
+                    api_rows = api_df[api_df["Feature"].astype(str) == str(target)]
+
+                display_label = run_display_label(frames)
+                for metric_index, metric in enumerate(["Avg", "Min", "Max"]):
+                    values = metric_bucket_summary_for_rows(api_rows, metric, is_askai)
+                    row = {
+                        "_TrackKey": target,
+                        "Track": target if first_target_row else "",
+                        "Result": display_label if metric_index == 0 else "",
+                        "Metric": metric,
+                    }
+                    for name, value in zip(bucket_names + ["Max Seconds"], values):
+                        row[name] = value
+                    rows.append(row)
+                    first_target_row = False
+
         return pd.DataFrame(rows)
 
     return build_section(askai_tracks, True), build_section(other_tracks, False)
@@ -1594,121 +1556,52 @@ def display_track_comparison_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns=["_TrackKey"], errors="ignore")
 
 
-def _fmt_pct(value: float) -> str:
-    try:
-        v = float(value)
-    except Exception:
-        v = 0.0
-    if abs(v - round(v)) < 0.005:
-        return f"{int(round(v))}%"
-    return f"{v:.2f}%"
-
-
-def render_tableau_comparison_matrix(data: pd.DataFrame, title: str) -> None:
-    """Render comparison exactly like the provided screenshot: result headers, bucket row, values row."""
-    if data.empty:
-        return
-
-    view = data.copy()
-    view = view.dropna(how="all")
-
-    bucket_cols = [c for c in view.columns if c not in {"Result"}]
-    if not bucket_cols or view.empty:
-        return
-
-    header_cells = "".join([f'<th colspan="{len(bucket_cols)}">{row["Result"]}</th>' for _, row in view.iterrows()])
-    bucket_cells = "".join([f"<td>{bucket}</td>" for _ in range(len(view)) for bucket in bucket_cols])
-    value_cells = "".join([f"<td>{_fmt_pct(row[bucket])}</td>" for _, row in view.iterrows() for bucket in bucket_cols])
-
-    html = f"""
-<style>
-.tableau-compare-title {{
-  margin: 12px 0 8px 0;
-  color: #0f172a;
-  font-size: 16px;
-  font-weight: 900;
-}}
-.tableau-compare-wrap {{
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,.14);
-  box-shadow: 0 12px 28px rgba(15,23,42,.12);
-  margin-bottom: 18px;
-}}
-table.tableau-compare {{
-  width: 100%;
-  border-collapse: collapse;
-  background: #1f3b70;
-  table-layout: fixed;
-}}
-table.tableau-compare th {{
-  background: #263b73;
-  color: white;
-  font-size: 26px;
-  line-height: 1.18;
-  font-weight: 900;
-  padding: 24px 14px;
-  text-align: center;
-  border: 1px solid rgba(255,255,255,.15);
-}}
-table.tableau-compare td {{
-  background: #1f3b70;
-  color: white;
-  font-size: 24px;
-  font-weight: 900;
-  padding: 20px 12px;
-  text-align: center;
-  border: 1px solid rgba(255,255,255,.15);
-}}
-@media(max-width:1100px) {{
-  table.tableau-compare th {{ font-size: 18px; padding: 18px 8px; }}
-  table.tableau-compare td {{ font-size: 17px; padding: 14px 6px; }}
-}}
-</style>
-<div class="tableau-compare-title">{title}</div>
-<div class="tableau-compare-wrap">
-<table class="tableau-compare">
-  <tr>{header_cells}</tr>
-  <tr>{bucket_cells}</tr>
-  <tr>{value_cells}</tr>
-</table>
-</div>
-"""
-    st.markdown(html, unsafe_allow_html=True)
-
-
 def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
     askai_df, other_df = build_dashboard_track_comparison(run_frames)
+
+    def render_section(title: str, data: pd.DataFrame, height: int) -> None:
+        if data.empty:
+            return
+        with st.container(border=True):
+            st.markdown(f'<div class="panel-title">{title}</div>', unsafe_allow_html=True)
+            total = data[data["_TrackKey"] == "Total"].copy()
+            detail = data[data["_TrackKey"] != "Total"].copy()
+            if not total.empty:
+                st.caption("Total response distribution by uploaded result. Percent columns show APIs inside each response bucket.")
+                st.dataframe(display_track_comparison_df(total), use_container_width=True, hide_index=True, height=min(260, 78 + 36 * len(total)))
+            if not detail.empty:
+                st.caption("Track-level breakdown using Avg, Min and Max response metrics.")
+                st.dataframe(display_track_comparison_df(detail), use_container_width=True, hide_index=True, height=height)
 
     if askai_df.empty and other_df.empty:
         return
 
-    st.markdown('<div class="panel-title" style="margin-top:12px;">COMPARISON SUMMARY</div>', unsafe_allow_html=True)
-    if not other_df.empty:
-        render_tableau_comparison_matrix(other_df, "CIQ Support Capabilities (Assets, Assessments and Support)")
-    if not askai_df.empty:
-        render_tableau_comparison_matrix(askai_df, "CIQ Support Capabilities (Ask AI)")
+    st.markdown('<div class="panel-title" style="margin-top:12px;">TRACK COMPARISON DASHBOARD</div>', unsafe_allow_html=True)
+    render_section("CIQ Support Capabilities (Assets, Assessments and Support)", other_df, 360)
+    render_section("CIQ Support Capabilities (Ask AI)", askai_df, 300)
+
 
 def render_compare_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    st.markdown('<div class="panel"><div class="panel-title">TRACK COMPARISON <span class="tag">Full details</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel"><div class="panel-title">TRACK COMPARISON <span class="tag">Grouped by result</span></div>', unsafe_allow_html=True)
 
     askai_df, other_df = build_dashboard_track_comparison(run_frames)
 
     st.markdown("### AskAI Tracks")
-    st.caption("Full Track Comparison is restored here. It includes Total, every track, Avg/Min/Max metrics, bucket percentages, and Max Seconds as before.")
+    st.caption("Result includes the region. Repeated Track and Result cells are intentionally blank to keep Avg, Min and Max rows grouped together.")
     if not askai_df.empty:
-        st.dataframe(display_track_comparison_df(askai_df), use_container_width=True, hide_index=True, height=420)
+        st.dataframe(display_track_comparison_df(askai_df), use_container_width=True, hide_index=True, height=min(520, 78 + 36 * len(askai_df)))
     else:
         st.info("No AskAI tracks found.")
 
     st.markdown("### Assets / Assessments / Home / Settings / Support Tracks")
-    st.caption("Full Track Comparison is restored here. The compact screenshot-style Comparison Summary is only shown on the Overview page.")
+    st.caption("Result includes the region. Repeated Track and Result cells are intentionally blank to keep Avg, Min and Max rows grouped together.")
     if not other_df.empty:
-        st.dataframe(display_track_comparison_df(other_df), use_container_width=True, hide_index=True, height=620)
+        st.dataframe(display_track_comparison_df(other_df), use_container_width=True, hide_index=True, height=min(620, 78 + 36 * len(other_df)))
     else:
         st.info("No non-AskAI tracks found.")
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 def render_trends_tab(run_frames: List[Dict[str, pd.DataFrame]], compact: bool = False, show_table: bool = True) -> None:
     if not compact:
@@ -1740,9 +1633,9 @@ def render_trends_tab(run_frames: List[Dict[str, pd.DataFrame]], compact: bool =
                 "samples": "Samples",
             })
             needed_cols = ["Result", "Region", "Avg Sec", "P95 Sec", "Max Sec", "Success %", "Error %", "SLA Pass %", "Health Score"]
-            st.dataframe(table[safe_cols(table, needed_cols)], use_container_width=True, hide_index=True, height=220 if compact else None)
+            st.dataframe(table[safe_cols(table, needed_cols)], use_container_width=True, hide_index=True, height=min(260, 78 + 36 * len(table)) if compact else min(520, 78 + 36 * len(table)))
     if not compact:
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_detailed_report_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
@@ -1834,12 +1727,12 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
             )
         else:
             st.info("Excel report is not available in this dashboard session.")
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown('<div class="side-card"><div class="panel-title">INSIGHTS</div>', unsafe_allow_html=True)
         for icon, color, text in insights:
             st.markdown(f'<div class="insight-item"><div class="dot" style="background:{color};">{icon}</div><div>{text}</div></div>', unsafe_allow_html=True)
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
         try:
             dashboard_url = st.secrets.get("DASHBOARD_URL", "")
@@ -1862,7 +1755,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         if selected_tab == "Chatbot":
             st.markdown('<div class="panel"><div class="panel-title">AI CHATBOT</div>', unsafe_allow_html=True)
             render_chatbot(selected_frames, key_suffix='tab')
-            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
             return
         if selected_tab == "Detailed Report":
             render_detailed_report_tab(selected_frames)
@@ -1871,7 +1764,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
 
         st.markdown('<div class="grid-3">', unsafe_allow_html=True)
         # Streamlit does not nest into raw grid well; use columns instead.
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
         c1, c2 = st.columns([1.35, 1], gap="medium")
         tracks = track_summary(df)
@@ -1902,13 +1795,56 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
                 goto_tab_button('View SLA Breaches →', 'Detailed Report', 'view_sla_breaches_btn')
 
         with st.container(border=True):
-            st.markdown('<div class="panel-title">COMPARISON SUMMARY</div>', unsafe_allow_html=True)
-            render_track_comparison_dashboard(selected_frames)
-            goto_tab_button('Open Full Track Comparison →', 'Track Comparison', 'overview_full_compare_btn')
+            st.markdown('<div class="panel-title">COMPARISON SUMMARY <span class="tag">Avg buckets</span></div>', unsafe_allow_html=True)
+            render_overview_comparison_summary(selected_frames)
+            goto_tab_button('Open Full Comparison →', 'Track Comparison', 'overview_full_compare_btn')
 
         with st.container(border=True):
             st.markdown('<div class="panel-title">TRENDS DASHBOARD</div>', unsafe_allow_html=True)
             render_trends_tab(selected_frames, compact=True, show_table=True)
+
+
+def render_overview_comparison_summary(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
+    """Compact overview-only comparison. Full Avg/Min/Max details stay in Track Comparison tab."""
+    askai_df, other_df = build_dashboard_track_comparison(run_frames)
+
+    def avg_total_cards(df: pd.DataFrame, title: str, buckets: List[str]) -> None:
+        if df.empty:
+            return
+        data = df[(df["_TrackKey"] == "Total") & (df["Metric"] == "Avg")].copy()
+        if data.empty:
+            return
+        st.markdown(f"#### {title}")
+        cols = st.columns(min(3, len(data)), gap="medium")
+        for i, (_, row) in enumerate(data.iterrows()):
+            with cols[i % len(cols)]:
+                parts = []
+                for bucket in buckets:
+                    label = bucket.replace("sec", "s")
+                    value = float(row.get(bucket, 0) or 0)
+                    parts.append(f'<div class="compare-bucket"><span>{label}</span><b>{value:.2f}%</b></div>')
+                bucket_html = "".join(parts)
+                st.markdown(f'''
+<div class="overview-compare-card">
+  <div class="overview-compare-title">{row.get('Result', '')}</div>
+  <div class="overview-compare-grid">{bucket_html}</div>
+</div>
+''', unsafe_allow_html=True)
+
+    st.markdown("""
+<style>
+.overview-compare-card {background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #dbe4f0; border-radius: 16px; padding: 14px; box-shadow: 0 10px 24px rgba(15,23,42,.06); margin-bottom: 12px;}
+.overview-compare-title {font-size: 14px; font-weight: 900; color: #0f2b68; margin-bottom: 12px;}
+.overview-compare-grid {display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;}
+.compare-bucket {background: #eef5ff; border: 1px solid #dbeafe; border-radius: 12px; padding: 10px 8px; text-align: center;}
+.compare-bucket span {display:block; font-size: 12px; color:#64748b; font-weight:800;}
+.compare-bucket b {display:block; margin-top: 5px; font-size: 18px; color:#111827;}
+</style>
+""", unsafe_allow_html=True)
+
+    avg_total_cards(other_df, "Assets / Assessments / Home / Settings / Support", ["0-2sec %", "3-4sec %", "4-6sec %", ">6sec %"])
+    avg_total_cards(askai_df, "AskAI", ["0-10sec %", "10-20sec %", "20-30sec %", ">30sec %"])
+
 
 
 def standard_api_cols(df: pd.DataFrame) -> List[str]:
@@ -1979,7 +1915,7 @@ def chat_answer(question: str, run_frames: List[Dict[str, pd.DataFrame]]) -> Tup
 
     if q in farewells or any(w in q for w in ["bye", "goodbye", "see you"]):
         return (
-            "Bye! Quick reminder before you go: the dashboard has SLA status, slow APIs, error APIs, region comparison, and Comparison Summary. "
+            "Bye! Quick reminder before you go: the dashboard has SLA status, slow APIs, error APIs, region comparison, and Track Comparison. "
             "Come back anytime and ask me about any API, track, region, or SLA breach.",
             None,
         )
@@ -2120,137 +2056,7 @@ def build_non_api_track_summary(track_name: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-
-def standardize_ui_raw_metrics(raw_df: pd.DataFrame) -> pd.DataFrame:
-    """Normalize Lighthouse/UI CSV data for page-level dashboard charts."""
-    if raw_df is None or raw_df.empty:
-        return pd.DataFrame()
-    df = raw_df.copy()
-    url_col = pick_first_matching_column(df, [r"^url$", r"page", r"path", r"screen", r"route", r"name"])
-    fcp_col = pick_first_matching_column(df, [r"\bfcp\b", r"first_contentful_paint", r"fcp_in_sec"])
-    si_col = pick_first_matching_column(df, [r"speed_index", r"speed.*index", r"\bsi\b", r"speed_index_in_sec"])
-    out = pd.DataFrame()
-    out["URL"] = df[url_col].astype(str) if url_col else [f"Page {i+1}" for i in range(len(df))]
-    out["FCP in Sec"] = pd.to_numeric(df[fcp_col], errors="coerce") if fcp_col else pd.NA
-    out["Speed Index in Sec"] = pd.to_numeric(df[si_col], errors="coerce") if si_col else pd.NA
-    out = out.dropna(subset=["Speed Index in Sec"], how="all")
-    out["Speed Index SLA"] = out["Speed Index in Sec"].apply(lambda x: "PASS" if pd.notna(x) and float(x) < 3.0 else "FAIL")
-    out["Short Page"] = out["URL"].astype(str).str.replace(r"^https?://[^/]+", "", regex=True).str[-70:]
-    return out
-
-
-def render_ui_tableau_dashboard(run_frames: List[Dict[str, pd.DataFrame]], region_focus: str = "All") -> None:
-    raw_parts = []
-    for frames in run_frames:
-        raw_ui = frames.get("Raw_UI")
-        if raw_ui is None or raw_ui.empty:
-            continue
-        normalized = standardize_ui_raw_metrics(raw_ui)
-        if normalized.empty:
-            continue
-        normalized["Run"] = str(frames.get("Label", "UI Run"))
-        normalized["Region"] = str(frames.get("Region", "Unknown"))
-        raw_parts.append(normalized)
-
-    if not raw_parts:
-        st.info("UI Lighthouse metrics dashboard is enabled. Upload UI CSV and click Generate Results to see Tableau-style charts.")
-        return
-
-    ui_df = pd.concat(raw_parts, ignore_index=True)
-    if region_focus and region_focus != "All":
-        ui_df = ui_df[ui_df["Region"].astype(str) == str(region_focus)]
-    if ui_df.empty:
-        st.warning("No UI metrics available for the selected region.")
-        return
-
-    st.info("UI Speed Index SLA target: PASS only when Speed Index < 3 sec.")
-
-    total_pages = int(len(ui_df))
-    avg_fcp = round(float(pd.to_numeric(ui_df["FCP in Sec"], errors="coerce").mean()), 2) if ui_df["FCP in Sec"].notna().any() else 0
-    avg_speed = round(float(pd.to_numeric(ui_df["Speed Index in Sec"], errors="coerce").mean()), 2)
-    pass_pct = round(float(ui_df["Speed Index SLA"].eq("PASS").mean() * 100), 2)
-    fail_count = int(ui_df["Speed Index SLA"].eq("FAIL").sum())
-
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Total UI Pages", total_pages)
-    k2.metric("Avg FCP", f"{avg_fcp}s")
-    k3.metric("Avg Speed Index", f"{avg_speed}s")
-    k4.metric("Speed SLA Pass", f"{pass_pct}%", delta=f"{fail_count} fail")
-
-    c1, c2 = st.columns([1.55, 1], gap="medium")
-    with c1:
-        top_slow = ui_df.sort_values("Speed Index in Sec", ascending=False).head(15)
-        fig = px.bar(
-            top_slow,
-            x="Short Page",
-            y="Speed Index in Sec",
-            color="Speed Index SLA",
-            hover_data=["URL", "Run", "Region", "FCP in Sec"],
-            title="Top Slow UI Pages by Speed Index",
-            text="Speed Index in Sec",
-        )
-        fig.add_hline(y=3, line_dash="dash", annotation_text="SLA < 3 sec", annotation_position="top left")
-        fig.update_layout(height=470, xaxis_title="Page", yaxis_title="Speed Index (sec)", xaxis_tickangle=-35)
-        fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
-        st.plotly_chart(fig, use_container_width=True)
-
-    with c2:
-        sla_counts = ui_df["Speed Index SLA"].value_counts().rename_axis("Status").reset_index(name="Count")
-        fig = px.pie(sla_counts, names="Status", values="Count", title="Speed Index SLA Pass vs Fail", hole=0.45)
-        fig.update_traces(textposition="inside", textinfo="percent+label+value")
-        fig.update_layout(height=470)
-        st.plotly_chart(fig, use_container_width=True)
-
-    c3, c4 = st.columns([1, 1], gap="medium")
-    with c3:
-        fig = px.scatter(
-            ui_df,
-            x="FCP in Sec",
-            y="Speed Index in Sec",
-            color="Speed Index SLA",
-            size="Speed Index in Sec",
-            hover_data=["URL", "Run", "Region"],
-            title="FCP vs Speed Index",
-        )
-        fig.add_hline(y=3, line_dash="dash", annotation_text="SLA < 3 sec")
-        fig.update_layout(height=430, xaxis_title="FCP (sec)", yaxis_title="Speed Index (sec)")
-        st.plotly_chart(fig, use_container_width=True)
-
-    with c4:
-        run_summary = ui_df.groupby(["Region", "Run"], as_index=False).agg(
-            Pages=("URL", "count"),
-            Avg_FCP=("FCP in Sec", "mean"),
-            Avg_Speed_Index=("Speed Index in Sec", "mean"),
-            SLA_Pass_Pct=("Speed Index SLA", lambda x: round((x == "PASS").mean() * 100, 2)),
-        )
-        fig = px.bar(
-            run_summary,
-            x="Run",
-            y="Avg_Speed_Index",
-            color="Region",
-            title="Run/Region Avg Speed Index",
-            text="Avg_Speed_Index",
-        )
-        fig.add_hline(y=3, line_dash="dash", annotation_text="SLA < 3 sec")
-        fig.update_layout(height=430, xaxis_title="Run", yaxis_title="Avg Speed Index (sec)", xaxis_tickangle=-20)
-        fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
-        st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("### UI Metrics Detail")
-    detail = ui_df[["Region", "Run", "URL", "FCP in Sec", "Speed Index in Sec", "Speed Index SLA"]].sort_values("Speed Index in Sec", ascending=False)
-    st.dataframe(
-        detail.style.background_gradient(subset=["FCP in Sec", "Speed Index in Sec"], cmap="RdYlGn_r"),
-        use_container_width=True,
-        hide_index=True,
-        height=min(620, 72 + 32 * len(detail)),
-    )
-
-
 def render_non_api_track_view(track_name: str) -> None:
-    if track_name == TRACK_UI:
-        render_ui_tableau_dashboard(st.session_state.get("run_frames", []), st.session_state.get("dashboard_region_focus", "All"))
-        return
-
     track_frames = []
     for frames in st.session_state.get("run_frames", []):
         info = frames.get("Run_Info")
@@ -2331,55 +2137,6 @@ def load_saved_uploads() -> List[Dict[str, str]]:
 
 
 
-
-def extract_flexible_date_from_filename(file_name: str) -> str:
-    """Return MM-DD-YYYY from common filename date formats.
-    Supports 12052026, 12/05/2026, 12-05-2026, 12_05_2026,
-    2026-12-05, 2026/12/05, and Month-Day-Year formats.
-    Assumes 8-digit compact dates are MMDDYYYY for report naming.
-    """
-    text = str(Path(file_name).stem)
-    month_names = {
-        'jan':'01','january':'01','feb':'02','february':'02','mar':'03','march':'03',
-        'apr':'04','april':'04','may':'05','jun':'06','june':'06','jul':'07','july':'07',
-        'aug':'08','august':'08','sep':'09','sept':'09','september':'09','oct':'10','october':'10',
-        'nov':'11','november':'11','dec':'12','december':'12'
-    }
-    # Month name forms: Dec-05-2026, December 5 2026
-    m = re.search(r'(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[_\-/\s]*(\d{1,2})[_\-/\s,]*(20\d{2}|\d{2})', text)
-    if m:
-        mm = month_names.get(m.group(1).lower(), '01')
-        dd = f"{int(m.group(2)):02d}"
-        yy = m.group(3)
-        yyyy = yy if len(yy) == 4 else '20' + yy
-        return f"{mm}-{dd}-{yyyy}"
-
-    # ISO forms: 2026-12-05 / 2026_12_05 / 2026/12/05
-    m = re.search(r'(?<!\d)(20\d{2})[_\-/\s]+(\d{1,2})[_\-/\s]+(\d{1,2})(?!\d)', text)
-    if m:
-        yyyy, mm, dd = m.groups()
-        return f"{int(mm):02d}-{int(dd):02d}-{yyyy}"
-
-    # Separated numeric forms: 12-05-2026 / 12_05_2026 / 12/05/2026
-    m = re.search(r'(?<!\d)(\d{1,2})[_\-/\s]+(\d{1,2})[_\-/\s]+(20\d{2}|\d{2})(?!\d)', text)
-    if m:
-        mm, dd, yy = m.groups()
-        yyyy = yy if len(yy) == 4 else '20' + yy
-        return f"{int(mm):02d}-{int(dd):02d}-{yyyy}"
-
-    # Compact MMDDYYYY: 12052026, 10042026
-    # Avoid treating epoch/run ids as dates by validating month/day.
-    for token in re.findall(r'(?<!\d)(\d{8})(?!\d)', text):
-        mm, dd, yyyy = token[:2], token[2:4], token[4:]
-        try:
-            if 1 <= int(mm) <= 12 and 1 <= int(dd) <= 31 and 2000 <= int(yyyy) <= 2100:
-                return f"{mm}-{dd}-{yyyy}"
-        except Exception:
-            pass
-
-    return "N/A"
-
-
 def infer_saved_report_info(file_name: str) -> Dict[str, str]:
     stem = Path(file_name).stem
     upper = stem.upper()
@@ -2404,7 +2161,10 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
     if duration_match:
         duration = f"{duration_match.group(1)} Hour"
 
-    date = extract_flexible_date_from_filename(file_name)
+    date = "N/A"
+    parsed_date = extract_mmddyyyy_from_text(stem)
+    if parsed_date:
+        date = f"{parsed_date[:2]}-{parsed_date[2:4]}-{parsed_date[4:8]}"
 
     users = "N/A"
     user_patterns = [
@@ -2971,7 +2731,6 @@ def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dic
     inferred = infer_saved_report_info((item or {}).get("file_name", csv_path.name))
     region = (item or {}).get("region") or inferred.get("region", "Unknown")
 
-    raw_csv_df = pd.read_csv(csv_path) if track_name == TRACK_UI else pd.DataFrame()
     apis_df = build_api_like_df_from_csv(csv_path, track_name)
     run_info = pd.DataFrame([{
         "Report File": (item or {}).get("file_name", csv_path.name),
@@ -2995,7 +2754,6 @@ def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dic
         "Transactions": pd.DataFrame(),
         "Errors": apis_df[apis_df.get("errorCount", 0) > 0].copy() if not apis_df.empty else pd.DataFrame(),
         "Run_Info": run_info,
-        "Raw_UI": raw_csv_df if track_name == TRACK_UI else pd.DataFrame(),
     }]
 
     excel_bytes = build_excel_bytes_from_frames(run_frames)
@@ -3013,7 +2771,7 @@ def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dic
     st.session_state.messages = []
     st.session_state.run_id = new_run_id
     st.session_state["active_track"] = track_name
-    open_generated_dashboard(new_run_id, "Overview")
+    st.session_state["dashboard_tab"] = "Overview"
 
 
 def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) -> None:
@@ -3023,7 +2781,6 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
             tmp.write(uploaded_file.getvalue())
             temp_path = Path(tmp.name)
         inferred = infer_saved_report_info(uploaded_file.name)
-        raw_csv_df = pd.read_csv(temp_path) if track_name == TRACK_UI else pd.DataFrame()
         apis_df = build_api_like_df_from_csv(temp_path, track_name)
         run_info = pd.DataFrame([{
             "Report File": uploaded_file.name,
@@ -3046,7 +2803,6 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
             "Transactions": pd.DataFrame(),
             "Errors": apis_df[apis_df.get("errorCount", 0) > 0].copy() if not apis_df.empty else pd.DataFrame(),
             "Run_Info": run_info,
-            "Raw_UI": raw_csv_df if track_name == TRACK_UI else pd.DataFrame(),
         })
         try:
             temp_path.unlink(missing_ok=True)
@@ -3067,7 +2823,7 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
     st.session_state.messages = []
     st.session_state.run_id = new_run_id
     st.session_state["active_track"] = track_name
-    open_generated_dashboard(new_run_id, "Overview")
+    st.session_state["dashboard_tab"] = "Overview"
 
 
 
@@ -3271,18 +3027,18 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     st.markdown(
         """
 <style>
-.compact-saved-cell-name {
+.compact-saved-row {
     background: #f8fbff;
     border: 1px solid #dbe4f0;
     border-radius: 10px;
-    padding: 10px 14px;
-    margin: 10px 0 10px 0;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+.compact-saved-cell-name {
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     color: #0f172a;
-    min-height: 34px;
-    display: flex;
-    align-items: center;
+    margin-bottom: 10px;
 }
 </style>
 """,
@@ -3300,6 +3056,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         include_users = track_name in {TRACK_API, TRACK_UI}
         report_name = f"{report_title(region, users, devices, include_users=include_users)}-{date_token}"
 
+        st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
         st.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
 
         action_generate_col, action_remove_col = st.columns(2, gap="small")
@@ -3311,7 +3068,6 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
                     else:
                         generate_dashboard_from_saved_csv(track_name, file_path, item)
                     st.success(f"Generated {track_name} results for {item.get('file_name', file_path.name)}")
-                    open_generated_dashboard(st.session_state.get("run_id", ""), "Overview")
                     st.rerun()
                 except Exception as exc:
                     st.error(f"Failed to generate saved report: {exc}")
@@ -3322,7 +3078,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
             remove_saved_upload(item.get("saved_name", ""))
             st.success("Removed saved report.")
             st.rerun()
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def saved_reports_rows(uploads: List[Dict[str, str]]) -> pd.DataFrame:
@@ -3387,7 +3143,7 @@ def team_upload_access_granted() -> bool:
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         login_clicked = st.button("Login to Upload Reports", type="primary", use_container_width=True)
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     valid_user = True if not expected_user else username == expected_user
     valid_password = password == expected_password
@@ -3444,15 +3200,6 @@ def dashboard_url_for_run(run_id_value: str) -> str:
     if run_id_value:
         return f"?view=dashboard&run_id={run_id_value}"
     return "?view=dashboard"
-
-
-def open_generated_dashboard(run_id_value: str, tab: str = "Overview") -> None:
-    """Navigate to dashboard immediately after generating results."""
-    st.session_state["dashboard_tab"] = tab
-    st.query_params["view"] = "dashboard"
-    st.query_params["run_id"] = run_id_value
-    st.query_params["tab"] = tab
-
 
 
 
@@ -3622,7 +3369,6 @@ elif team_upload_view:
                     st.session_state.report_file_name = "JMeter_Report.xlsx"
                     st.session_state.messages = []
                     st.session_state.run_id = new_run_id
-                    open_generated_dashboard(new_run_id, "Overview")
                     st.toast("Report generated successfully.", icon="✅")
                     st.success("Dashboard generated. Share the dashboard link below with management.")
                     st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_blank">Open Management Dashboard ↗</a>', unsafe_allow_html=True)
