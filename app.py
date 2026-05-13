@@ -20,7 +20,6 @@ import streamlit.components.v1 as components
 from main import build_report, build_comparison_report, build_single_report_frames
 
 
-APP_TITLE = "CiscoIQ Performance Report App"
 APP_NAME_TOKEN = "CiscoIQ"
 SAVED_REPORT_LIMIT = 15
 PROGRAM_SAAS = "Cisco IQ SaaS Support Services"
@@ -696,6 +695,16 @@ div[style*="min-height: 34px"]:empty {
   .sshot-tabs { margin-left: 0; }
 }
 
+
+/* HEADER REMOVED + PROGRAMS INSIDE BLUE PANEL */
+.sshot-wrapper{
+  overflow: hidden !important;
+}
+.sshot-left{
+  border-top-left-radius: 22px;
+  border-bottom-left-radius: 22px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1331,8 +1340,6 @@ def render_dashboard_header() -> None:
   <div class="brand">
     <div class="brand-icon">📈</div>
     <div>
-      <div class="brand-title">CiscoIQ Performance Report App</div>
-      <div class="brand-sub">Real-time performance insights across regions</div>
     </div>
   </div>
   <div class="nav-time">Dashboard View<br/>Last Updated</div>
@@ -2008,7 +2015,6 @@ def goto_tab_button(label: str, tab_name: str, key: str) -> None:
 
 
 def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    render_dashboard_header()
 
     st.markdown('<div class="sshot-wrapper">', unsafe_allow_html=True)
     left_nav, right_nav = st.columns([1.0, 3.35], gap="small")
