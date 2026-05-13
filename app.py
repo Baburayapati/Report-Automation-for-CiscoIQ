@@ -64,6 +64,16 @@ st.markdown("""
 .stButton>button {
     white-space: nowrap !important;
 }
+.stCheckbox input[type="checkbox"] {
+    accent-color: #2563eb !important;
+}
+[data-testid="stCheckbox"] div[role="checkbox"] {
+    border-color: #93c5fd !important;
+}
+[data-testid="stCheckbox"] div[role="checkbox"][aria-checked="true"] {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+}
 
 /* v59 main page exact polish */
 .hero-title-box {
@@ -796,15 +806,19 @@ def build_standard_report_name(track_name: str, program_name: str, original_name
     return f"{track_token}_{app_token}_{program_token}_{date_token}_{epoch_token}_{users_token}_{devices_token}_{region_token}_{env_token}_{run_token}{ext.lower()}"
 
 
-def report_title(region: str, users: str, devices: str) -> str:
+def report_title(region: str, users: str, devices: str, include_users: bool = True) -> str:
     region_token = str(region or "Unknown").strip().upper()
     user_value = re.sub(r"(?i)\s*(concurrent\s*)?users?\s*", "", str(users or "").strip())
     user_value = re.sub(r"(?i)vu", "", user_value).strip() or "NA"
+    if re.fullmatch(r"\d{9,13}", user_value):
+        user_value = "NA"
     user_token = f"{user_value}Users"
     device_value = re.sub(r"(?i)\s*devices?\s*", "", str(devices or "").strip())
     device_value = device_value or "NA"
     device_token = f"{device_value}Devices"
-    return f"{region_token}-{user_token}-{device_token}"
+    if include_users:
+        return f"{region_token}-{user_token}-{device_token}"
+    return f"{region_token}-{device_token}"
 
 
 def add_ui_sla_columns(apis_df: pd.DataFrame) -> pd.DataFrame:
@@ -2146,6 +2160,7 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
         epoch = epoch_match.group(1)
     if len(standard_parts) >= 10:
         users = standard_parts[5].replace("Users", "").replace("users", "") or users
+        users = re.sub(r"^\d{9,13}$", "N/A", str(users))
         devices = standard_parts[6].replace("Devices", " Devices").replace("devices", " Devices") or devices
         region = standard_parts[7].upper() if standard_parts[7] else region
         env = standard_parts[8].upper() if standard_parts[8] else env
@@ -2170,6 +2185,7 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
         date = f"{mmddyyyy_token[:2]}-{mmddyyyy_token[2:4]}-{mmddyyyy_token[4:8]}"
         epoch = match.group("epoch")
         users = re.sub(r"(?i)users?", "", match.group("users")) or users
+        users = re.sub(r"^\d{9,13}$", "N/A", str(users))
         devices_raw = re.sub(r"(?i)devices?", "", match.group("devices"))
         devices = f"{devices_raw} Devices" if devices_raw else devices
         region = match.group("region").upper()
@@ -2997,7 +3013,8 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         devices = item.get("devices") or inferred.get("devices", "N/A")
         date = item.get("date") or inferred.get("date", "N/A")
         date_token = to_mm_dd_yyyy(date)
-        report_name = f"{report_title(region, users, devices)}-{date_token}"
+        include_users = track_name in {TRACK_API, TRACK_UI}
+        report_name = f"{report_title(region, users, devices, include_users=include_users)}-{date_token}"
 
         st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
         st.markdown(f'<div class="compact-saved-titlebar"><div class="compact-saved-cell-name">{report_name}</div></div>', unsafe_allow_html=True)
