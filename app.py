@@ -1510,7 +1510,31 @@ def metric_bucket_summary(df: pd.DataFrame, track: str, metric: str, is_askai: b
 
 
 
+
+def comparison_header_label(frames: Dict[str, pd.DataFrame]) -> str:
+    """Display label used in Tableau-like comparison tables."""
+    label = str(frames.get("Label", ""))
+    info = infer_saved_report_info(label)
+
+    users = info.get("users", "N/A")
+    devices = info.get("devices", "N/A")
+
+    run_info = frames.get("Run_Info")
+    if run_info is not None and not run_info.empty:
+        row = run_info.iloc[0].to_dict()
+        if not users or str(users).upper() == "N/A":
+            users = str(row.get("Concurrent Users", row.get("Users", "N/A")))
+        if not devices or str(devices).upper() == "N/A":
+            devices = str(row.get("Devices Count", row.get("Devices", "N/A")))
+
+    users = re.sub(r"(?i)\s*(concurrent\s*)?users?\s*", "", str(users)).strip()
+    users = re.sub(r"(?i)\s*vu\s*", "", users).strip() or "NA"
+    devices = re.sub(r"(?i)\s*devices?\s*", "", str(devices)).strip() or "NA"
+    return f"{users} Concurrent Users*{devices} Devices"
+
+
 def build_dashboard_track_comparison(run_frames: List[Dict[str, pd.DataFrame]]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Build Avg-only bucket comparison. No Min/Max/Max Seconds rows."""
     if not run_frames:
         return pd.DataFrame(), pd.DataFrame()
 
@@ -1520,54 +1544,45 @@ def build_dashboard_track_comparison(run_frames: List[Dict[str, pd.DataFrame]]) 
     askai_tracks = [t for t in all_tracks if t.upper().startswith("ASKAI")]
     other_tracks = [t for t in all_tracks if not t.upper().startswith("ASKAI")]
 
-    def metric_bucket_summary_for_rows(rows: pd.DataFrame, metric: str, is_askai: bool) -> List[float]:
-        col_map = {
-            "Avg": "Avg ResTime in sec",
-            "Min": "Min ResTime in sec",
-            "Max": "MaxRes Time in sec",
-        }
-        col = col_map[metric]
-        bucket_names = ["0-10sec %", "10-20sec %", "20-30sec %", ">30sec %"] if is_askai else ["0-2sec %", "3-4sec %", "4-6sec %", ">6sec %"]
+    def avg_bucket_summary_for_rows(rows: pd.DataFrame, is_askai: bool) -> List[float]:
+        col = "Avg ResTime in sec"
+        bucket_names = ["0 - 10s", "10 - 20s", "20 - 30s", "> 30s"] if is_askai else ["0 - 2s", "3 - 4s", "4 - 6s", "> 6s"]
         if rows.empty or col not in rows.columns:
-            return [0, 0, 0, 0, 0]
+            return [0, 0, 0, 0]
 
         counts = dict.fromkeys(bucket_names, 0)
         values = pd.to_numeric(rows[col], errors="coerce").fillna(0)
         for value in values:
-            bucket = response_bucket(float(value), is_askai).replace("s %", "sec %")
-            counts[bucket] = counts.get(bucket, 0) + 1
+            v = float(value)
+            if is_askai:
+                bucket = "0 - 10s" if v <= 10 else "10 - 20s" if v <= 20 else "20 - 30s" if v <= 30 else "> 30s"
+            else:
+                bucket = "0 - 2s" if v <= 2 else "3 - 4s" if v <= 4 else "4 - 6s" if v <= 6 else "> 6s"
+            counts[bucket] += 1
         total = len(values) if len(values) else 1
-        percentages = [round(counts[name] / total * 100, 2) for name in bucket_names]
-        return percentages + [round(float(values.max()), 2)]
+        return [round(counts[name] / total * 100, 2) for name in bucket_names]
 
     def build_section(tracks: List[str], is_askai: bool) -> pd.DataFrame:
         rows = []
-        bucket_names = ["0-10sec %", "10-20sec %", "20-30sec %", ">30sec %"] if is_askai else ["0-2sec %", "3-4sec %", "4-6sec %", ">6sec %"]
+        bucket_names = ["0 - 10s", "10 - 20s", "20 - 30s", "> 30s"] if is_askai else ["0 - 2s", "3 - 4s", "4 - 6s", "> 6s"]
         row_targets = ["Total"] + tracks
 
         for target in row_targets:
-            first_target_row = True
             for frames in run_frames:
                 api_df = frames["APIs"].copy()
                 if target == "Total":
                     api_rows = api_df[api_df["Feature"].astype(str).isin(tracks)] if tracks else api_df
                 else:
                     api_rows = api_df[api_df["Feature"].astype(str) == str(target)]
-
-                display_label = run_display_label(frames)
-                for metric_index, metric in enumerate(["Avg", "Min", "Max"]):
-                    values = metric_bucket_summary_for_rows(api_rows, metric, is_askai)
-                    row = {
-                        "_TrackKey": target,
-                        "Track": target if first_target_row else "",
-                        "Result": display_label if metric_index == 0 else "",
-                        "Metric": metric,
-                    }
-                    for name, value in zip(bucket_names + ["Max Seconds"], values):
-                        row[name] = value
-                    rows.append(row)
-                    first_target_row = False
-
+                values = avg_bucket_summary_for_rows(api_rows, is_askai)
+                row = {
+                    "_TrackKey": target,
+                    "Track": target,
+                    "Result": comparison_header_label(frames),
+                }
+                for name, value in zip(bucket_names, values):
+                    row[name] = value
+                rows.append(row)
         return pd.DataFrame(rows)
 
     return build_section(askai_tracks, True), build_section(other_tracks, False)
@@ -1577,49 +1592,127 @@ def display_track_comparison_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns=["_TrackKey"], errors="ignore")
 
 
+def _fmt_pct(value: float) -> str:
+    try:
+        v = float(value)
+    except Exception:
+        v = 0.0
+    if abs(v - round(v)) < 0.005:
+        return f"{int(round(v))}%"
+    return f"{v:.2f}%"
+
+
+def render_tableau_comparison_matrix(data: pd.DataFrame, title: str) -> None:
+    """Render comparison exactly like the provided screenshot: result headers, bucket row, values row."""
+    if data.empty:
+        return
+
+    total = data[data["_TrackKey"] == "Total"].copy()
+    if total.empty:
+        total = data.copy()
+
+    bucket_cols = [c for c in total.columns if c not in {"_TrackKey", "Track", "Result"}]
+    if not bucket_cols:
+        return
+
+    header_cells = "".join([f'<th colspan="{len(bucket_cols)}">{row["Result"]}</th>' for _, row in total.iterrows()])
+    bucket_cells = "".join([f"<td>{bucket}</td>" for _ in range(len(total)) for bucket in bucket_cols])
+    value_cells = "".join([f"<td>{_fmt_pct(row[bucket])}</td>" for _, row in total.iterrows() for bucket in bucket_cols])
+
+    html = f"""
+<style>
+.tableau-compare-title {{
+  margin: 12px 0 8px 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+}}
+.tableau-compare-wrap {{
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 12px 28px rgba(15,23,42,.12);
+  margin-bottom: 18px;
+}}
+table.tableau-compare {{
+  width: 100%;
+  border-collapse: collapse;
+  background: #1f3b70;
+  table-layout: fixed;
+}}
+table.tableau-compare th {{
+  background: #263b73;
+  color: white;
+  font-size: 26px;
+  line-height: 1.18;
+  font-weight: 900;
+  padding: 24px 14px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.15);
+}}
+table.tableau-compare td {{
+  background: #1f3b70;
+  color: white;
+  font-size: 24px;
+  font-weight: 900;
+  padding: 20px 12px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.15);
+}}
+@media(max-width:1100px) {{
+  table.tableau-compare th {{ font-size: 18px; padding: 18px 8px; }}
+  table.tableau-compare td {{ font-size: 17px; padding: 14px 6px; }}
+}}
+</style>
+<div class="tableau-compare-title">{title}</div>
+<div class="tableau-compare-wrap">
+<table class="tableau-compare">
+  <tr>{header_cells}</tr>
+  <tr>{bucket_cells}</tr>
+  <tr>{value_cells}</tr>
+</table>
+</div>
+"""
+    st.markdown(html, unsafe_allow_html=True)
+
+
 def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
     askai_df, other_df = build_dashboard_track_comparison(run_frames)
-
-    def render_section(title: str, data: pd.DataFrame, height: int) -> None:
-        if data.empty:
-            return
-        with st.container(border=True):
-            st.markdown(f'<div class="panel-title">{title}</div>', unsafe_allow_html=True)
-            total = data[data["_TrackKey"] == "Total"].copy()
-            detail = data[data["_TrackKey"] != "Total"].copy()
-            if not total.empty:
-                st.caption("Total response distribution by uploaded result. Percent columns show APIs inside each response bucket.")
-                st.dataframe(display_track_comparison_df(total), use_container_width=True, hide_index=True, height=min(220, 72 + 38 * len(total)))
-            if not detail.empty:
-                st.caption("Track-level breakdown using Avg, Min and Max response metrics.")
-                st.dataframe(display_track_comparison_df(detail), use_container_width=True, hide_index=True, height=height)
 
     if askai_df.empty and other_df.empty:
         return
 
     st.markdown('<div class="panel-title" style="margin-top:12px;">TRACK COMPARISON DASHBOARD</div>', unsafe_allow_html=True)
-    render_section("CIQ Support Capabilities (Assets, Assessments and Support)", other_df, 360)
-    render_section("CIQ Support Capabilities (Ask AI)", askai_df, 300)
-
+    if not other_df.empty:
+        render_tableau_comparison_matrix(other_df, "CIQ Support Capabilities (Assets, Assessments and Support)")
+    if not askai_df.empty:
+        render_tableau_comparison_matrix(askai_df, "CIQ Support Capabilities (Ask AI)")
 
 def render_compare_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    st.markdown('<div class="panel"><div class="panel-title">TRACK COMPARISON <span class="tag">Grouped by result</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel"><div class="panel-title">TRACK COMPARISON <span class="tag">Avg response distribution</span></div>', unsafe_allow_html=True)
 
     askai_df, other_df = build_dashboard_track_comparison(run_frames)
 
-    st.markdown("### AskAI Tracks")
-    st.caption("Result includes the region. Repeated Track and Result cells are intentionally blank to keep Avg, Min and Max rows grouped together.")
+    if not other_df.empty:
+        render_tableau_comparison_matrix(other_df, "CIQ Support Capabilities (Assets, Assessments and Support)")
+    else:
+        st.info("No non-AskAI tracks found.")
+
     if not askai_df.empty:
-        st.dataframe(display_track_comparison_df(askai_df), use_container_width=True, hide_index=True, height=420)
+        render_tableau_comparison_matrix(askai_df, "CIQ Support Capabilities (Ask AI)")
     else:
         st.info("No AskAI tracks found.")
 
-    st.markdown("### Assets / Assessments / Home / Settings / Support Tracks")
-    st.caption("Result includes the region. Repeated Track and Result cells are intentionally blank to keep Avg, Min and Max rows grouped together.")
+    st.markdown("### Track-level Avg Bucket Details")
+    st.caption("Only Avg response buckets are shown. Min, Max, and Max Seconds are intentionally removed.")
+    details = []
     if not other_df.empty:
-        st.dataframe(display_track_comparison_df(other_df), use_container_width=True, hide_index=True, height=620)
-    else:
-        st.info("No non-AskAI tracks found.")
+        details.append(display_track_comparison_df(other_df[other_df["_TrackKey"] != "Total"]))
+    if not askai_df.empty:
+        details.append(display_track_comparison_df(askai_df[askai_df["_TrackKey"] != "Total"]))
+    if details:
+        detail_df = pd.concat(details, ignore_index=True)
+        st.dataframe(detail_df, use_container_width=True, hide_index=True, height=min(620, 72 + 35 * len(detail_df)))
 
     st.markdown("</div>", unsafe_allow_html=True)
 
