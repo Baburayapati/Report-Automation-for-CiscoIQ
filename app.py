@@ -1132,6 +1132,174 @@ body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] {
   border-radius: 14px !important;
 }
 
+
+/* REFERENCE UPLOAD PAGE STYLE - MATCH PROVIDED SCREENSHOT */
+body:has(.upload-left-panel-marker) .block-container {
+  max-width: none !important;
+  padding: 108px 26px 26px 286px !important;
+}
+
+/* left sidebar */
+.upload-left-sidebar {
+  width: 244px !important;
+  background: linear-gradient(180deg,#061633 0%,#071d50 58%,#06142f 100%) !important;
+  box-shadow: 10px 0 30px rgba(15,23,42,.15) !important;
+  padding: 24px 12px !important;
+}
+.upload-left-logo {
+  font-size: 32px !important;
+  margin: 6px 12px 38px 12px !important;
+  color: #ffffff !important;
+}
+.upload-left-link {
+  height: 52px !important;
+  padding: 0 16px !important;
+  border-radius: 15px !important;
+  margin-bottom: 12px !important;
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: #e5efff !important;
+}
+.upload-left-link.active {
+  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
+  box-shadow: 0 12px 28px rgba(124,58,237,.38) !important;
+  color: #ffffff !important;
+}
+.upload-left-link:hover {
+  background: rgba(255,255,255,.10) !important;
+  color: #ffffff !important;
+}
+
+/* topbar */
+.upload-topbar {
+  left: 244px !important;
+  height: 86px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #dbe4f0 !important;
+  padding: 0 32px 0 38px !important;
+}
+.upload-top-title {
+  font-size: 22px !important;
+  font-weight: 950 !important;
+  color: #0f172a !important;
+}
+.upload-top-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 22px !important;
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: #0f172a !important;
+  white-space: nowrap !important;
+}
+
+/* remove duplicate Streamlit toolbar when custom topbar is present */
+body:has(.upload-left-panel-marker) [data-testid="stToolbar"] {
+  display: none !important;
+}
+
+/* hide any previous hero centered title; topbar is source of truth */
+body:has(.upload-left-panel-marker) .hero-title-box,
+body:has(.upload-left-panel-marker) .hero-subtitle {
+  display: none !important;
+}
+
+/* Program Track Uploads heading */
+body:has(.upload-left-panel-marker) .panel-title,
+body:has(.clean-upload-page-marker) .panel-title {
+  display: block !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+  color: #0f2b68 !important;
+  margin: 0 0 18px 0 !important;
+}
+
+/* 4 cards in one row */
+body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"],
+body:has(.clean-upload-page-marker) div[data-testid="stHorizontalBlock"] {
+  gap: 14px !important;
+  margin-bottom: 22px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="column"],
+body:has(.clean-upload-page-marker) [data-testid="column"] {
+  min-width: 0 !important;
+}
+
+/* upload cards */
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"],
+body:has(.clean-upload-page-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04) !important;
+  padding: 14px !important;
+  min-height: 360px !important;
+  overflow: hidden !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] strong,
+body:has(.clean-upload-page-marker) [data-testid="stVerticalBlockBorderWrapper"] strong {
+  font-size: 15px !important;
+  color: #111827 !important;
+}
+
+/* uploader box */
+body:has(.upload-left-panel-marker) [data-testid="stFileUploader"],
+body:has(.clean-upload-page-marker) [data-testid="stFileUploader"] {
+  padding: 6px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"],
+body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] {
+  min-height: 86px !important;
+  height: 92px !important;
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+  background: #f8fafc !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] button,
+body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] button {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+}
+
+/* checkbox and buttons */
+body:has(.upload-left-panel-marker) [data-testid="stCheckbox"],
+body:has(.clean-upload-page-marker) [data-testid="stCheckbox"] {
+  margin-top: -2px !important;
+  margin-bottom: 0 !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stCheckbox"] label,
+body:has(.clean-upload-page-marker) [data-testid="stCheckbox"] label {
+  font-size: 13px !important;
+}
+body:has(.upload-left-panel-marker) .stButton > button,
+body:has(.clean-upload-page-marker) .stButton > button {
+  min-height: 38px !important;
+  height: 38px !important;
+  border-radius: 10px !important;
+  font-size: 12px !important;
+}
+
+/* saved report/no report box */
+body:has(.upload-left-panel-marker) [data-testid="stAlert"],
+body:has(.clean-upload-page-marker) [data-testid="stAlert"] {
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  background: #eaf2ff !important;
+}
+
+/* bottom cards retained and styled */
+body:has(.upload-left-panel-marker) .main-page-card,
+body:has(.clean-upload-page-marker) .main-page-card {
+  display: block !important;
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.035) !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1776,7 +1944,7 @@ def render_upload_left_panel() -> None:
 </div>
 <div class="upload-topbar">
   <div class="upload-top-title">CiscoIQ Performance Report App</div>
-  <div class="upload-top-actions"><span>Share</span><span>⭐</span><span>✎</span><span>◖</span></div>
+  <div class="upload-top-actions"><span>Share</span><span>⭐</span><span>🖊️</span><span>🐙</span></div>
 </div>
 """,
         unsafe_allow_html=True,
