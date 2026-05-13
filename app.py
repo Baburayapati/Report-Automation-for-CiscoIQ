@@ -23,58 +23,6 @@ APP_TITLE = "CiscoIQ Performance Report App"
 APP_NAME_TOKEN = "CiscoIQ"
 
 
-def render_executive_upload_shell():
-    st.markdown("""
-<div class="exec-shell">
-  <div class="exec-sidebar">
-    <a class="exec-nav" href="?view=dashboard" target="_self">📊 Dashboard</a>
-    <a class="exec-nav active" href="?page=uploads" target="_self">📂 Track Uploads</a>
-    <a class="exec-nav" href="?page=reports" target="_self">📑 Reports</a>
-    <a class="exec-nav" href="?page=excel" target="_self">📥 Excel Report</a>
-    <a class="exec-nav" href="?page=chatbot" target="_self">🤖 AI Chatbot</a>
-    <a class="exec-nav" href="?page=settings" target="_self">⚙️ Settings</a>
-  </div>
-  <div class="exec-content">
-    <div class="exec-top">
-      <div class="exec-title">CiscoIQ Performance Report App</div>
-      <div style="display:flex;gap:18px;font-size:18px;">
-        <span>Share</span>
-        <span>⭐</span>
-        <span>✏️</span>
-        <span>🐙</span>
-      </div>
-    </div>
-""", unsafe_allow_html=True)
-
-def close_executive_upload_shell():
-    st.markdown("</div></div>", unsafe_allow_html=True)
-
-def render_portal_layout():
-    st.markdown("""
-<div class="portal-sidebar">
-  <div style="font-size:22px;font-weight:900;margin-bottom:28px;">📊 CiscoIQ</div>
-
-  <a class="portal-nav active" href="?page=uploads" target="_self">📂 Track Uploads</a>
-  <a class="portal-nav" href="?view=dashboard" target="_self">📈 Dashboard</a>
-  <a class="portal-nav" href="?page=reports" target="_self">📑 Reports</a>
-  <a class="portal-nav" href="?page=excel" target="_self">📥 Excel Report</a>
-  <a class="portal-nav" href="?page=chatbot" target="_self">🤖 AI Chatbot</a>
-  <a class="portal-nav" href="?page=settings" target="_self">⚙️ Settings</a>
-  <a class="portal-nav" href="?page=help" target="_self">❓ Help</a>
-  <a class="portal-nav" href="?page=logout" target="_self">🚪 Logout</a>
-</div>
-
-<div class="portal-main-wrap">
-  <div class="portal-top">
-    <div style="font-size:28px;font-weight:900;">CiscoIQ Performance Report App</div>
-    <div style="color:#64748b;margin-top:4px;">Executive automation portal for reports and dashboards</div>
-  </div>
-""", unsafe_allow_html=True)
-
-def close_portal_layout():
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
 SAVED_REPORT_LIMIT = 15
 PROGRAM_SAAS = "Cisco IQ SaaS Support Services"
 TRACK_API = "API"
@@ -995,84 +943,112 @@ div[style*="height:70px"]:empty,
 }
 
 
-/* SIMPLE EXECUTIVE PORTAL */
-.portal-sidebar{
-position:fixed;left:0;top:0;width:220px;height:100vh;
-background:linear-gradient(180deg,#031633,#071b4d 55%,#09142f);
-padding:20px 14px;color:#fff;z-index:999;
+/* EXACT POST-LOGIN UPLOAD LAYOUT */
+body:has(.exact-upload-shell) .block-container {
+  max-width: none !important;
+  padding: 0 !important;
 }
-.portal-main-wrap{margin-left:240px;padding:18px 22px;}
-.portal-nav{
-display:flex;align-items:center;gap:10px;
-padding:14px;border-radius:14px;color:#fff !important;
-text-decoration:none !important;font-weight:800;margin-bottom:8px;
+body:has(.exact-upload-shell) .stApp {
+  background:#f7fbff !important;
 }
-.portal-nav.active{background:linear-gradient(90deg,#2563eb,#7c3aed);}
-.portal-top{
-background:#fff;border:1px solid #dbe4f0;border-radius:18px;
-padding:18px 22px;margin-bottom:18px;
+.exact-upload-shell {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
 }
-.quick-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:18px;}
-.quick-card{background:#fff;border:1px solid #dbe4f0;border-radius:18px;padding:22px;}
-.quick-title{font-size:24px;font-weight:900;margin-bottom:10px;}
-.quick-btn{display:inline-flex;height:40px;padding:0 18px;align-items:center;
-background:linear-gradient(90deg,#2563eb,#7c3aed);border-radius:12px;
-color:#fff !important;text-decoration:none !important;font-weight:800;}
-
-
-/* LOGIN PAGE CLEANUP */
-div.quick-grid:first-of-type{
+.exact-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 236px;
+  height: 100vh;
+  background: linear-gradient(180deg,#071633 0%,#071f57 55%,#06142f 100%);
+  border-right: 1px solid rgba(255,255,255,.08);
+  box-shadow: 12px 0 30px rgba(15,23,42,.14);
+  padding: 20px 12px;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+.exact-logo {
+  color:#fff;
+  font-size:30px;
+  margin: 8px 12px 36px;
+  font-weight:900;
+}
+.exact-nav {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 14px;
+  margin-bottom:12px;
+  border-radius:14px;
+  color:#dbeafe !important;
+  text-decoration:none !important;
+  font-size:15px;
+  font-weight:850;
+}
+.exact-nav.active {
+  background:linear-gradient(90deg,#4f46e5,#7c3aed);
+  color:#fff !important;
+  box-shadow:0 12px 28px rgba(124,58,237,.36);
+}
+.exact-topbar {
+  position: fixed;
+  left: 236px;
+  right: 0;
+  top: 0;
+  height: 92px;
+  background:#fff;
+  border-bottom:1px solid #dbe4f0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 30px 0 38px;
+  box-sizing:border-box;
+  pointer-events:auto;
+  z-index: 9998;
+}
+.exact-top-title {
+  font-size:22px;
+  font-weight:950;
+  color:#0f172a;
+}
+.exact-actions {
+  display:flex;
+  align-items:center;
+  gap:22px;
+  color:#0f172a;
+  font-weight:800;
+}
+body:has(.exact-upload-shell) .block-container > div {
+  margin-left:236px !important;
+  padding:128px 36px 28px 36px !important;
+}
+body:has(.exact-upload-shell) .hero-title-box,
+body:has(.exact-upload-shell) .hero-subtitle {
   display:none !important;
 }
-
-
-/* EXECUTIVE UPLOAD PORTAL */
-.exec-shell{
-display:grid;
-grid-template-columns:220px 1fr;
-gap:22px;
-align-items:start;
-margin-top:8px;
+body:has(.exact-upload-shell) .panel-title {
+  font-size:18px !important;
+  margin-bottom:14px !important;
 }
-.exec-sidebar{
-background:linear-gradient(180deg,#02122f,#071a49 60%,#08142e);
-border-radius:18px;
-padding:18px 14px;
-min-height:880px;
+body:has(.exact-upload-shell) [data-testid="stVerticalBlockBorderWrapper"] {
+  background:#fff !important;
+  border:1px solid #dbe4f0 !important;
+  border-radius:16px !important;
+  box-shadow:0 10px 24px rgba(15,23,42,.035) !important;
 }
-.exec-nav{
-display:flex;
-align-items:center;
-gap:12px;
-padding:14px 14px;
-border-radius:14px;
-margin-bottom:10px;
-font-weight:800;
-font-size:15px;
-color:#fff !important;
-text-decoration:none !important;
+body:has(.exact-upload-shell) .stButton > button {
+  min-height:38px !important;
+  border-radius:10px !important;
 }
-.exec-nav.active{
-background:linear-gradient(90deg,#2563eb,#7c3aed);
-box-shadow:0 12px 24px rgba(124,58,237,.35);
-}
-.exec-content{
-background:#fff;
-border:1px solid #dbe4f0;
-border-radius:18px;
-padding:18px;
-}
-.exec-top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding-bottom:16px;
-margin-bottom:16px;
-border-bottom:1px solid #e2e8f0;
-}
-.exec-title{
-font-size:28px;
-font-weight:900;
+@media(max-width:1100px) {
+  .exact-sidebar,.exact-topbar { position:relative; left:auto; width:auto; height:auto; }
+  body:has(.exact-upload-shell) .block-container > div {
+    margin-left:0 !important;
+    padding:20px !important;
+  }
 }
 
 </style>
@@ -1701,6 +1677,30 @@ def combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
 
 
 
+
+
+
+def render_exact_upload_layout_chrome() -> None:
+    st.markdown(
+        """
+<div class="exact-upload-shell">
+  <div class="exact-sidebar">
+    <div class="exact-logo">▥</div>
+    <a class="exact-nav" href="?view=dashboard" target="_self">⌂ Dashboard</a>
+    <a class="exact-nav active" href="?page=uploads" target="_self">▣ Track Uploads</a>
+    <a class="exact-nav" href="?page=reports" target="_self">▤ Reports</a>
+    <a class="exact-nav" href="?page=excel" target="_self">▥ Excel Report</a>
+    <a class="exact-nav" href="?page=chatbot" target="_self">☻ AI Chatbot</a>
+    <a class="exact-nav" href="?page=settings" target="_self">⚙ Settings</a>
+  </div>
+  <div class="exact-topbar">
+    <div class="exact-top-title">CiscoIQ Performance Report App</div>
+    <div class="exact-actions"><span>Share</span><span>⭐</span><span>✎</span><span>◖</span></div>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
 
 def render_dashboard_header() -> None:
@@ -4099,6 +4099,7 @@ elif team_upload_view:
     render_main_page(show_subtitle=st.session_state.get("team_authenticated", False))
     access_granted = team_upload_access_granted()
     if access_granted:
+        render_exact_upload_layout_chrome()
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
         api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
 
@@ -4207,36 +4208,3 @@ else:
         render_executive_dashboard(st.session_state.run_frames)
     else:
         render_management_landing_page()
-
-
-st.markdown("""
-<div class="quick-grid">
-  <div class="quick-card">
-    <div class="quick-title">📈 Executive Dashboard</div>
-    <div style="color:#64748b;margin-bottom:20px;">
-      Static leadership dashboard to view generated metrics and comparisons.
-    </div>
-    <a class="quick-btn" href="?view=dashboard" target="_self">Open Dashboard →</a>
-  </div>
-
-  <div class="quick-card">
-    <div class="quick-title">📑 Reports</div>
-    <div style="color:#64748b;margin-bottom:20px;">
-      All uploaded JSON and CSV files across programs are saved here.
-    </div>
-    <a class="quick-btn" href="?page=reports" target="_self">Open Reports →</a>
-  </div>
-
-  <div class="quick-card">
-    <div class="quick-title">⚙️ Settings</div>
-    <div style="color:#64748b;margin-bottom:20px;">
-      Logout, Help Center, Preferences, Notifications and Automation settings.
-    </div>
-    <a class="quick-btn" href="?page=settings" target="_self">Open Settings →</a>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-close_executive_upload_shell()
-
-close_portal_layout()
