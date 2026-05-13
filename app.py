@@ -1241,6 +1241,100 @@ body:has(.native-upload-marker) .exact-upload-shell {
   body:has(.native-upload-marker) .block-container { padding: 20px !important; }
 }
 
+
+/* UPLOAD UI CLEAN FINAL */
+
+/* better sidebar tab format */
+body:has(.native-upload-marker) [data-testid="stSidebar"] {
+  width: 248px !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button {
+  height: 42px !important;
+  min-height: 42px !important;
+  border-radius: 12px !important;
+  margin: 3px 0 !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  justify-content: flex-start !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
+  box-shadow: 0 10px 22px rgba(124,58,237,.32) !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] div {
+  text-align: left !important;
+}
+
+/* Page spacing */
+body:has(.native-upload-marker) .block-container {
+  max-width: none !important;
+  padding: 112px 26px 22px 26px !important;
+}
+.native-topbar {
+  height: 84px !important;
+  left: 248px !important;
+}
+
+/* compact 2x2 upload cards */
+body:has(.native-upload-marker) .panel-title {
+  font-size: 17px !important;
+  font-weight: 950 !important;
+  margin: 0 0 12px 0 !important;
+}
+body:has(.native-upload-marker) div[data-testid="stHorizontalBlock"] {
+  gap: 14px !important;
+  margin-bottom: 14px !important;
+}
+body:has(.native-upload-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid #dbe4f0 !important;
+  box-shadow: 0 10px 22px rgba(15,23,42,.035) !important;
+  padding: 10px !important;
+  min-height: 275px !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploader"] {
+  padding: 6px !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] {
+  min-height: 54px !important;
+  padding: 7px 9px !important;
+  border-radius: 12px !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] button {
+  min-height: 30px !important;
+  height: 30px !important;
+  font-size: 12px !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] small,
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] span {
+  font-size: 11px !important;
+}
+body:has(.native-upload-marker) [data-testid="stCheckbox"] {
+  margin-top: -8px !important;
+  margin-bottom: -6px !important;
+}
+body:has(.native-upload-marker) .stButton > button {
+  min-height: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+}
+
+/* saved report/no report panels compact */
+body:has(.native-upload-marker) [data-testid="stAlert"] {
+  padding: 9px 12px !important;
+  border-radius: 10px !important;
+}
+
+/* remove bottom action cards */
+body:has(.native-upload-marker) .main-page-card,
+body:has(.native-upload-marker) .quick-grid,
+body:has(.native-upload-marker) .upload-page-quick-row {
+  display: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1907,12 +2001,12 @@ def render_native_upload_sidebar() -> str:
     )
 
     nav_items = [
-        ("Dashboard", "⌂ Dashboard"),
-        ("Track Uploads", "▣ Track Uploads"),
-        ("Reports", "▤ Reports"),
-        ("Excel Report", "▥ Excel Report"),
-        ("AI Chatbot", "☻ AI Chatbot"),
-        ("Settings", "⚙ Settings"),
+        ("Dashboard", "⌂  Dashboard"),
+        ("Track Uploads", "▣  Track Uploads"),
+        ("Reports", "▤  Reports"),
+        ("Excel Report", "▥  Excel Report"),
+        ("AI Chatbot", "☻  AI Chatbot"),
+        ("Settings", "⚙  Settings"),
     ]
     current_page = st.session_state.get("upload_sidebar_page", "Track Uploads")
 
