@@ -981,6 +981,105 @@ body:has(.clean-upload-page-marker) .upload-page-quick-row {
   display: none !important;
 }
 
+
+/* FORCE HIDE BOTTOM EXECUTIVE/EXCEL/CHATBOT CARDS */
+body:has(.clean-upload-page-marker) div[data-testid="stHorizontalBlock"]:has(.main-page-card){
+    display:none !important;
+}
+body:has(.clean-upload-page-marker) .main-page-card{
+    display:none !important;
+}
+
+
+/* LEFT PANEL FOR UPLOAD PAGE */
+body:has(.upload-left-panel-marker) .block-container {
+  max-width: none !important;
+  padding: 108px 30px 24px 286px !important;
+}
+.upload-left-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 248px;
+  height: 100vh;
+  background: linear-gradient(180deg,#061633 0%,#071e52 58%,#06142f 100%);
+  z-index: 9998;
+  padding: 28px 14px;
+  box-sizing: border-box;
+  box-shadow: 12px 0 30px rgba(15,23,42,.16);
+}
+.upload-left-logo {
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 900;
+  margin: 8px 10px 36px 10px;
+}
+.upload-left-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  color: #dbeafe !important;
+  text-decoration: none !important;
+  font-size: 15px;
+  font-weight: 850;
+}
+.upload-left-link.active {
+  background: linear-gradient(90deg,#4f46e5,#7c3aed);
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(124,58,237,.38);
+}
+.upload-left-link:hover {
+  background: rgba(255,255,255,.10);
+  color: #ffffff !important;
+}
+.upload-topbar {
+  position: fixed;
+  top: 0;
+  left: 248px;
+  right: 0;
+  height: 82px;
+  background: #ffffff;
+  border-bottom: 1px solid #dbe4f0;
+  z-index: 9997;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px 0 34px;
+  box-sizing: border-box;
+}
+.upload-top-title {
+  font-size: 22px;
+  font-weight: 950;
+  color: #0f172a;
+}
+.upload-top-actions {
+  display:flex;
+  align-items:center;
+  gap:18px;
+  font-size:14px;
+  font-weight:850;
+  color:#0f172a;
+}
+body:has(.upload-left-panel-marker) .hero-title-box,
+body:has(.upload-left-panel-marker) .hero-subtitle {
+  display: none !important;
+}
+@media(max-width:1100px){
+  body:has(.upload-left-panel-marker) .block-container {
+    padding: 20px !important;
+  }
+  .upload-left-sidebar,.upload-topbar {
+    position: relative;
+    left: auto;
+    width: auto;
+    height: auto;
+  }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1607,6 +1706,29 @@ def combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
 
 
 
+
+
+
+def render_upload_left_panel() -> None:
+    st.markdown(
+        """
+<div class="upload-left-panel-marker"></div>
+<div class="upload-left-sidebar">
+  <div class="upload-left-logo">▥</div>
+  <a class="upload-left-link" href="?view=dashboard" target="_self">⌂ Dashboard</a>
+  <a class="upload-left-link active" href="?page=uploads" target="_self">▣ Track Uploads</a>
+  <a class="upload-left-link" href="?page=reports" target="_self">▤ Reports</a>
+  <a class="upload-left-link" href="?page=excel" target="_self">▥ Excel Report</a>
+  <a class="upload-left-link" href="?page=chatbot" target="_self">☻ AI Chatbot</a>
+  <a class="upload-left-link" href="?page=settings" target="_self">⚙ Settings</a>
+</div>
+<div class="upload-topbar">
+  <div class="upload-top-title">CiscoIQ Performance Report App</div>
+  <div class="upload-top-actions"><span>Share</span><span>⭐</span><span>✎</span><span>◖</span></div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
 
 def render_dashboard_header() -> None:
@@ -4005,6 +4127,7 @@ elif team_upload_view:
     render_main_page(show_subtitle=st.session_state.get("team_authenticated", False))
     access_granted = team_upload_access_granted()
     if access_granted:
+        render_upload_left_panel()
         st.markdown('<div class="clean-upload-page-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
         api_col, ui_col = st.columns(2, gap="medium")
