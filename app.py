@@ -812,12 +812,19 @@ def report_title(region: str, users: str, devices: str, include_users: bool = Tr
     user_value = re.sub(r"(?i)vu", "", user_value).strip() or "NA"
     if re.fullmatch(r"\d{9,13}", user_value):
         user_value = "NA"
+    region_user_match = re.search(r"(\d+(?:\.\d+)?\s*K?)\s*USERS?", region_token, re.IGNORECASE)
+    if region_user_match:
+        if user_value.upper() == "NA":
+            user_value = region_user_match.group(1).replace(" ", "")
+        region_token = ""
     user_token = f"{user_value}Users"
     device_value = re.sub(r"(?i)\s*devices?\s*", "", str(devices or "").strip())
     device_value = device_value or "NA"
     device_token = f"{device_value}Devices"
     if include_users:
-        return f"{region_token}-{user_token}-{device_token}"
+        if region_token and region_token not in {"N/A", "NA", "UNKNOWN"}:
+            return f"{region_token}-{user_token}-{device_token}"
+        return f"{user_token}-{device_token}"
     return f"{region_token}-{device_token}"
 
 
@@ -2988,17 +2995,11 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     padding: 10px;
     margin-bottom: 8px;
 }
-.compact-saved-titlebar {
-    background: #eef4ff;
-    border: 1px solid #d4e1f7;
-    border-radius: 999px;
-    padding: 9px 14px;
-    margin-bottom: 10px;
-}
 .compact-saved-cell-name {
     font-size: 14px;
     font-weight: 700;
     color: #0f172a;
+    margin-bottom: 10px;
 }
 </style>
 """,
@@ -3017,7 +3018,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         report_name = f"{report_title(region, users, devices, include_users=include_users)}-{date_token}"
 
         st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
-        st.markdown(f'<div class="compact-saved-titlebar"><div class="compact-saved-cell-name">{report_name}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
 
         action_generate_col, action_remove_col = st.columns(2, gap="small")
         if file_path.exists():
