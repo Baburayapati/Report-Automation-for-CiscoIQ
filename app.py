@@ -1300,6 +1300,52 @@ body:has(.clean-upload-page-marker) .main-page-card {
   box-shadow: 0 10px 24px rgba(15,23,42,.035) !important;
 }
 
+
+/* SIDEBAR REFINED TO MATCH REFERENCE */
+.upload-left-sidebar {
+  width: 236px !important;
+  padding: 18px 12px !important;
+  background: linear-gradient(180deg,#061633 0%,#071e52 58%,#06142f 100%) !important;
+}
+
+.upload-left-logo {
+  font-size: 24px !important;
+  margin: 8px 8px 30px 8px !important;
+  color: #ffffff !important;
+  line-height: 1 !important;
+}
+
+.upload-left-link {
+  height: 44px !important;
+  padding: 0 13px !important;
+  border-radius: 12px !important;
+  margin-bottom: 10px !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  gap: 10px !important;
+  color: #dbeafe !important;
+  text-decoration: none !important;
+}
+
+.upload-left-link.active {
+  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
+  box-shadow: 0 8px 20px rgba(124,58,237,.30) !important;
+  color: #ffffff !important;
+}
+
+.upload-topbar {
+  left: 236px !important;
+}
+
+body:has(.upload-left-panel-marker) .block-container {
+  padding-left: 272px !important;
+}
+
+/* avoid oversized text in sidebar */
+.upload-left-sidebar * {
+  font-size: inherit !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
