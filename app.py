@@ -992,6 +992,12 @@ padding:18px 22px;margin-bottom:18px;
 background:linear-gradient(90deg,#2563eb,#7c3aed);border-radius:12px;
 color:#fff !important;text-decoration:none !important;font-weight:800;}
 
+
+/* LOGIN PAGE CLEANUP */
+div.quick-grid:first-of-type{
+  display:none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
