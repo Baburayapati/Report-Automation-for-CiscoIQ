@@ -1,7 +1,10 @@
-# CiscoIQ Streamlit Build
+# CiscoIQ Streamlit App
 
-## Run locally
+## Login
+Username: admin
+Password: admin123
 
+## Run
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
