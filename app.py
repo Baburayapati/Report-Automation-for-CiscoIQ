@@ -355,6 +355,50 @@ div[role="radiogroup"] label:has(input:checked) {
   box-shadow:0 12px 28px rgba(15,23,42,.045) !important;
 }
 
+
+/* FINAL UI POLISH: compact tabs/cards and reliable active button look */
+div[data-testid="stHorizontalBlock"] .stButton > button {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  border-radius: 10px !important;
+  line-height: 1.1 !important;
+}
+.nav-button-row {
+  padding: 6px !important;
+  margin-bottom: 8px !important;
+}
+.track-upload-card {
+  padding: 10px 12px !important;
+  margin-bottom: 8px !important;
+}
+[data-testid="stFileUploader"] {
+  padding: 10px !important;
+  min-height: 62px !important;
+}
+[data-testid="stFileUploaderDropzone"] {
+  min-height: 74px !important;
+  padding: 10px 12px !important;
+}
+[data-testid="stFileUploaderFile"] {
+  margin-top: 6px !important;
+  min-height: 34px !important;
+  border-radius: 999px !important;
+  border: 1px solid #d5e1f2 !important;
+  background: #f8fbff !important;
+  padding: 6px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+[data-testid="stFileUploaderFileName"] {
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+div[data-testid="stDataFrame"] {
+  margin-bottom: 0 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -813,7 +857,7 @@ def to_mm_dd_yyyy(date_value: str) -> str:
 
 def build_standard_report_name(track_name: str, program_name: str, original_name: str, extension: str) -> str:
     info = infer_saved_report_info(original_name)
-    date_token = to_mmddyyyy(info.get("date", ""))
+    date_token = to_mmddyyyy(info.get("date", "") or original_name)
     epoch_token = f"EPOC-{int(datetime.now().timestamp())}"
     users_token = normalize_users_token(info.get("users", "N/A"))
     devices_token = normalize_devices_token(info.get("devices", "N/A"))
@@ -1028,7 +1072,7 @@ def dashboard_view_tabs() -> str:
     tab_cols = st.columns(len(tabs), gap="small")
     selected_tab = current_tab
     for col, (tab_value, tab_label) in zip(tab_cols, tabs):
-        if col.button(f"{icons[tab_value]} {tab_label}", key=f"dashboard_view_{tab_value}", type="primary" if current_tab == tab_value else "secondary", use_container_width=True):
+        if col.button(f"{icons[tab_value]} {tab_label}", key=f"dashboard_view_{sanitize_token(tab_value)}", type="primary" if current_tab == tab_value else "secondary", use_container_width=True):
             selected_tab = tab_value
     st.session_state["dashboard_tab"] = selected_tab
     if current_run_id:
