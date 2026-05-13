@@ -22,6 +22,31 @@ from main import build_report, build_comparison_report, build_single_report_fram
 APP_TITLE = "CiscoIQ Performance Report App"
 APP_NAME_TOKEN = "CiscoIQ"
 
+def render_portal_layout():
+    st.markdown("""
+<div class="portal-sidebar">
+  <div style="font-size:22px;font-weight:900;margin-bottom:28px;">📊 CiscoIQ</div>
+
+  <a class="portal-nav active" href="?page=uploads" target="_self">📂 Track Uploads</a>
+  <a class="portal-nav" href="?view=dashboard" target="_self">📈 Dashboard</a>
+  <a class="portal-nav" href="?page=reports" target="_self">📑 Reports</a>
+  <a class="portal-nav" href="?page=excel" target="_self">📥 Excel Report</a>
+  <a class="portal-nav" href="?page=chatbot" target="_self">🤖 AI Chatbot</a>
+  <a class="portal-nav" href="?page=settings" target="_self">⚙️ Settings</a>
+  <a class="portal-nav" href="?page=help" target="_self">❓ Help</a>
+  <a class="portal-nav" href="?page=logout" target="_self">🚪 Logout</a>
+</div>
+
+<div class="portal-main-wrap">
+  <div class="portal-top">
+    <div style="font-size:28px;font-weight:900;">CiscoIQ Performance Report App</div>
+    <div style="color:#64748b;margin-top:4px;">Executive automation portal for reports and dashboards</div>
+  </div>
+""", unsafe_allow_html=True)
+
+def close_portal_layout():
+    st.markdown("</div>", unsafe_allow_html=True)
+
 
 SAVED_REPORT_LIMIT = 15
 PROGRAM_SAAS = "Cisco IQ SaaS Support Services"
@@ -941,6 +966,31 @@ div[style*="height:70px"]:empty,
   .ciq-track-grid, .ciq-tab-grid { grid-template-columns: 1fr; }
   .ciq-spacer { display:none; }
 }
+
+
+/* SIMPLE EXECUTIVE PORTAL */
+.portal-sidebar{
+position:fixed;left:0;top:0;width:220px;height:100vh;
+background:linear-gradient(180deg,#031633,#071b4d 55%,#09142f);
+padding:20px 14px;color:#fff;z-index:999;
+}
+.portal-main-wrap{margin-left:240px;padding:18px 22px;}
+.portal-nav{
+display:flex;align-items:center;gap:10px;
+padding:14px;border-radius:14px;color:#fff !important;
+text-decoration:none !important;font-weight:800;margin-bottom:8px;
+}
+.portal-nav.active{background:linear-gradient(90deg,#2563eb,#7c3aed);}
+.portal-top{
+background:#fff;border:1px solid #dbe4f0;border-radius:18px;
+padding:18px 22px;margin-bottom:18px;
+}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:18px;}
+.quick-card{background:#fff;border:1px solid #dbe4f0;border-radius:18px;padding:22px;}
+.quick-title{font-size:24px;font-weight:900;margin-bottom:10px;}
+.quick-btn{display:inline-flex;height:40px;padding:0 18px;align-items:center;
+background:linear-gradient(90deg,#2563eb,#7c3aed);border-radius:12px;
+color:#fff !important;text-decoration:none !important;font-weight:800;}
 
 </style>
 """, unsafe_allow_html=True)
@@ -4074,3 +4124,34 @@ else:
         render_executive_dashboard(st.session_state.run_frames)
     else:
         render_management_landing_page()
+
+
+st.markdown("""
+<div class="quick-grid">
+  <div class="quick-card">
+    <div class="quick-title">📈 Executive Dashboard</div>
+    <div style="color:#64748b;margin-bottom:20px;">
+      Static leadership dashboard to view generated metrics and comparisons.
+    </div>
+    <a class="quick-btn" href="?view=dashboard" target="_self">Open Dashboard →</a>
+  </div>
+
+  <div class="quick-card">
+    <div class="quick-title">📑 Reports</div>
+    <div style="color:#64748b;margin-bottom:20px;">
+      All uploaded JSON and CSV files across programs are saved here.
+    </div>
+    <a class="quick-btn" href="?page=reports" target="_self">Open Reports →</a>
+  </div>
+
+  <div class="quick-card">
+    <div class="quick-title">⚙️ Settings</div>
+    <div style="color:#64748b;margin-bottom:20px;">
+      Logout, Help Center, Preferences, Notifications and Automation settings.
+    </div>
+    <a class="quick-btn" href="?page=settings" target="_self">Open Settings →</a>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+close_portal_layout()
