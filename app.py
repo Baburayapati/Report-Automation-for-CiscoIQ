@@ -399,6 +399,160 @@ body:has(.native-upload-marker) .upload-page-quick-row {
   display: none !important;
 }
 
+
+/* EXPECTED UPLOAD PAGE FINAL MATCH */
+body:has(.native-upload-marker) .block-container {
+  max-width: none !important;
+  padding: 112px 28px 18px 28px !important;
+}
+
+/* Remove duplicate page title text under topbar */
+body:has(.native-upload-marker) .hero-title-box,
+body:has(.native-upload-marker) .hero-subtitle,
+body:has(.native-upload-marker) h1,
+body:has(.native-upload-marker) h2:has(+ div),
+body:has(.native-upload-marker) [data-testid="stMarkdownContainer"] > div:has(.hero-title-box) {
+  display: none !important;
+}
+
+/* Top bar */
+.native-topbar {
+  height: 82px !important;
+  left: 248px !important;
+  right: 0 !important;
+  top: 0 !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #dbe4f0 !important;
+  padding: 0 30px 0 34px !important;
+}
+.native-top-title {
+  font-size: 22px !important;
+  font-weight: 950 !important;
+  color: #0f172a !important;
+}
+.native-actions {
+  gap: 18px !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+}
+
+/* Dark sidebar exact style */
+body:has(.native-upload-marker) [data-testid="stSidebar"] {
+  width: 248px !important;
+  min-width: 248px !important;
+  background: linear-gradient(180deg,#061633 0%,#071e52 58%,#06142f 100%) !important;
+  border-right: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 12px 0 30px rgba(15,23,42,.16) !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] > div:first-child {
+  padding: 26px 14px !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] * {
+  color: #ffffff !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton {
+  margin-bottom: 11px !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button {
+  height: 46px !important;
+  min-height: 46px !important;
+  padding: 8px 14px !important;
+  border-radius: 14px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(124,58,237,.38) !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button[kind="secondary"]:hover {
+  background: rgba(255,255,255,.08) !important;
+}
+
+/* Program upload section should look like expected screenshot */
+body:has(.native-upload-marker) .panel-title {
+  display: block !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+  color: #0f2b68 !important;
+  margin: 0 0 14px 0 !important;
+}
+
+/* 4 cards in one row; compact but readable */
+body:has(.native-upload-marker) div[data-testid="stHorizontalBlock"] {
+  gap: 14px !important;
+  margin-bottom: 14px !important;
+}
+body:has(.native-upload-marker) [data-testid="column"] {
+  min-width: 0 !important;
+}
+body:has(.native-upload-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04) !important;
+  padding: 12px !important;
+  min-height: 310px !important;
+  max-height: 340px !important;
+  overflow: hidden !important;
+}
+body:has(.native-upload-marker) [data-testid="stVerticalBlockBorderWrapper"] strong {
+  font-size: 14px !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploader"] {
+  padding: 6px !important;
+  margin-bottom: 0 !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] {
+  min-height: 78px !important;
+  height: 82px !important;
+  padding: 8px 10px !important;
+  border-radius: 14px !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] button {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] small,
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] span {
+  font-size: 11px !important;
+}
+body:has(.native-upload-marker) [data-testid="stCheckbox"] {
+  margin-top: -4px !important;
+  margin-bottom: -4px !important;
+}
+body:has(.native-upload-marker) [data-testid="stCheckbox"] label {
+  font-size: 13px !important;
+}
+body:has(.native-upload-marker) .stButton > button {
+  min-height: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  font-size: 12px !important;
+}
+body:has(.native-upload-marker) [data-testid="stAlert"] {
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+}
+
+/* Remove all bottom shortcut cards permanently */
+body:has(.native-upload-marker) .main-page-card,
+body:has(.native-upload-marker) .feature-grid,
+body:has(.native-upload-marker) .quick-grid,
+body:has(.native-upload-marker) .upload-page-quick-row {
+  display: none !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -3204,8 +3358,7 @@ elif team_upload_view:
         if render_upload_side_page(upload_nav_page):
             st.stop()
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
-        api_col, ui_col = st.columns(2, gap="small")
-        cloud_col, inv_col = st.columns(2, gap="small")
+        api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
 
         with api_col:
             with st.container(border=True):
