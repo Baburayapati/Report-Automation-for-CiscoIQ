@@ -399,6 +399,118 @@ div[data-testid="stDataFrame"] {
   margin-bottom: 0 !important;
 }
 
+
+/* ENTERPRISE NAV POLISH - hierarchy: Programs > Program Tracks > Dashboard Tabs */
+.enterprise-nav-shell {
+  background: rgba(255,255,255,.96);
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  padding: 12px 14px 14px 14px;
+  margin: 8px 0 14px 0;
+  box-shadow: 0 12px 30px rgba(15,23,42,.06);
+}
+.nav-section-label {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+  color: #0f2b68;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  margin: 2px 0 7px 2px;
+}
+.nav-section-sub {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 700;
+  margin: -2px 0 7px 2px;
+}
+.region-filter-card {
+  background: linear-gradient(135deg,#f8fbff,#eef4ff);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 8px 10px 10px 10px;
+  min-height: 74px;
+  box-shadow: 0 8px 20px rgba(37,99,235,.06);
+}
+.region-filter-card .region-field-label {
+  font-size: 11px !important;
+  margin: 0 0 4px 0 !important;
+}
+.region-filter-card [data-testid="stSelectbox"] {
+  margin-top: -8px !important;
+}
+.region-filter-card [data-baseweb="select"] > div {
+  min-height: 34px !important;
+  border-radius: 10px !important;
+  font-size: 12px !important;
+}
+
+/* Compact program and track tab buttons */
+div[data-testid="stHorizontalBlock"] .stButton > button {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 5px 9px !important;
+  font-size: 11.5px !important;
+  line-height: 1.05 !important;
+  border-radius: 10px !important;
+  font-weight: 850 !important;
+  box-shadow: 0 6px 14px rgba(15,23,42,.055) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Dashboard tabs should look like smaller executive tabs */
+.dashboard-tabs-row {
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 14px;
+  padding: 7px;
+  margin: 2px 0 10px 0;
+  box-shadow: 0 8px 18px rgba(15,23,42,.04);
+}
+.dashboard-tabs-row + div .stButton > button {
+  min-height: 34px !important;
+  height: 34px !important;
+  font-size: 11.5px !important;
+}
+
+/* Better exact-fit track cards / upload cards */
+.track-upload-card, .main-page-card, .upload-card {
+  border-radius: 16px !important;
+}
+.track-upload-card {
+  padding: 10px 11px !important;
+  margin-bottom: 8px !important;
+  min-height: auto !important;
+}
+[data-testid="stFileUploader"] {
+  padding: 10px !important;
+  min-height: 60px !important;
+}
+[data-testid="stFileUploaderDropzone"] {
+  min-height: 72px !important;
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+}
+[data-testid="stFileUploader"] section {
+  padding: 8px !important;
+}
+.stButton > button, .stDownloadButton > button {
+  min-height: 36px !important;
+}
+.panel-title {
+  margin-bottom: 8px !important;
+}
+.side-card {
+  padding: 12px !important;
+  border-radius: 16px !important;
+}
+.block-container {
+  max-width: 1600px !important;
+  padding-top: .4rem !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1045,6 +1157,7 @@ def render_dashboard_header() -> None:
     )
 
 
+
 def dashboard_view_tabs() -> str:
     current_tab = params.get("tab", "") or st.session_state.get("dashboard_tab", "Overview")
     if "nav_target" in st.session_state:
@@ -1055,8 +1168,11 @@ def dashboard_view_tabs() -> str:
     current_tab = legacy_tabs.get(current_tab, current_tab)
     if current_tab not in valid_tabs:
         current_tab = "Overview"
+
     st.session_state["dashboard_tab"] = current_tab
     current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
+
+    st.markdown('<div class="dashboard-tabs-row">', unsafe_allow_html=True)
     tabs = [
         ("Overview", "Overview"),
         ("Track Comparison", "Track Comparison"),
@@ -1069,17 +1185,29 @@ def dashboard_view_tabs() -> str:
         "Detailed Report": "⌕",
         "Chatbot": "●",
     }
+
     tab_cols = st.columns(len(tabs), gap="small")
-    selected_tab = current_tab
     for col, (tab_value, tab_label) in zip(tab_cols, tabs):
-        if col.button(f"{icons[tab_value]} {tab_label}", key=f"dashboard_view_{sanitize_token(tab_value)}", type="primary" if current_tab == tab_value else "secondary", use_container_width=True):
-            selected_tab = tab_value
-    st.session_state["dashboard_tab"] = selected_tab
+        is_active = current_tab == tab_value
+        if col.button(
+            f"{icons[tab_value]} {tab_label}",
+            key=f"dashboard_view_{sanitize_token(tab_value)}",
+            type="primary" if is_active else "secondary",
+            use_container_width=True,
+        ):
+            st.session_state["dashboard_tab"] = tab_value
+            if current_run_id:
+                st.query_params["view"] = "dashboard"
+                st.query_params["run_id"] = current_run_id
+                st.query_params["tab"] = tab_value
+            st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
     if current_run_id:
         st.query_params["view"] = "dashboard"
         st.query_params["run_id"] = current_run_id
-        st.query_params["tab"] = selected_tab
-    return selected_tab
+        st.query_params["tab"] = current_tab
+    return current_tab
 
 
 def kpi_cards(df: pd.DataFrame, previous_df: pd.DataFrame | None = None, title: str = "AGGREGATED PERFORMANCE OVERVIEW METRICS", compact: bool = False) -> None:
@@ -1705,7 +1833,12 @@ def goto_tab_button(label: str, tab_name: str, key: str) -> None:
 def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
     render_dashboard_header()
 
-    st.markdown('<div class="panel-title">PROGRAMS</div>', unsafe_allow_html=True)
+    # Enterprise navigation hierarchy:
+    # 1) Programs, 2) Program Tracks + Region, 3) Dashboard tabs.
+    st.markdown('<div class="enterprise-nav-shell">', unsafe_allow_html=True)
+
+    st.markdown('<div class="nav-section-label">1. Programs</div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-section-sub">Select the product/program area for leadership review</div>', unsafe_allow_html=True)
     program_options = [
         PROGRAM_SAAS,
         "Cisco IQ Onprem - Assets",
@@ -1715,44 +1848,74 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
     active_program = st.session_state.get("active_program", PROGRAM_SAAS)
     if active_program not in program_options:
         active_program = PROGRAM_SAAS
-    pcols = st.columns(4, gap="small")
+
+    pcols = st.columns([1.35, 1.05, 1.05, .95], gap="small")
     for col, program_name in zip(pcols, program_options):
-        if col.button(program_name, key=f"program_tab_{program_name}", type="primary" if active_program == program_name else "secondary", use_container_width=True):
+        if col.button(
+            program_name,
+            key=f"program_tab_{sanitize_token(program_name)}",
+            type="primary" if active_program == program_name else "secondary",
+            use_container_width=True,
+        ):
             st.session_state["active_program"] = program_name
+            st.session_state["dashboard_tab"] = "Overview"
             active_program = program_name
             st.rerun()
 
     if active_program != PROGRAM_SAAS:
+        st.markdown('</div>', unsafe_allow_html=True)
         with st.container(border=True):
             st.markdown('<div class="panel-title">Coming Soon</div>', unsafe_allow_html=True)
             st.info(f"{active_program} is planned for Q4FY26. Dashboard enablement is in upcoming release windows.")
             render_saved_reports_table(show_title=False)
         return
 
-    st.markdown('<div class="panel-title">PROGRAM TRACKS</div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-section-label" style="margin-top:10px;">2. Program Tracks</div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-section-sub">Choose a track, then use the dashboard tabs below for analysis</div>', unsafe_allow_html=True)
+
     track_options = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
     active_track = st.session_state.get("active_track", "API")
     if active_track not in track_options:
         active_track = "API"
-    top_track_row = st.columns([4.3, 1.2], gap="small")
-    with top_track_row[1]:
-        st.markdown('<div class="region-field-label">Region</div>', unsafe_allow_html=True)
-        region_focus = st.selectbox("Region", ["All", "US", "EMEA", "APJC"], key="dashboard_region_focus", label_visibility="collapsed")
 
-    t1, t2, t3, t4 = top_track_row[0].columns([1.2, 1, 1.3, 1.6], gap="small")
-    for col, track_name in zip([t1, t2, t3, t4], track_options):
-        if col.button(track_name, key=f"track_tab_{track_name}", type="primary" if active_track == track_name else "secondary", use_container_width=True):
-            st.session_state["active_track"] = track_name
-            active_track = track_name
-            st.rerun()
+    top_track_row = st.columns([5.2, 1.15], gap="small")
+
+    with top_track_row[0]:
+        t1, t2, t3, t4 = st.columns([.72, .62, 1.15, 1.55], gap="small")
+        for col, track_name in zip([t1, t2, t3, t4], track_options):
+            if col.button(
+                track_name,
+                key=f"track_tab_{sanitize_token(track_name)}",
+                type="primary" if active_track == track_name else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state["active_track"] = track_name
+                st.session_state["dashboard_tab"] = "Overview"
+                active_track = track_name
+                st.rerun()
+
+    with top_track_row[1]:
+        st.markdown('<div class="region-filter-card">', unsafe_allow_html=True)
+        st.markdown('<div class="region-field-label">REGION FILTER</div>', unsafe_allow_html=True)
+        available_regions = sorted(set([frames.get("Region", region_from_frames(frames)) for frames in run_frames if frames.get("Region", region_from_frames(frames))]))
+        region_choices = ["All"] + [r for r in available_regions if str(r).upper() not in {"UNKNOWN", "N/A", "NA"}]
+        if not region_choices or region_choices == ["All"]:
+            region_choices = ["All", "US", "EMEA", "APJC"]
+        region_focus = st.selectbox("Region", region_choices, key="dashboard_region_focus", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="nav-section-label" style="margin-top:10px;">3. Dashboard Views</div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-section-sub">Overview, full track comparison, detailed report, and chatbot</div>', unsafe_allow_html=True)
 
     if active_track != "API":
+        st.markdown('</div>', unsafe_allow_html=True)
         with st.container(border=True):
             st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
             render_non_api_track_view(active_track)
         return
 
     selected_tab = dashboard_view_tabs()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     main_col, side_col = st.columns([4.35, .95], gap="medium")
 
