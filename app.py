@@ -1222,6 +1222,44 @@ body:has(.upload-left-panel-marker) .upload-page-quick-row {
   display:none !important;
 }
 
+
+/* 2X2 TRACK UPLOADS + REPORTS UI */
+body:has(.upload-left-panel-marker) .block-container {
+  max-width: none !important;
+  padding: 108px 34px 28px 286px !important;
+}
+
+body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
+  gap: 18px !important;
+  margin-bottom: 18px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  min-height: 300px !important;
+  max-height: none !important;
+  border-radius: 16px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] {
+  min-height: 72px !important;
+  height: 78px !important;
+  border-radius: 14px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] button {
+  height: 34px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stAlert"] {
+  min-height: 48px !important;
+}
+
+/* Reports tab cards in clean 2x2 */
+body:has(.upload-left-panel-marker) .report-program-card {
+  min-height: 260px !important;
+  border-radius: 16px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1906,7 +1944,8 @@ def render_upload_sidebar_page(page_name: str) -> bool:
     if page_name == "Reports":
         st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
         st.info("Saved uploaded JSON/CSV files are shown here by track.")
-        r1, r2, r3, r4 = st.columns(4, gap="small")
+        r1, r2 = st.columns(2, gap="medium")
+        r3, r4 = st.columns(2, gap="medium")
         with r1:
             st.markdown("### API Reports")
             render_api_saved_reports_compact()
@@ -4363,7 +4402,8 @@ elif team_upload_view:
             st.stop()
         st.markdown('<div class="clean-upload-page-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
-        api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
+        api_col, ui_col = st.columns(2, gap="medium")
+        cloud_col, inv_col = st.columns(2, gap="medium")
 
         with api_col:
             with st.container(border=True):
