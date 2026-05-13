@@ -818,6 +818,130 @@ div[style*="height:70px"]:empty,
   }
 }
 
+
+/* FINAL HTML NAV MATCH - fixed screenshot-style layout */
+.ciq-nav-wrap {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 18px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid #dbe4f0;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 18px 44px rgba(15,23,42,.075);
+  margin: 12px 0 16px 0;
+}
+.ciq-program-panel {
+  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+  padding: 18px 16px 18px 16px;
+  min-height: 224px;
+}
+.ciq-main-panel {
+  padding: 18px 18px 16px 0;
+}
+.ciq-title {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  color: #0f2b68;
+}
+.ciq-program-panel .ciq-title {
+  color: #fff;
+}
+.ciq-program-link,
+.ciq-track-link,
+.ciq-tab-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 850;
+  text-decoration: none !important;
+  box-sizing: border-box;
+}
+.ciq-program-link {
+  justify-content: flex-start;
+  padding: 0 14px;
+  color: #fff !important;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+}
+.ciq-program-link.active {
+  background: #fff;
+  color: #4f46e5 !important;
+  border-color: rgba(255,255,255,.8);
+  box-shadow: 0 12px 24px rgba(15,23,42,.16);
+}
+.ciq-track-grid {
+  display: grid;
+  grid-template-columns: .58fr .68fr 1.55fr 1.95fr 190px;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+.ciq-track-link,
+.ciq-tab-link {
+  color: #111827 !important;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  box-shadow: 0 8px 18px rgba(15,23,42,.06);
+  padding: 0 10px;
+  white-space: nowrap;
+}
+.ciq-track-link.active,
+.ciq-tab-link.active {
+  color: #fff !important;
+  background: linear-gradient(90deg,#2563eb,#7c3aed);
+  border-color: transparent;
+}
+.ciq-region-card {
+  grid-row: span 2;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 11px;
+  min-height: 92px;
+  box-shadow: 0 12px 24px rgba(15,23,42,.055);
+}
+.ciq-region-title {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #0f2b68;
+  margin-bottom: 8px;
+}
+.ciq-region-select {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #dbe4f0;
+  border-radius: 11px;
+  background: #f8fafc;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #111827;
+}
+.ciq-tab-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.42fr 1.32fr 1.15fr 190px;
+  gap: 14px;
+  align-items: start;
+}
+.ciq-spacer {
+  width: 190px;
+}
+@media(max-width:1100px){
+  .ciq-nav-wrap { grid-template-columns: 1fr; }
+  .ciq-main-panel { padding: 16px; }
+  .ciq-track-grid, .ciq-tab-grid { grid-template-columns: 1fr; }
+  .ciq-spacer { display:none; }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2129,85 +2253,113 @@ def goto_tab_button(label: str, tab_name: str, key: str) -> None:
 
 
 def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    # Top header intentionally removed. The nav below is the leadership view.
+    # Screenshot-matched executive navigation rendered as HTML links.
+    current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
+    selected_tab = params.get("tab", "") or st.session_state.get("dashboard_tab", "Overview")
+    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Track Comparison", "Reports": "Overview", "Trends": "Overview"}
+    selected_tab = legacy_tabs.get(selected_tab, selected_tab)
+    if selected_tab not in ["Overview", "Track Comparison", "Detailed Report", "Chatbot"]:
+        selected_tab = "Overview"
+    st.session_state["dashboard_tab"] = selected_tab
 
-    st.markdown('<div class="exact-nav-anchor"></div>', unsafe_allow_html=True)
-    left_nav, right_nav = st.columns([1.0, 3.55], gap="small")
+    active_program = params.get("program", "") or st.session_state.get("active_program", PROGRAM_SAAS)
+    program_values = [PROGRAM_SAAS, "Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Risk App", "CX AI Assistant"]
+    if active_program not in program_values:
+        active_program = PROGRAM_SAAS
+    st.session_state["active_program"] = active_program
 
-    with left_nav:
-        st.markdown('<div class="exact-label white">1. Programs</div>', unsafe_allow_html=True)
+    active_track = params.get("track", "") or st.session_state.get("active_track", "API")
+    track_values = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
+    if active_track not in track_values:
+        active_track = "API"
+    st.session_state["active_track"] = active_track
 
-        program_options = [
-            ("🎧  Cisco IQ SaaS Support Services", PROGRAM_SAAS),
-            ("▧  Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Assets"),
-            ("🛡  Cisco IQ Onprem - Risk App", "Cisco IQ Onprem - Risk App"),
-            ("✣  CX AI Assistant", "CX AI Assistant"),
-        ]
-        active_program = st.session_state.get("active_program", PROGRAM_SAAS)
-        if active_program not in [p[1] for p in program_options]:
-            active_program = PROGRAM_SAAS
+    def nav_url(tab=None, program=None, track=None):
+        import urllib.parse
+        q = {
+            "view": "dashboard",
+            "run_id": current_run_id,
+            "tab": tab or selected_tab,
+            "program": program or active_program,
+            "track": track or active_track,
+        }
+        return "?" + urllib.parse.urlencode(q)
 
-        for label, program_name in program_options:
-            if st.button(
-                label,
-                key=f"program_tab_{sanitize_token(program_name)}",
-                type="primary" if active_program == program_name else "secondary",
-                use_container_width=True,
-            ):
-                st.session_state["active_program"] = program_name
-                st.session_state["dashboard_tab"] = "Overview"
-                active_program = program_name
-                st.rerun()
+    def active_cls(is_active: bool) -> str:
+        return " active" if is_active else ""
 
-    with right_nav:
-        if active_program != PROGRAM_SAAS:
-            st.markdown('<div class="exact-label">2. Program Tracks</div>', unsafe_allow_html=True)
+    programs_html = [
+        ("🎧", "Cisco IQ SaaS Support Services", PROGRAM_SAAS),
+        ("▧", "Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Assets"),
+        ("🛡", "Cisco IQ Onprem - Risk App", "Cisco IQ Onprem - Risk App"),
+        ("✣", "CX AI Assistant", "CX AI Assistant"),
+    ]
+    tracks_html = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
+    tabs_html = [
+        ("Overview", "◈ Overview"),
+        ("Track Comparison", "▥ Track Comparison"),
+        ("Detailed Report", "▣ Detailed Report"),
+        ("Chatbot", "● AI Chatbot"),
+    ]
+
+    available_regions = sorted(set([frames.get("Region", region_from_frames(frames)) for frames in run_frames if frames.get("Region", region_from_frames(frames))]))
+    region_choices = ["All"] + [r for r in available_regions if str(r).upper() not in {"UNKNOWN", "N/A", "NA"}]
+    if len(region_choices) == 1:
+        region_choices = ["All", "US", "EMEA", "APJC"]
+
+    program_links = ""
+    for icon, label, value in programs_html:
+        program_links += f'<a class="ciq-program-link{active_cls(active_program == value)}" href="{nav_url(program=value, tab="Overview", track="API")}"><span style="width:28px;display:inline-block;">{icon}</span>{label}</a>'
+
+    track_links = ""
+    for value in tracks_html:
+        track_links += f'<a class="ciq-track-link{active_cls(active_track == value)}" href="{nav_url(track=value, tab="Overview")}">{value}</a>'
+
+    tab_links = ""
+    for value, label in tabs_html:
+        tab_links += f'<a class="ciq-tab-link{active_cls(selected_tab == value)}" href="{nav_url(tab=value)}">{label}</a>'
+
+    region_options = "".join([f'<option>{"All" if r == "All" else r}</option>' for r in region_choices])
+
+    st.markdown(
+        f"""
+<div class="ciq-nav-wrap">
+  <div class="ciq-program-panel">
+    <div class="ciq-title">1. Programs</div>
+    {program_links}
+  </div>
+  <div class="ciq-main-panel">
+    <div class="ciq-title">2. Program Tracks</div>
+    <div class="ciq-track-grid">
+      {track_links}
+      <div class="ciq-region-card">
+        <div class="ciq-region-title">Region Filter</div>
+        <select class="ciq-region-select">{region_options}</select>
+      </div>
+    </div>
+    <div class="ciq-title">3. Dashboard Views</div>
+    <div class="ciq-tab-grid">
+      {tab_links}
+      <div class="ciq-spacer"></div>
+    </div>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+    if active_program != PROGRAM_SAAS:
+        with st.container(border=True):
+            st.markdown('<div class="panel-title">Coming Soon</div>', unsafe_allow_html=True)
             st.info(f"{active_program} is planned for Q4FY26. Dashboard enablement is in upcoming release windows.")
             render_saved_reports_table(show_title=False)
-            return
+        return
 
-        st.markdown('<div class="exact-label">2. Program Tracks</div>', unsafe_allow_html=True)
-
-        track_options = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
-        active_track = st.session_state.get("active_track", "API")
-        if active_track not in track_options:
-            active_track = "API"
-
-        track_area, region_area = st.columns([4.7, 1.0], gap="small")
-
-        with track_area:
-            t1, t2, t3, t4 = st.columns([.58, .68, 1.55, 1.95], gap="small")
-            for col, track_name in zip([t1, t2, t3, t4], track_options):
-                if col.button(
-                    track_name,
-                    key=f"track_tab_{sanitize_token(track_name)}",
-                    type="primary" if active_track == track_name else "secondary",
-                    use_container_width=True,
-                ):
-                    st.session_state["active_track"] = track_name
-                    st.session_state["dashboard_tab"] = "Overview"
-                    active_track = track_name
-                    st.rerun()
-
-        with region_area:
-            st.markdown('<div class="exact-region-card">', unsafe_allow_html=True)
-            st.markdown('<div class="exact-label" style="margin-bottom:7px;">Region Filter</div>', unsafe_allow_html=True)
-            available_regions = sorted(set([frames.get("Region", region_from_frames(frames)) for frames in run_frames if frames.get("Region", region_from_frames(frames))]))
-            region_choices = ["All"] + [r for r in available_regions if str(r).upper() not in {"UNKNOWN", "N/A", "NA"}]
-            if len(region_choices) == 1:
-                region_choices = ["All", "US", "EMEA", "APJC"]
-            region_focus = st.selectbox("Region", region_choices, key="dashboard_region_focus", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown('<div class="exact-label" style="margin-top:14px;">3. Dashboard Views</div>', unsafe_allow_html=True)
-
-        if active_track != "API":
-            with st.container(border=True):
-                st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
-                render_non_api_track_view(active_track)
-            return
-
-    selected_tab = dashboard_view_tabs()
+    if active_track != "API":
+        with st.container(border=True):
+            st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
+            render_non_api_track_view(active_track)
+        return
 
     main_col, side_col = st.columns([4.35, .95], gap="medium")
 
