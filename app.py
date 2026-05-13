@@ -1334,6 +1334,152 @@ body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"]
   display: none !important;
 }
 
+
+/* UNIFORM UPLOAD UI FINAL FIX */
+body:has(.upload-left-panel-marker) .block-container {
+  max-width: none !important;
+  padding: 108px 24px 26px 280px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] {
+  width: 244px !important;
+  min-width: 244px !important;
+  background: linear-gradient(180deg,#061633 0%,#071d50 58%,#06142f 100%) !important;
+  border-right: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 10px 0 30px rgba(15,23,42,.16) !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] > div:first-child {
+  padding: 20px 12px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] * {
+  color: #ffffff !important;
+}
+.upload-left-logo {
+  font-size: 28px !important;
+  margin: 10px 8px 34px 8px !important;
+  color: #ffffff !important;
+  line-height: 1 !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  margin-bottom: 10px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 14px !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #dbeafe !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
+  box-shadow: 0 10px 24px rgba(124,58,237,.36) !important;
+  color: #ffffff !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="secondary"]:hover {
+  background: rgba(255,255,255,.10) !important;
+  color: #ffffff !important;
+}
+.upload-topbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 244px !important;
+  right: 0 !important;
+  height: 86px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #dbe4f0 !important;
+  z-index: 9997 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 32px 0 38px !important;
+  box-sizing: border-box !important;
+}
+.upload-top-title {
+  font-size: 22px !important;
+  font-weight: 950 !important;
+  color: #0f172a !important;
+}
+.upload-top-actions, .native-actions {
+  display: none !important;
+}
+body:has(.upload-left-panel-marker) .panel-title {
+  display: block !important;
+  max-width: none !important;
+  margin: 0 0 16px 0 !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+  color: #0f2b68 !important;
+}
+body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  gap: 14px !important;
+  margin-bottom: 22px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="column"] {
+  min-width: 0 !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04) !important;
+  padding: 14px !important;
+  min-height: 345px !important;
+  max-height: 390px !important;
+  overflow: hidden !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] strong {
+  font-size: 14px !important;
+  color: #111827 !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stFileUploader"] {
+  padding: 6px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] {
+  min-height: 78px !important;
+  height: 84px !important;
+  padding: 8px 10px !important;
+  border-radius: 14px !important;
+  background: #f8fafc !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] button {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 5px 13px !important;
+  font-size: 12px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stCheckbox"] {
+  margin-top: -2px !important;
+  margin-bottom: -2px !important;
+}
+body:has(.upload-left-panel-marker) .stButton > button {
+  min-height: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  font-size: 12px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stAlert"] {
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  background: #eaf2ff !important;
+}
+body:has(.upload-left-panel-marker) .main-page-card {
+  display: block !important;
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.035) !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1980,12 +2126,12 @@ def render_upload_left_panel() -> str:
         st.session_state.upload_left_page = "Track Uploads"
 
     nav_items = [
-        ("Dashboard", "⌂ Dashboard"),
-        ("Track Uploads", "▣ Track Uploads"),
-        ("Reports", "▤ Reports"),
-        ("Excel Report", "▥ Excel Report"),
-        ("AI Chatbot", "☻ AI Chatbot"),
-        ("Settings", "⚙ Settings"),
+        ("Dashboard", "⌂  Dashboard"),
+        ("Track Uploads", "▣  Track Uploads"),
+        ("Reports", "▤  Reports"),
+        ("Excel Report", "▥  Excel Report"),
+        ("AI Chatbot", "☻  AI Chatbot"),
+        ("Settings", "⚙  Settings"),
     ]
 
     with st.sidebar:
@@ -4563,7 +4709,7 @@ elif team_upload_view:
                     generate_dashboard_from_uploaded_csv_files(TRACK_UI, ui_files)
                     st.success("Generated UI dashboard and report.")
                     st.rerun()
-                st.info("No saved UI reports yet.")
+                st.info("Saved files will appear under Reports tab.")
 
         with cloud_col:
             with st.container(border=True):
@@ -4576,7 +4722,7 @@ elif team_upload_view:
                     generate_dashboard_from_uploaded_csv_files(TRACK_CLOUD, cloud_files)
                     st.success("Generated Cloud Assist dashboard and report.")
                     st.rerun()
-                st.info("No saved Cloud Assist Connector reports yet.")
+                st.info("Saved files will appear under Reports tab.")
 
         with inv_col:
             with st.container(border=True):
@@ -4589,7 +4735,7 @@ elif team_upload_view:
                     generate_dashboard_from_uploaded_csv_files(TRACK_INVENTORY, inv_files)
                     st.success("Generated Customer Inventory Benchmarking dashboard and report.")
                     st.rerun()
-                st.info("No saved Customer Inventory Benchmarking reports yet.")
+                st.info("Saved files will appear under Reports tab.")
 
         render_action_cards()
 else:
