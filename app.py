@@ -19,8 +19,10 @@ import streamlit.components.v1 as components
 
 from main import build_report, build_comparison_report, build_single_report_frames
 
-
+APP_TITLE = "CiscoIQ Performance Report App"
 APP_NAME_TOKEN = "CiscoIQ"
+
+
 SAVED_REPORT_LIMIT = 15
 PROGRAM_SAAS = "Cisco IQ SaaS Support Services"
 TRACK_API = "API"
