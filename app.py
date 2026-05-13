@@ -582,77 +582,106 @@ div[style*="height: 34px"]:empty {
 }
 
 
-/* NEW EXECUTIVE VIEW - compact, no empty bars, leadership-ready */
-.exec-nav-card {
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(219,228,240,.95);
+/* SCREENSHOT STYLE DASHBOARD NAV - Programs left, tracks/views right */
+.sshot-wrapper {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 18px;
+  background: rgba(255,255,255,.94);
+  border: 1px solid #dbe4f0;
   border-radius: 22px;
-  padding: 14px 16px 16px 16px;
-  margin: 10px 0 16px 0;
+  margin: 12px 0 10px 0;
+  padding: 0;
+  overflow: hidden;
   box-shadow: 0 18px 44px rgba(15,23,42,.075);
-  backdrop-filter: blur(12px);
 }
-.exec-section-label {
+.sshot-left {
+  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+  padding: 17px 16px 16px 16px;
+  min-height: 222px;
+}
+.sshot-right {
+  padding: 18px 18px 16px 0;
+}
+.sshot-title {
   font-size: 11px;
-  line-height: 1;
   font-weight: 950;
-  color: #0f2b68;
   letter-spacing: .9px;
   text-transform: uppercase;
-  margin: 0 0 8px 2px;
+  margin: 0 0 10px 2px;
+  color: #0f2b68;
 }
-.exec-row {
-  margin-bottom: 14px;
+.sshot-left .sshot-title {
+  color: white;
 }
-.exec-row-tight {
-  margin-bottom: 8px;
-}
-.exec-region-card {
-  background: linear-gradient(135deg,#ffffff,#f3f7ff);
+.sshot-region-card {
+  background: #ffffff;
   border: 1px solid #dbe4f0;
   border-radius: 16px;
-  padding: 9px 10px 10px 10px;
-  box-shadow: 0 10px 24px rgba(15,23,42,.055);
+  padding: 10px 11px 12px 11px;
+  box-shadow: 0 12px 24px rgba(15,23,42,.055);
+  min-height: 86px;
 }
-.exec-region-card [data-testid="stSelectbox"] {
+.sshot-region-card [data-testid="stSelectbox"] {
   margin-top: -8px !important;
 }
-.exec-region-card [data-baseweb="select"] > div {
-  min-height: 35px !important;
+.sshot-region-card [data-baseweb="select"] > div {
+  min-height: 36px !important;
+  height: 36px !important;
   border-radius: 11px !important;
   font-size: 12px !important;
 }
-.exec-nav-card .stButton > button {
-  height: 36px !important;
-  min-height: 36px !important;
-  padding: 4px 10px !important;
-  border-radius: 11px !important;
-  font-size: 12px !important;
+.sshot-wrapper .stButton > button, .sshot-tabs .stButton > button {
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 6px 14px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
   font-weight: 850 !important;
   white-space: nowrap !important;
   line-height: 1.05 !important;
+  border: 1px solid #dbe4f0 !important;
   box-shadow: 0 8px 18px rgba(15,23,42,.06) !important;
 }
-.exec-nav-card .stButton > button[kind="primary"] {
+.sshot-left .stButton > button {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+.sshot-left .stButton > button[kind="primary"] {
+  background: #ffffff !important;
+  color: #4f46e5 !important;
+  border-color: rgba(255,255,255,.8) !important;
+  box-shadow: 0 12px 24px rgba(15,23,42,.16) !important;
+}
+.sshot-right .stButton > button[kind="primary"], .sshot-tabs .stButton > button[kind="primary"] {
   background: linear-gradient(90deg,#2563eb,#7c3aed) !important;
   color: #ffffff !important;
-  border: 0 !important;
+  border-color: transparent !important;
 }
-.exec-nav-card .stButton > button:hover {
-  transform: translateY(-1px) !important;
-  border-color: #7c3aed !important;
+.sshot-right .stButton > button[kind="secondary"], .sshot-tabs .stButton > button[kind="secondary"] {
+  background: #ffffff !important;
+  color: #111827 !important;
 }
-.exec-nav-card [data-testid="stVerticalBlock"] {
-  gap: .35rem !important;
+.sshot-wrapper [data-testid="stVerticalBlock"] {
+  gap: .38rem !important;
 }
-
-/* Hide accidental blank pill placeholders */
+.sshot-tabs {
+  background: rgba(255,255,255,.94);
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  padding: 12px 14px 14px 14px;
+  margin: 0 0 14px 378px;
+  box-shadow: 0 14px 32px rgba(15,23,42,.055);
+}
+/* remove all old blank bars */
 .exec-empty-space,
 .saved-report-name-box,
 .empty-file-name-box,
-.report-name-placeholder {
-  display: none !important;
-}
+.report-name-placeholder,
 div[style*="border-radius:999px"]:empty,
 div[style*="border-radius: 999px"]:empty,
 div[style*="height:34px"]:empty,
@@ -661,28 +690,10 @@ div[style*="min-height:34px"]:empty,
 div[style*="min-height: 34px"]:empty {
   display: none !important;
 }
-
-/* Upload and cards exact fit */
-.track-upload-card {
-  padding: 10px 12px !important;
-  margin-bottom: 9px !important;
-  border-radius: 15px !important;
-}
-[data-testid="stFileUploader"] {
-  padding: 9px !important;
-  min-height: 58px !important;
-}
-[data-testid="stFileUploaderDropzone"] {
-  min-height: 70px !important;
-  padding: 9px 12px !important;
-  border-radius: 14px !important;
-}
-.stButton > button, .stDownloadButton > button {
-  min-height: 36px !important;
-}
-.block-container {
-  max-width: 1580px !important;
-  padding-top: .4rem !important;
+@media(max-width:1100px){
+  .sshot-wrapper { grid-template-columns: 1fr; }
+  .sshot-right { padding: 14px; }
+  .sshot-tabs { margin-left: 0; }
 }
 
 </style>
@@ -1348,18 +1359,17 @@ def dashboard_view_tabs() -> str:
     current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
 
     tabs = [
-        ("Overview", "◆ Overview"),
-        ("Track Comparison", "▦ Track Comparison"),
-        ("Detailed Report", "⌕ Detailed Report"),
-        ("Chatbot", "● AI Chatbot"),
+        ("Overview", "◈  Overview"),
+        ("Track Comparison", "▥  Track Comparison"),
+        ("Detailed Report", "▣  Detailed Report"),
+        ("Chatbot", "●  AI Chatbot"),
     ]
-    tab_cols = st.columns([1.0, 1.05, 1.0, 1.0], gap="small")
+    tab_cols = st.columns([1.05, 1.42, 1.32, 1.15], gap="small")
     for col, (tab_value, tab_label) in zip(tab_cols, tabs):
-        is_active = current_tab == tab_value
         if col.button(
             tab_label,
             key=f"dashboard_view_{sanitize_token(tab_value)}",
-            type="primary" if is_active else "secondary",
+            type="primary" if current_tab == tab_value else "secondary",
             use_container_width=True,
         ):
             st.session_state["dashboard_tab"] = tab_value
@@ -1373,6 +1383,7 @@ def dashboard_view_tabs() -> str:
         st.query_params["view"] = "dashboard"
         st.query_params["run_id"] = current_run_id
         st.query_params["tab"] = current_tab
+
     return current_tab
 
 
@@ -1999,83 +2010,93 @@ def goto_tab_button(label: str, tab_name: str, key: str) -> None:
 def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
     render_dashboard_header()
 
-    st.markdown('<div class="exec-nav-card">', unsafe_allow_html=True)
+    st.markdown('<div class="sshot-wrapper">', unsafe_allow_html=True)
+    left_nav, right_nav = st.columns([1.0, 3.35], gap="small")
 
-    # 1. Programs
-    st.markdown('<div class="exec-section-label">1. Programs</div>', unsafe_allow_html=True)
-    program_options = [
-        PROGRAM_SAAS,
-        "Cisco IQ Onprem - Assets",
-        "Cisco IQ Onprem - Risk App",
-        "CX AI Assistant",
-    ]
-    active_program = st.session_state.get("active_program", PROGRAM_SAAS)
-    if active_program not in program_options:
-        active_program = PROGRAM_SAAS
+    with left_nav:
+        st.markdown('<div class="sshot-left">', unsafe_allow_html=True)
+        st.markdown('<div class="sshot-title">1. Programs</div>', unsafe_allow_html=True)
 
-    pcols = st.columns([1.35, 1.05, 1.05, .95], gap="small")
-    for col, program_name in zip(pcols, program_options):
-        if col.button(
-            program_name,
-            key=f"program_tab_{sanitize_token(program_name)}",
-            type="primary" if active_program == program_name else "secondary",
-            use_container_width=True,
-        ):
-            st.session_state["active_program"] = program_name
-            st.session_state["dashboard_tab"] = "Overview"
-            active_program = program_name
-            st.rerun()
+        program_options = [
+            ("🎧  Cisco IQ SaaS Support Services", PROGRAM_SAAS),
+            ("▧  Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Assets"),
+            ("🛡  Cisco IQ Onprem - Risk App", "Cisco IQ Onprem - Risk App"),
+            ("✣  CX AI Assistant", "CX AI Assistant"),
+        ]
+        active_program = st.session_state.get("active_program", PROGRAM_SAAS)
+        if active_program not in [p[1] for p in program_options]:
+            active_program = PROGRAM_SAAS
 
-    if active_program != PROGRAM_SAAS:
-        st.markdown('</div>', unsafe_allow_html=True)
-        with st.container(border=True):
-            st.markdown('<div class="panel-title">Coming Soon</div>', unsafe_allow_html=True)
-            st.info(f"{active_program} is planned for Q4FY26. Dashboard enablement is in upcoming release windows.")
-            render_saved_reports_table(show_title=False)
-        return
-
-    # 2. Program Tracks + region filter, no blank placeholder boxes.
-    st.markdown('<div class="exec-section-label" style="margin-top:12px;">2. Program Tracks</div>', unsafe_allow_html=True)
-    track_options = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
-    active_track = st.session_state.get("active_track", "API")
-    if active_track not in track_options:
-        active_track = "API"
-
-    track_area, region_area = st.columns([4.6, .95], gap="small")
-
-    with track_area:
-        t1, t2, t3, t4 = st.columns([.58, .48, 1.08, 1.42], gap="small")
-        for col, track_name in zip([t1, t2, t3, t4], track_options):
-            if col.button(
-                track_name,
-                key=f"track_tab_{sanitize_token(track_name)}",
-                type="primary" if active_track == track_name else "secondary",
+        for label, program_name in program_options:
+            if st.button(
+                label,
+                key=f"program_tab_{sanitize_token(program_name)}",
+                type="primary" if active_program == program_name else "secondary",
                 use_container_width=True,
             ):
-                st.session_state["active_track"] = track_name
+                st.session_state["active_program"] = program_name
                 st.session_state["dashboard_tab"] = "Overview"
-                active_track = track_name
+                active_program = program_name
                 st.rerun()
 
-    with region_area:
-        st.markdown('<div class="exec-region-card">', unsafe_allow_html=True)
-        st.markdown('<div class="exec-section-label" style="margin-bottom:6px;">Region Filter</div>', unsafe_allow_html=True)
-        available_regions = sorted(set([frames.get("Region", region_from_frames(frames)) for frames in run_frames if frames.get("Region", region_from_frames(frames))]))
-        region_choices = ["All"] + [r for r in available_regions if str(r).upper() not in {"UNKNOWN", "N/A", "NA"}]
-        if len(region_choices) == 1:
-            region_choices = ["All", "US", "EMEA", "APJC"]
-        region_focus = st.selectbox("Region", region_choices, key="dashboard_region_focus", label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 3. Dashboard views
-    st.markdown('<div class="exec-section-label" style="margin-top:12px;">3. Dashboard Views</div>', unsafe_allow_html=True)
+    with right_nav:
+        st.markdown('<div class="sshot-right">', unsafe_allow_html=True)
+
+        if active_program != PROGRAM_SAAS:
+            st.markdown('<div class="sshot-title">2. Program Tracks</div>', unsafe_allow_html=True)
+            st.info(f"{active_program} is planned for Q4FY26. Dashboard enablement is in upcoming release windows.")
+            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+            render_saved_reports_table(show_title=False)
+            return
+
+        st.markdown('<div class="sshot-title">2. Program Tracks</div>', unsafe_allow_html=True)
+
+        track_area, region_area = st.columns([4.65, 1.0], gap="small")
+
+        track_options = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
+        active_track = st.session_state.get("active_track", "API")
+        if active_track not in track_options:
+            active_track = "API"
+
+        with track_area:
+            t1, t2, t3, t4 = st.columns([.58, .68, 1.55, 1.95], gap="small")
+            for col, track_name in zip([t1, t2, t3, t4], track_options):
+                if col.button(
+                    track_name,
+                    key=f"track_tab_{sanitize_token(track_name)}",
+                    type="primary" if active_track == track_name else "secondary",
+                    use_container_width=True,
+                ):
+                    st.session_state["active_track"] = track_name
+                    st.session_state["dashboard_tab"] = "Overview"
+                    active_track = track_name
+                    st.rerun()
+
+        with region_area:
+            st.markdown('<div class="sshot-region-card">', unsafe_allow_html=True)
+            st.markdown('<div class="sshot-title" style="margin-bottom:7px;">Region Filter</div>', unsafe_allow_html=True)
+            available_regions = sorted(set([frames.get("Region", region_from_frames(frames)) for frames in run_frames if frames.get("Region", region_from_frames(frames))]))
+            region_choices = ["All"] + [r for r in available_regions if str(r).upper() not in {"UNKNOWN", "N/A", "NA"}]
+            if len(region_choices) == 1:
+                region_choices = ["All", "US", "EMEA", "APJC"]
+            region_focus = st.selectbox("Region", region_choices, key="dashboard_region_focus", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if active_track != "API":
-        st.markdown('</div>', unsafe_allow_html=True)
         with st.container(border=True):
             st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
             render_non_api_track_view(active_track)
         return
+
+    st.markdown('<div class="sshot-tabs">', unsafe_allow_html=True)
+    st.markdown('<div class="sshot-title">3. Dashboard Views</div>', unsafe_allow_html=True)
 
     selected_tab = dashboard_view_tabs()
     st.markdown('</div>', unsafe_allow_html=True)
