@@ -2570,6 +2570,18 @@ def build_api_like_df_from_csv(csv_path: Path, track_name: str) -> pd.DataFrame:
                 rows.append(make_api_like_row("UI", metric, series, UI_SLA_THRESHOLDS[metric], higher_is_better=True))
             else:
                 rows.append(make_api_like_row("UI", metric, series, 3.0, higher_is_better=False))
+
+        if not rows:
+            for col in raw.columns:
+                series = to_numeric_series(raw, col)
+                if series.empty:
+                    continue
+                name = str(col)
+                norm = sanitize_column_name(name)
+                if re.search(r"performance|score", norm):
+                    rows.append(make_api_like_row("UI", name, series, UI_SLA_THRESHOLDS["PERFORMANCE"], higher_is_better=True))
+                else:
+                    rows.append(make_api_like_row("UI", name, series, 3.0, higher_is_better=False))
     else:
         avg_col = pick_first_matching_column(raw, [r"\bavg\b", r"average", r"mean", r"response_time", r"res_time", r"latency"]) or pick_first_matching_column(raw, [r"\btime\b", r"sec", r"ms"])
         min_col = pick_first_matching_column(raw, [r"\bmin\b"])
@@ -2584,38 +2596,49 @@ def build_api_like_df_from_csv(csv_path: Path, track_name: str) -> pd.DataFrame:
         scenario_col = pick_first_matching_column(raw, [r"scenario", r"transaction", r"name", r"endpoint", r"api"])
 
         sla_sec = NON_API_LATENCY_SLA_SEC.get(track_name, 2.0)
-        for idx, row in raw.iterrows():
-            avg_v = numeric_scalar(row.get(avg_col), 0)
-            min_v = numeric_scalar(row.get(min_col), avg_v)
-            max_v = numeric_scalar(row.get(max_col), avg_v)
-            p90_v = numeric_scalar(row.get(p90_col), avg_v)
-            p95_v = numeric_scalar(row.get(p95_col), avg_v)
-            p99_v = numeric_scalar(row.get(p99_col), avg_v)
-            sample_count = max(1, int(numeric_scalar(row.get(sample_col), 1)))
-            error_count = max(0, int(numeric_scalar(row.get(error_col), 0)))
-            error_pct_raw = numeric_scalar(row.get(error_pct_col), -1)
-            error_pct = error_pct_raw if error_pct_raw >= 0 else (error_count / sample_count * 100 if sample_count else 0)
-            feature = str(row.get(feature_col) or track_name)
-            scenario = str(row.get(scenario_col) or f"{track_name}-{idx+1}")
-            pass_status = (avg_v <= sla_sec and min_v <= sla_sec and max_v <= sla_sec and p95_v <= sla_sec)
-            rows.append({
-                "Feature": feature,
-                "Scenario": scenario,
-                "Endpoint": scenario,
-                "sampleCount": sample_count,
-                "errorCount": error_count,
-                "errorPct": round(error_pct, 3),
-                "Avg ResTime in sec": round(avg_v, 3),
-                "Min ResTime in sec": round(min_v, 3),
-                "MaxRes Time in sec": round(max_v, 3),
-                "90thPercentile Resp Time in Sec": round(p90_v, 3),
-                "95thPercentile Resp Time in Sec": round(p95_v, 3),
-                "99thPercentile Resp Time in Sec": round(p99_v, 3),
-                "SLA Sec": float(sla_sec),
-                "SLA Status": "PASS" if pass_status else "FAIL",
-                "SLA Breach Sec": round(max(avg_v - sla_sec, 0.0), 3),
-                "Track Type": feature,
-            })
+        if avg_col:
+            for idx, row in raw.iterrows():
+                avg_v = numeric_scalar(row.get(avg_col), 0)
+                min_v = numeric_scalar(row.get(min_col), avg_v)
+                max_v = numeric_scalar(row.get(max_col), avg_v)
+                p90_v = numeric_scalar(row.get(p90_col), avg_v)
+                p95_v = numeric_scalar(row.get(p95_col), avg_v)
+                p99_v = numeric_scalar(row.get(p99_col), avg_v)
+                sample_count = max(1, int(numeric_scalar(row.get(sample_col), 1)))
+                error_count = max(0, int(numeric_scalar(row.get(error_col), 0)))
+                error_pct_raw = numeric_scalar(row.get(error_pct_col), -1)
+                error_pct = error_pct_raw if error_pct_raw >= 0 else (error_count / sample_count * 100 if sample_count else 0)
+                feature = str(row.get(feature_col) or track_name)
+                scenario = str(row.get(scenario_col) or f"{track_name}-{idx+1}")
+                pass_status = (avg_v <= sla_sec and min_v <= sla_sec and max_v <= sla_sec and p95_v <= sla_sec)
+                rows.append({
+                    "Feature": feature,
+                    "Scenario": scenario,
+                    "Endpoint": scenario,
+                    "sampleCount": sample_count,
+                    "errorCount": error_count,
+                    "errorPct": round(error_pct, 3),
+                    "Avg ResTime in sec": round(avg_v, 3),
+                    "Min ResTime in sec": round(min_v, 3),
+                    "MaxRes Time in sec": round(max_v, 3),
+                    "90thPercentile Resp Time in Sec": round(p90_v, 3),
+                    "95thPercentile Resp Time in Sec": round(p95_v, 3),
+                    "99thPercentile Resp Time in Sec": round(p99_v, 3),
+                    "SLA Sec": float(sla_sec),
+                    "SLA Status": "PASS" if pass_status else "FAIL",
+                    "SLA Breach Sec": round(max(avg_v - sla_sec, 0.0), 3),
+                    "Track Type": feature,
+                })
+
+        if not rows:
+            ignored = {feature_col, scenario_col, sample_col, error_col, error_pct_col}
+            for col in raw.columns:
+                if col in ignored:
+                    continue
+                series = to_numeric_series(raw, col)
+                if series.empty:
+                    continue
+                rows.append(make_api_like_row(track_name, str(col), series, sla_sec, higher_is_better=False))
 
     df = pd.DataFrame(rows)
     if df.empty:
@@ -2685,6 +2708,8 @@ def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dic
     st.session_state.report_file_name = report_name
     st.session_state.messages = []
     st.session_state.run_id = new_run_id
+    st.session_state["active_track"] = track_name
+    st.session_state["dashboard_tab"] = "Overview"
 
 
 def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) -> None:
@@ -2735,6 +2760,8 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
     st.session_state.report_file_name = report_name
     st.session_state.messages = []
     st.session_state.run_id = new_run_id
+    st.session_state["active_track"] = track_name
+    st.session_state["dashboard_tab"] = "Overview"
 
 
 
@@ -2945,18 +2972,17 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     padding: 10px;
     margin-bottom: 8px;
 }
-.compact-saved-spacer {
-    display: none;
+.compact-saved-titlebar {
+    background: #eef4ff;
+    border: 1px solid #d4e1f7;
+    border-radius: 999px;
+    padding: 9px 14px;
+    margin-bottom: 10px;
 }
 .compact-saved-cell-name {
     font-size: 14px;
     font-weight: 700;
     color: #0f172a;
-}
-.compact-saved-cell-date {
-    font-size: 13px;
-    color: #334155;
-    text-align: right;
 }
 </style>
 """,
@@ -2971,12 +2997,10 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         devices = item.get("devices") or inferred.get("devices", "N/A")
         date = item.get("date") or inferred.get("date", "N/A")
         date_token = to_mm_dd_yyyy(date)
-        report_name = f"{report_title(region, users, devices)}-{to_mm_dd_yyyy(date)}"
+        report_name = f"{report_title(region, users, devices)}-{date_token}"
 
         st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
-        info_col, date_col = st.columns([2.2, 1], gap="small")
-        info_col.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
-        date_col.markdown(f'<div class="compact-saved-cell-date">{date_token}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="compact-saved-titlebar"><div class="compact-saved-cell-name">{report_name}</div></div>', unsafe_allow_html=True)
 
         action_generate_col, action_remove_col = st.columns(2, gap="small")
         if file_path.exists():
@@ -3116,6 +3140,8 @@ def load_static_saved_dashboard() -> bool:
 
 
 def dashboard_url_for_run(run_id_value: str) -> str:
+    if run_id_value:
+        return f"?view=dashboard&run_id={run_id_value}"
     return "?view=dashboard"
 
 
@@ -3126,8 +3152,8 @@ def dashboard_url_for_run(run_id_value: str) -> str:
 def render_action_cards() -> None:
     has_report = bool(st.session_state.get("run_id") and st.session_state.get("excel_bytes"))
     run_id_value = st.session_state.get("run_id", "")
-    dashboard_href = "?view=dashboard&tab=Overview" if has_report else "#"
-    chatbot_href = "?view=dashboard&tab=Chatbot" if has_report else "#"
+    dashboard_href = f"{dashboard_url_for_run(run_id_value)}&tab=Overview" if has_report else "#"
+    chatbot_href = f"{dashboard_url_for_run(run_id_value)}&tab=Chatbot" if has_report else "#"
 
     st.markdown(
         """
