@@ -1260,6 +1260,100 @@ body:has(.upload-left-panel-marker) .report-program-card {
   border-radius: 16px !important;
 }
 
+
+/* FINAL NAV + REPORTS + 2X2 FIX */
+body:has(.upload-left-panel-marker) .block-container {
+  max-width: none !important;
+  padding: 108px 26px 26px 26px !important;
+}
+
+/* if topbar is fixed, align it with native sidebar width */
+.upload-topbar {
+  left: 244px !important;
+  right: 0 !important;
+}
+
+/* 2x2 cards remain clean */
+body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
+  gap: 18px !important;
+  margin-bottom: 18px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  min-height: 300px !important;
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid #dbe4f0 !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04) !important;
+  padding: 14px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] {
+  min-height: 72px !important;
+  height: 78px !important;
+  border-radius: 14px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stAlert"] {
+  min-height: 44px !important;
+  border-radius: 10px !important;
+}
+
+/* remove bottom shortcut cards under Program Track Uploads */
+body:has(.upload-left-panel-marker) .main-page-card,
+body:has(.upload-left-panel-marker) .quick-grid,
+body:has(.upload-left-panel-marker) .upload-page-quick-row {
+  display: none !important;
+}
+
+/* Reports tab 2x2 cards */
+.report-program-card {
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 16px;
+  min-height: 260px;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04);
+}
+.report-program-title {
+  font-size: 18px;
+  font-weight: 950;
+  color: #0f2b68;
+  margin-bottom: 14px;
+}
+.dashboard-static-card {
+  max-width: 720px;
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04);
+}
+.dashboard-static-title {
+  font-size: 24px;
+  font-weight: 950;
+  color: #0f2b68;
+  margin-bottom: 10px;
+}
+.dashboard-static-desc {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+.dashboard-static-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 12px;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  font-weight: 850;
+  background: linear-gradient(90deg,#2563eb,#7c3aed);
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1935,29 +2029,41 @@ def render_upload_sidebar_page(page_name: str) -> bool:
     """Return True if a sidebar page was rendered and upload cards should stop."""
     if page_name == "Dashboard":
         st.markdown('<div class="panel-title">Dashboard</div>', unsafe_allow_html=True)
-        if st.session_state.get("run_frames"):
-            st.markdown('<a class="primary-pill" href="?view=dashboard" target="_self">Open Results Dashboard ↗</a>', unsafe_allow_html=True)
-        else:
-            st.info("No generated data yet. Upload files and generate results first; this page will stay available.")
+        run_id_value = st.session_state.get("run_id", "")
+        dash_href = dashboard_url_for_run(run_id_value) if run_id_value else "?view=dashboard"
+        st.markdown(f"""
+        <div class="dashboard-static-card">
+          <div class="dashboard-static-title">View All Results</div>
+          <div class="dashboard-static-desc">
+            Dashboard page is available even before data is generated. After you generate any track,
+            use this static link to open the latest results dashboard.
+          </div>
+          <a class="dashboard-static-btn" href="{dash_href}" target="_self">Open Results Dashboard ↗</a>
+        </div>
+        """, unsafe_allow_html=True)
         return True
 
     if page_name == "Reports":
         st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
-        st.info("Saved uploaded JSON/CSV files are shown here by track.")
+        st.markdown('<div style="color:#64748b;margin:-6px 0 16px 0;">Saved uploaded JSON/CSV files are organized by track.</div>', unsafe_allow_html=True)
         r1, r2 = st.columns(2, gap="medium")
         r3, r4 = st.columns(2, gap="medium")
         with r1:
-            st.markdown("### API Reports")
+            st.markdown('<div class="report-program-card"><div class="report-program-title">API Reports</div>', unsafe_allow_html=True)
             render_api_saved_reports_compact()
+            st.markdown('</div>', unsafe_allow_html=True)
         with r2:
-            st.markdown("### UI Reports")
+            st.markdown('<div class="report-program-card"><div class="report-program-title">UI Reports</div>', unsafe_allow_html=True)
             render_saved_reports_compact_for_track(TRACK_UI, title="", key_prefix="reports_ui")
+            st.markdown('</div>', unsafe_allow_html=True)
         with r3:
-            st.markdown("### Cloud Reports")
+            st.markdown('<div class="report-program-card"><div class="report-program-title">Cloud Assist Reports</div>', unsafe_allow_html=True)
             render_saved_reports_compact_for_track(TRACK_CLOUD, title="", key_prefix="reports_cloud")
+            st.markdown('</div>', unsafe_allow_html=True)
         with r4:
-            st.markdown("### Inventory Reports")
+            st.markdown('<div class="report-program-card"><div class="report-program-title">Inventory Reports</div>', unsafe_allow_html=True)
             render_saved_reports_compact_for_track(TRACK_INVENTORY, title="", key_prefix="reports_inventory")
+            st.markdown('</div>', unsafe_allow_html=True)
         return True
 
     if page_name == "Excel Report":
@@ -1999,7 +2105,6 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     return False
-
 
 def render_dashboard_header() -> None:
     st.markdown(
@@ -4426,7 +4531,6 @@ elif team_upload_view:
                     key="generate_api_results",
                     use_container_width=True,
                 )
-                render_api_saved_reports_compact()
 
         if uploaded_files and generate_clicked:
             if st.session_state.get('save_reports_checkbox', True):
@@ -4461,7 +4565,8 @@ elif team_upload_view:
                     st.session_state.run_id = new_run_id
                     st.toast("Report generated successfully.", icon="✅")
                     st.success("Dashboard generated. Share the dashboard link below with management.")
-                    st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_blank">Open Management Dashboard ↗</a>', unsafe_allow_html=True)
+                    st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_self">Open Results Dashboard ↗</a>', unsafe_allow_html=True)
+                    st.info("Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
                 except Exception as exc:
                     st.error(f"Failed to generate report: {exc}")
 
@@ -4474,9 +4579,9 @@ elif team_upload_view:
                     if st.session_state.get("save_ui_reports_checkbox", True):
                         save_uploaded_files_for_track(ui_files, TRACK_UI)
                     generate_dashboard_from_uploaded_csv_files(TRACK_UI, ui_files)
-                    st.success("Generated UI dashboard and report.")
+                    st.success("Generated UI dashboard and report. Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
+                    st.session_state.upload_left_page = "Dashboard"
                     st.rerun()
-                render_saved_reports_compact_for_track(TRACK_UI, title="Saved UI Reports", key_prefix="ui")
 
         with cloud_col:
             with st.container(border=True):
@@ -4487,9 +4592,9 @@ elif team_upload_view:
                     if st.session_state.get("save_cloud_reports_checkbox", True):
                         save_uploaded_files_for_track(cloud_files, TRACK_CLOUD)
                     generate_dashboard_from_uploaded_csv_files(TRACK_CLOUD, cloud_files)
-                    st.success("Generated Cloud Assist dashboard and report.")
+                    st.success("Generated Cloud Assist dashboard and report. Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
+                    st.session_state.upload_left_page = "Dashboard"
                     st.rerun()
-                render_saved_reports_compact_for_track(TRACK_CLOUD, title="Saved Cloud Reports", key_prefix="cloud")
 
         with inv_col:
             with st.container(border=True):
@@ -4500,9 +4605,9 @@ elif team_upload_view:
                     if st.session_state.get("save_inventory_reports_checkbox", True):
                         save_uploaded_files_for_track(inv_files, TRACK_INVENTORY)
                     generate_dashboard_from_uploaded_csv_files(TRACK_INVENTORY, inv_files)
-                    st.success("Generated Customer Inventory Benchmarking dashboard and report.")
+                    st.success("Generated Customer Inventory Benchmarking dashboard and report. Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
+                    st.session_state.upload_left_page = "Dashboard"
                     st.rerun()
-                render_saved_reports_compact_for_track(TRACK_INVENTORY, title="Saved Inventory Reports", key_prefix="inventory")
 
 else:
     if st.session_state.run_frames:
