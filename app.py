@@ -762,88 +762,28 @@ def extract_env_token(file_name: str) -> str:
     return "PROD"
 
 
-def extract_date_token_from_filename(value: str) -> str:
-    """Return date as MM-DD-YYYY from common filename formats.
-
-    Supported examples:
-    - 12052026
-    - 12/05/2026
-    - 12-05-2026
-    - 12_05_2026
-    - 2026-12-05
-    - Dec-05-2026 / December 5 2026
-    """
-    text = str(value or "").strip()
-    if not text:
-        return "N/A"
-
-    month_map = {
-        "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
-        "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
-        "aug": "08", "august": "08", "sep": "09", "sept": "09", "september": "09", "oct": "10", "october": "10",
-        "nov": "11", "november": "11", "dec": "12", "december": "12",
-    }
-
-    # Month name formats: Dec-05-2026, December_5_2026, Dec 05 26
-    month_pattern = r"(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
-    m = re.search(month_pattern + r"[\s_\-/.,]*(\d{1,2})(?:st|nd|rd|th)?[\s_\-/.,]*(\d{2,4})", text, re.IGNORECASE)
-    if m:
-        mm = month_map.get(m.group(1).lower()[:3], "")
-        dd = int(m.group(2))
-        yy = m.group(3)
-        yyyy = int("20" + yy) if len(yy) == 2 else int(yy)
-        if mm and 1 <= dd <= 31 and 2000 <= yyyy <= 2100:
-            return f"{mm}-{dd:02d}-{yyyy}"
-
-    # ISO format: 2026-12-05 / 2026_12_05 / 2026/12/05
-    m = re.search(r"(?<!\d)(20\d{2})[\-_/.\s](\d{1,2})[\-_/.\s](\d{1,2})(?!\d)", text)
-    if m:
-        yyyy, mm, dd = int(m.group(1)), int(m.group(2)), int(m.group(3))
-        if 1 <= mm <= 12 and 1 <= dd <= 31:
-            return f"{mm:02d}-{dd:02d}-{yyyy}"
-
-    # Numeric separated date. Default is MM-DD-YYYY for report naming.
-    # If first number is > 12 and second is <= 12, treat it as DD-MM-YYYY.
-    for m in re.finditer(r"(?<!\d)(\d{1,2})[\-_/.\s](\d{1,2})[\-_/.\s](\d{2,4})(?!\d)", text):
-        first, second, year = int(m.group(1)), int(m.group(2)), m.group(3)
-        yyyy = int("20" + year) if len(year) == 2 else int(year)
-        if not (2000 <= yyyy <= 2100):
-            continue
-        if first > 12 and second <= 12:
-            dd, mm = first, second
-        else:
-            mm, dd = first, second
-        if 1 <= mm <= 12 and 1 <= dd <= 31:
-            return f"{mm:02d}-{dd:02d}-{yyyy}"
-
-    # Compact MMDDYYYY: 12052026 -> 12-05-2026.
-    # Also handles DDMMYYYY only when the first part cannot be a month, e.g. 25052026 -> 05-25-2026.
-    for m in re.finditer(r"(?<!\d)(\d{8})(?!\d)", text):
-        token = m.group(1)
-        # Skip obvious epoch-like or year-first tokens here; ISO compact below handles YYYYMMDD.
-        yyyy_tail = int(token[4:8])
-        if 2000 <= yyyy_tail <= 2100:
-            first, second = int(token[0:2]), int(token[2:4])
-            if first > 12 and second <= 12:
-                dd, mm = first, second
-            else:
-                mm, dd = first, second
-            if 1 <= mm <= 12 and 1 <= dd <= 31:
-                return f"{mm:02d}-{dd:02d}-{yyyy_tail}"
-        yyyy_head = int(token[0:4])
-        if 2000 <= yyyy_head <= 2100:
-            mm, dd = int(token[4:6]), int(token[6:8])
-            if 1 <= mm <= 12 and 1 <= dd <= 31:
-                return f"{mm:02d}-{dd:02d}-{yyyy_head}"
-
-    return "N/A"
-
-
 def to_mmddyyyy(date_value: str) -> str:
-    parsed = extract_date_token_from_filename(date_value)
-    if parsed != "N/A":
-        return parsed.replace("-", "")
+    text = str(date_value or "").strip()
+    if re.fullmatch(r"\d{8}", text):
+        return text
+    match = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[-\s_]*(\d{1,2})[-\s_,]*(\d{4})", text)
+    if match:
+        month_map = {
+            "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
+            "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
+            "aug": "08", "august": "08", "sep": "09", "september": "09", "oct": "10", "october": "10",
+            "nov": "11", "november": "11", "dec": "12", "december": "12",
+        }
+        month = month_map.get(match.group(1).lower(), datetime.now().strftime("%m"))
+        day = f"{int(match.group(2)):02d}"
+        year = match.group(3)
+        return f"{month}{day}{year}"
+    iso = re.search(r"(20\d{2})[-_\s]?(\d{1,2})[-_\s]?(\d{1,2})", text)
+    if iso:
+        year, month, day = iso.groups()
+        return f"{int(month):02d}{int(day):02d}{year}"
     return datetime.now().strftime("%m%d%Y")
+
 
 def to_mm_dd_yyyy(date_value: str) -> str:
     token = to_mmddyyyy(date_value)
@@ -2063,7 +2003,137 @@ def build_non_api_track_summary(track_name: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+
+def standardize_ui_raw_metrics(raw_df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize Lighthouse/UI CSV data for page-level dashboard charts."""
+    if raw_df is None or raw_df.empty:
+        return pd.DataFrame()
+    df = raw_df.copy()
+    url_col = pick_first_matching_column(df, [r"^url$", r"page", r"path", r"screen", r"route", r"name"])
+    fcp_col = pick_first_matching_column(df, [r"\bfcp\b", r"first_contentful_paint", r"fcp_in_sec"])
+    si_col = pick_first_matching_column(df, [r"speed_index", r"speed.*index", r"\bsi\b", r"speed_index_in_sec"])
+    out = pd.DataFrame()
+    out["URL"] = df[url_col].astype(str) if url_col else [f"Page {i+1}" for i in range(len(df))]
+    out["FCP in Sec"] = pd.to_numeric(df[fcp_col], errors="coerce") if fcp_col else pd.NA
+    out["Speed Index in Sec"] = pd.to_numeric(df[si_col], errors="coerce") if si_col else pd.NA
+    out = out.dropna(subset=["Speed Index in Sec"], how="all")
+    out["Speed Index SLA"] = out["Speed Index in Sec"].apply(lambda x: "PASS" if pd.notna(x) and float(x) < 3.0 else "FAIL")
+    out["Short Page"] = out["URL"].astype(str).str.replace(r"^https?://[^/]+", "", regex=True).str[-70:]
+    return out
+
+
+def render_ui_tableau_dashboard(run_frames: List[Dict[str, pd.DataFrame]], region_focus: str = "All") -> None:
+    raw_parts = []
+    for frames in run_frames:
+        raw_ui = frames.get("Raw_UI")
+        if raw_ui is None or raw_ui.empty:
+            continue
+        normalized = standardize_ui_raw_metrics(raw_ui)
+        if normalized.empty:
+            continue
+        normalized["Run"] = str(frames.get("Label", "UI Run"))
+        normalized["Region"] = str(frames.get("Region", "Unknown"))
+        raw_parts.append(normalized)
+
+    if not raw_parts:
+        st.info("UI Lighthouse metrics dashboard is enabled. Upload UI CSV and click Generate Results to see Tableau-style charts.")
+        return
+
+    ui_df = pd.concat(raw_parts, ignore_index=True)
+    if region_focus and region_focus != "All":
+        ui_df = ui_df[ui_df["Region"].astype(str) == str(region_focus)]
+    if ui_df.empty:
+        st.warning("No UI metrics available for the selected region.")
+        return
+
+    st.info("UI Speed Index SLA target: PASS only when Speed Index < 3 sec.")
+
+    total_pages = int(len(ui_df))
+    avg_fcp = round(float(pd.to_numeric(ui_df["FCP in Sec"], errors="coerce").mean()), 2) if ui_df["FCP in Sec"].notna().any() else 0
+    avg_speed = round(float(pd.to_numeric(ui_df["Speed Index in Sec"], errors="coerce").mean()), 2)
+    pass_pct = round(float(ui_df["Speed Index SLA"].eq("PASS").mean() * 100), 2)
+    fail_count = int(ui_df["Speed Index SLA"].eq("FAIL").sum())
+
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Total UI Pages", total_pages)
+    k2.metric("Avg FCP", f"{avg_fcp}s")
+    k3.metric("Avg Speed Index", f"{avg_speed}s")
+    k4.metric("Speed SLA Pass", f"{pass_pct}%", delta=f"{fail_count} fail")
+
+    c1, c2 = st.columns([1.55, 1], gap="medium")
+    with c1:
+        top_slow = ui_df.sort_values("Speed Index in Sec", ascending=False).head(15)
+        fig = px.bar(
+            top_slow,
+            x="Short Page",
+            y="Speed Index in Sec",
+            color="Speed Index SLA",
+            hover_data=["URL", "Run", "Region", "FCP in Sec"],
+            title="Top Slow UI Pages by Speed Index",
+            text="Speed Index in Sec",
+        )
+        fig.add_hline(y=3, line_dash="dash", annotation_text="SLA < 3 sec", annotation_position="top left")
+        fig.update_layout(height=470, xaxis_title="Page", yaxis_title="Speed Index (sec)", xaxis_tickangle=-35)
+        fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
+        st.plotly_chart(fig, use_container_width=True)
+
+    with c2:
+        sla_counts = ui_df["Speed Index SLA"].value_counts().rename_axis("Status").reset_index(name="Count")
+        fig = px.pie(sla_counts, names="Status", values="Count", title="Speed Index SLA Pass vs Fail", hole=0.45)
+        fig.update_traces(textposition="inside", textinfo="percent+label+value")
+        fig.update_layout(height=470)
+        st.plotly_chart(fig, use_container_width=True)
+
+    c3, c4 = st.columns([1, 1], gap="medium")
+    with c3:
+        fig = px.scatter(
+            ui_df,
+            x="FCP in Sec",
+            y="Speed Index in Sec",
+            color="Speed Index SLA",
+            size="Speed Index in Sec",
+            hover_data=["URL", "Run", "Region"],
+            title="FCP vs Speed Index",
+        )
+        fig.add_hline(y=3, line_dash="dash", annotation_text="SLA < 3 sec")
+        fig.update_layout(height=430, xaxis_title="FCP (sec)", yaxis_title="Speed Index (sec)")
+        st.plotly_chart(fig, use_container_width=True)
+
+    with c4:
+        run_summary = ui_df.groupby(["Region", "Run"], as_index=False).agg(
+            Pages=("URL", "count"),
+            Avg_FCP=("FCP in Sec", "mean"),
+            Avg_Speed_Index=("Speed Index in Sec", "mean"),
+            SLA_Pass_Pct=("Speed Index SLA", lambda x: round((x == "PASS").mean() * 100, 2)),
+        )
+        fig = px.bar(
+            run_summary,
+            x="Run",
+            y="Avg_Speed_Index",
+            color="Region",
+            title="Run/Region Avg Speed Index",
+            text="Avg_Speed_Index",
+        )
+        fig.add_hline(y=3, line_dash="dash", annotation_text="SLA < 3 sec")
+        fig.update_layout(height=430, xaxis_title="Run", yaxis_title="Avg Speed Index (sec)", xaxis_tickangle=-20)
+        fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("### UI Metrics Detail")
+    detail = ui_df[["Region", "Run", "URL", "FCP in Sec", "Speed Index in Sec", "Speed Index SLA"]].sort_values("Speed Index in Sec", ascending=False)
+    st.dataframe(
+        detail.style.background_gradient(subset=["FCP in Sec", "Speed Index in Sec"], cmap="RdYlGn_r"),
+        use_container_width=True,
+        hide_index=True,
+        height=min(620, 72 + 32 * len(detail)),
+    )
+
+
 def render_non_api_track_view(track_name: str) -> None:
+    if track_name == TRACK_UI:
+        render_ui_tableau_dashboard(st.session_state.get("run_frames", []), st.session_state.get("dashboard_region_focus", "All"))
+        return
+
     track_frames = []
     for frames in st.session_state.get("run_frames", []):
         info = frames.get("Run_Info")
@@ -2144,6 +2214,55 @@ def load_saved_uploads() -> List[Dict[str, str]]:
 
 
 
+
+def extract_flexible_date_from_filename(file_name: str) -> str:
+    """Return MM-DD-YYYY from common filename date formats.
+    Supports 12052026, 12/05/2026, 12-05-2026, 12_05_2026,
+    2026-12-05, 2026/12/05, and Month-Day-Year formats.
+    Assumes 8-digit compact dates are MMDDYYYY for report naming.
+    """
+    text = str(Path(file_name).stem)
+    month_names = {
+        'jan':'01','january':'01','feb':'02','february':'02','mar':'03','march':'03',
+        'apr':'04','april':'04','may':'05','jun':'06','june':'06','jul':'07','july':'07',
+        'aug':'08','august':'08','sep':'09','sept':'09','september':'09','oct':'10','october':'10',
+        'nov':'11','november':'11','dec':'12','december':'12'
+    }
+    # Month name forms: Dec-05-2026, December 5 2026
+    m = re.search(r'(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[_\-/\s]*(\d{1,2})[_\-/\s,]*(20\d{2}|\d{2})', text)
+    if m:
+        mm = month_names.get(m.group(1).lower(), '01')
+        dd = f"{int(m.group(2)):02d}"
+        yy = m.group(3)
+        yyyy = yy if len(yy) == 4 else '20' + yy
+        return f"{mm}-{dd}-{yyyy}"
+
+    # ISO forms: 2026-12-05 / 2026_12_05 / 2026/12/05
+    m = re.search(r'(?<!\d)(20\d{2})[_\-/\s]+(\d{1,2})[_\-/\s]+(\d{1,2})(?!\d)', text)
+    if m:
+        yyyy, mm, dd = m.groups()
+        return f"{int(mm):02d}-{int(dd):02d}-{yyyy}"
+
+    # Separated numeric forms: 12-05-2026 / 12_05_2026 / 12/05/2026
+    m = re.search(r'(?<!\d)(\d{1,2})[_\-/\s]+(\d{1,2})[_\-/\s]+(20\d{2}|\d{2})(?!\d)', text)
+    if m:
+        mm, dd, yy = m.groups()
+        yyyy = yy if len(yy) == 4 else '20' + yy
+        return f"{int(mm):02d}-{int(dd):02d}-{yyyy}"
+
+    # Compact MMDDYYYY: 12052026, 10042026
+    # Avoid treating epoch/run ids as dates by validating month/day.
+    for token in re.findall(r'(?<!\d)(\d{8})(?!\d)', text):
+        mm, dd, yyyy = token[:2], token[2:4], token[4:]
+        try:
+            if 1 <= int(mm) <= 12 and 1 <= int(dd) <= 31 and 2000 <= int(yyyy) <= 2100:
+                return f"{mm}-{dd}-{yyyy}"
+        except Exception:
+            pass
+
+    return "N/A"
+
+
 def infer_saved_report_info(file_name: str) -> Dict[str, str]:
     stem = Path(file_name).stem
     upper = stem.upper()
@@ -2168,7 +2287,7 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
     if duration_match:
         duration = f"{duration_match.group(1)} Hour"
 
-    date = extract_date_token_from_filename(stem)
+    date = extract_flexible_date_from_filename(file_name)
 
     users = "N/A"
     user_patterns = [
@@ -2735,6 +2854,7 @@ def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dic
     inferred = infer_saved_report_info((item or {}).get("file_name", csv_path.name))
     region = (item or {}).get("region") or inferred.get("region", "Unknown")
 
+    raw_csv_df = pd.read_csv(csv_path) if track_name == TRACK_UI else pd.DataFrame()
     apis_df = build_api_like_df_from_csv(csv_path, track_name)
     run_info = pd.DataFrame([{
         "Report File": (item or {}).get("file_name", csv_path.name),
@@ -2758,6 +2878,7 @@ def generate_dashboard_from_saved_csv(track_name: str, csv_path: Path, item: Dic
         "Transactions": pd.DataFrame(),
         "Errors": apis_df[apis_df.get("errorCount", 0) > 0].copy() if not apis_df.empty else pd.DataFrame(),
         "Run_Info": run_info,
+        "Raw_UI": raw_csv_df if track_name == TRACK_UI else pd.DataFrame(),
     }]
 
     excel_bytes = build_excel_bytes_from_frames(run_frames)
@@ -2785,6 +2906,7 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
             tmp.write(uploaded_file.getvalue())
             temp_path = Path(tmp.name)
         inferred = infer_saved_report_info(uploaded_file.name)
+        raw_csv_df = pd.read_csv(temp_path) if track_name == TRACK_UI else pd.DataFrame()
         apis_df = build_api_like_df_from_csv(temp_path, track_name)
         run_info = pd.DataFrame([{
             "Report File": uploaded_file.name,
@@ -2807,6 +2929,7 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
             "Transactions": pd.DataFrame(),
             "Errors": apis_df[apis_df.get("errorCount", 0) > 0].copy() if not apis_df.empty else pd.DataFrame(),
             "Run_Info": run_info,
+            "Raw_UI": raw_csv_df if track_name == TRACK_UI else pd.DataFrame(),
         })
         try:
             temp_path.unlink(missing_ok=True)
@@ -3031,21 +3154,18 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     st.markdown(
         """
 <style>
-.compact-saved-cell-name {
+.compact-saved-row {
     background: #f8fbff;
     border: 1px solid #dbe4f0;
     border-radius: 10px;
-    padding: 8px 14px;
-    min-height: 26px;
-    display: flex;
-    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+.compact-saved-cell-name {
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     color: #0f172a;
-    margin: 0 0 10px 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    margin-bottom: 10px;
 }
 </style>
 """,
@@ -3063,6 +3183,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         include_users = track_name in {TRACK_API, TRACK_UI}
         report_name = f"{report_title(region, users, devices, include_users=include_users)}-{date_token}"
 
+        st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
         st.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
 
         action_generate_col, action_remove_col = st.columns(2, gap="small")
@@ -3084,6 +3205,7 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
             remove_saved_upload(item.get("saved_name", ""))
             st.success("Removed saved report.")
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def saved_reports_rows(uploads: List[Dict[str, str]]) -> pd.DataFrame:

@@ -756,3 +756,33 @@ Changes added only:
 
 - Renamed the app header and browser page title to `CiscoIQ Performance Report App`.
 - Renamed the Excel dashboard title to `CiscoIQ Performance Report App`.
+
+## UI Metrics Dashboard Update
+
+This build includes a Tableau-style UI metrics dashboard for uploaded Lighthouse/UI CSV files.
+
+Supported CSV columns include:
+- URL
+- FCP in Sec
+- Speed Index in Sec
+
+UI Speed Index SLA is configured as: `Speed Index < 3 sec`.
+
+After uploading UI metrics and clicking **Generate UI Results**, the UI track shows:
+- Total UI Pages
+- Avg FCP
+- Avg Speed Index
+- Speed Index SLA pass percentage
+- Top Slow UI Pages bar chart
+- Speed Index SLA pass/fail donut chart
+- FCP vs Speed Index scatter chart
+- Run/Region Avg Speed Index chart
+- UI metrics detail heatmap table
+
+Date parsing supports filename formats such as:
+- `12052026`
+- `12/05/2026`
+- `12-05-2026`
+- `12_05_2026`
+- `2026-12-05`
+- `Dec-05-2026`
