@@ -511,6 +511,76 @@ div[data-testid="stHorizontalBlock"] .stButton > button {
   padding-top: .4rem !important;
 }
 
+
+/* FINAL CLEANUP: remove empty pill bars and tighten enterprise nav */
+.enterprise-nav-shell {
+  padding: 8px 10px 10px 10px !important;
+  margin: 4px 0 10px 0 !important;
+  border-radius: 14px !important;
+}
+.nav-section-label {
+  margin: 0 0 4px 1px !important;
+  font-size: 10px !important;
+}
+.nav-section-sub {
+  display: none !important;
+}
+.dashboard-tabs-row {
+  padding: 5px !important;
+  margin: 0 0 6px 0 !important;
+  border-radius: 12px !important;
+}
+.region-filter-card {
+  padding: 5px 7px 7px 7px !important;
+  min-height: 50px !important;
+  border-radius: 12px !important;
+}
+.region-filter-card .region-field-label {
+  font-size: 10px !important;
+  margin-bottom: 2px !important;
+}
+.region-filter-card [data-testid="stSelectbox"] {
+  margin-top: -10px !important;
+}
+.region-filter-card [data-baseweb="select"] > div {
+  min-height: 30px !important;
+  height: 30px !important;
+  border-radius: 9px !important;
+}
+div[data-testid="stHorizontalBlock"] .stButton > button,
+.dashboard-tabs-row + div .stButton > button {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 3px 8px !important;
+  font-size: 10.5px !important;
+  border-radius: 9px !important;
+}
+
+/* remove blank saved-report filename placeholder bars */
+.saved-report-name-box,
+.empty-file-name-box,
+.report-name-placeholder,
+div:empty[class*="saved"],
+div:empty[class*="placeholder"] {
+  display: none !important;
+}
+
+/* defensive: hide empty custom html pill bars */
+div[style*="border-radius:999px"]:empty,
+div[style*="border-radius: 999px"]:empty,
+div[style*="height:34px"]:empty,
+div[style*="height: 34px"]:empty {
+  display: none !important;
+}
+
+/* reduce accidental whitespace from markdown-only separators */
+[data-testid="stMarkdownContainer"] p:empty {
+  display: none !important;
+}
+[data-testid="stMarkdownContainer"]:has(p:empty) {
+  margin: 0 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1838,7 +1908,6 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
     st.markdown('<div class="enterprise-nav-shell">', unsafe_allow_html=True)
 
     st.markdown('<div class="nav-section-label">1. Programs</div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-section-sub">Select the product/program area for leadership review</div>', unsafe_allow_html=True)
     program_options = [
         PROGRAM_SAAS,
         "Cisco IQ Onprem - Assets",
@@ -1871,7 +1940,6 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         return
 
     st.markdown('<div class="nav-section-label" style="margin-top:10px;">2. Program Tracks</div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-section-sub">Choose a track, then use the dashboard tabs below for analysis</div>', unsafe_allow_html=True)
 
     track_options = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
     active_track = st.session_state.get("active_track", "API")
@@ -1905,7 +1973,6 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="nav-section-label" style="margin-top:10px;">3. Dashboard Views</div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-section-sub">Overview, full track comparison, detailed report, and chatbot</div>', unsafe_allow_html=True)
 
     if active_track != "API":
         st.markdown('</div>', unsafe_allow_html=True)
