@@ -2263,7 +2263,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
     st.session_state["dashboard_tab"] = selected_tab
 
     active_program = params.get("program", "") or st.session_state.get("active_program", PROGRAM_SAAS)
-    program_values = [PROGRAM_SAAS, "Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Risk App", "CX AI Assistant"]
+    program_values = [PROGRAM_SAAS, "Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Risk App", "CX AI Assistant", "AI Framework"]
     if active_program not in program_values:
         active_program = PROGRAM_SAAS
     st.session_state["active_program"] = active_program
@@ -2293,6 +2293,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         ("▧", "Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Assets"),
         ("🛡", "Cisco IQ Onprem - Risk App", "Cisco IQ Onprem - Risk App"),
         ("✣", "CX AI Assistant", "CX AI Assistant"),
+        ("🤖", "AI Framework", "AI Framework"),
     ]
     tracks_html = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
     tabs_html = [
@@ -2309,15 +2310,15 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
 
     program_links = ""
     for icon, label, value in programs_html:
-        program_links += f'<a class="ciq-program-link{active_cls(active_program == value)}" href="{nav_url(program=value, tab="Overview", track="API")}"><span style="width:28px;display:inline-block;">{icon}</span>{label}</a>'
+        program_links += f'<a class="ciq-program-link{active_cls(active_program == value)}" target="_self" href="{nav_url(program=value, tab="Overview", track="API")}"><span style="width:28px;display:inline-block;">{icon}</span>{label}</a>'
 
     track_links = ""
     for value in tracks_html:
-        track_links += f'<a class="ciq-track-link{active_cls(active_track == value)}" href="{nav_url(track=value, tab="Overview")}">{value}</a>'
+        track_links += f'<a class="ciq-track-link{active_cls(active_track == value)}" target="_self" href="{nav_url(track=value, tab="Overview")}">{value}</a>'
 
     tab_links = ""
     for value, label in tabs_html:
-        tab_links += f'<a class="ciq-tab-link{active_cls(selected_tab == value)}" href="{nav_url(tab=value)}">{label}</a>'
+        tab_links += f'<a class="ciq-tab-link{active_cls(selected_tab == value)}" target="_self" href="{nav_url(tab=value)}">{label}</a>'
 
     region_options = "".join([f'<option>{"All" if r == "All" else r}</option>' for r in region_choices])
 
