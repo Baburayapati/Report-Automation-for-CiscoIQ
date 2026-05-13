@@ -1132,6 +1132,96 @@ body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] {
   border-radius: 14px !important;
 }
 
+
+/* SIDEBAR NAV FIX + REMOVE UPLOAD BOTTOM CARDS */
+body:has(.upload-left-panel-marker) .block-container {
+  max-width: none !important;
+  padding: 108px 26px 26px 286px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] {
+  width: 244px !important;
+  min-width: 244px !important;
+  background: linear-gradient(180deg,#061633 0%,#071d50 58%,#06142f 100%) !important;
+  border-right: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 10px 0 30px rgba(15,23,42,.16) !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] > div:first-child {
+  padding: 20px 12px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] * {
+  color: #ffffff !important;
+}
+.upload-left-logo {
+  color:#fff !important;
+  font-size:28px !important;
+  margin: 10px 8px 34px 8px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  margin-bottom: 10px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 14px !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  border: none !important;
+  background: transparent !important;
+  color: #dbeafe !important;
+  box-shadow: none !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
+  box-shadow: 0 10px 24px rgba(124,58,237,.36) !important;
+  color:#fff !important;
+}
+.upload-topbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 244px !important;
+  right: 0 !important;
+  height: 86px !important;
+  background:#fff !important;
+  border-bottom:1px solid #dbe4f0 !important;
+  z-index:9997 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  padding:0 32px 0 38px !important;
+}
+.upload-top-title {
+  font-size:22px !important;
+  font-weight:950 !important;
+  color:#0f172a !important;
+}
+.upload-top-actions { display:none !important; }
+body:has(.upload-left-panel-marker) [data-testid="stToolbar"] { display:none !important; }
+body:has(.upload-left-panel-marker) .hero-title-box,
+body:has(.upload-left-panel-marker) .hero-subtitle { display:none !important; }
+
+/* keep upload cards in 4 columns */
+body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
+  gap: 14px !important;
+  margin-bottom: 22px !important;
+}
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  background: rgba(255,255,255,.96) !important;
+  border:1px solid #dbe4f0 !important;
+  border-radius:16px !important;
+  box-shadow:0 10px 24px rgba(15,23,42,.04) !important;
+  padding:14px !important;
+}
+
+/* remove Executive Dashboard / Excel Report / AI Chatbot cards under Program Track Uploads */
+body:has(.upload-left-panel-marker) .main-page-card,
+body:has(.upload-left-panel-marker) .quick-grid,
+body:has(.upload-left-panel-marker) .upload-page-quick-row {
+  display:none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1761,26 +1851,115 @@ def combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
 
 
 
-def render_upload_left_panel() -> None:
+
+def render_upload_left_panel() -> str:
+    """Native Streamlit sidebar navigation; does not reload app or lose login session."""
+    st.markdown('<div class="upload-left-panel-marker"></div>', unsafe_allow_html=True)
     st.markdown(
         """
-<div class="upload-left-panel-marker"></div>
-<div class="upload-left-sidebar">
-  <div class="upload-left-logo">▥</div>
-  <a class="upload-left-link" href="?view=dashboard" target="_self">⌂ Dashboard</a>
-  <a class="upload-left-link active" href="?page=uploads" target="_self">▣ Track Uploads</a>
-  <a class="upload-left-link" href="?page=reports" target="_self">▤ Reports</a>
-  <a class="upload-left-link" href="?page=excel" target="_self">▥ Excel Report</a>
-  <a class="upload-left-link" href="?page=chatbot" target="_self">☻ AI Chatbot</a>
-  <a class="upload-left-link" href="?page=settings" target="_self">⚙ Settings</a>
-</div>
 <div class="upload-topbar">
   <div class="upload-top-title">CiscoIQ Performance Report App</div>
-  <div class="upload-top-actions"><span>Share</span><span>⭐</span><span>✎</span><span>◖</span></div>
+  <div class="upload-top-actions"></div>
 </div>
 """,
         unsafe_allow_html=True,
     )
+
+    if "upload_left_page" not in st.session_state:
+        st.session_state.upload_left_page = "Track Uploads"
+
+    nav_items = [
+        ("Dashboard", "⌂  Dashboard"),
+        ("Track Uploads", "▣  Track Uploads"),
+        ("Reports", "▤  Reports"),
+        ("Excel Report", "▥  Excel Report"),
+        ("AI Chatbot", "☻  AI Chatbot"),
+        ("Settings", "⚙  Settings"),
+    ]
+
+    with st.sidebar:
+        st.markdown('<div class="upload-left-logo">▥</div>', unsafe_allow_html=True)
+        for page_name, label in nav_items:
+            active = st.session_state.upload_left_page == page_name
+            if st.button(
+                label,
+                key=f"upload_nav_{sanitize_token(page_name)}",
+                type="primary" if active else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state.upload_left_page = page_name
+                st.rerun()
+
+    return st.session_state.upload_left_page
+
+
+def render_upload_sidebar_page(page_name: str) -> bool:
+    """Return True if a sidebar page was rendered and upload cards should stop."""
+    if page_name == "Dashboard":
+        st.markdown('<div class="panel-title">Dashboard</div>', unsafe_allow_html=True)
+        if st.session_state.get("run_frames"):
+            st.markdown('<a class="primary-pill" href="?view=dashboard" target="_self">Open Results Dashboard ↗</a>', unsafe_allow_html=True)
+        else:
+            st.info("No generated data yet. Upload files and generate results first; this page will stay available.")
+        return True
+
+    if page_name == "Reports":
+        st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
+        st.info("Saved uploaded JSON/CSV files are shown here by track.")
+        r1, r2, r3, r4 = st.columns(4, gap="small")
+        with r1:
+            st.markdown("### API Reports")
+            render_api_saved_reports_compact()
+        with r2:
+            st.markdown("### UI Reports")
+            render_saved_reports_compact_for_track(TRACK_UI, title="", key_prefix="reports_ui")
+        with r3:
+            st.markdown("### Cloud Reports")
+            render_saved_reports_compact_for_track(TRACK_CLOUD, title="", key_prefix="reports_cloud")
+        with r4:
+            st.markdown("### Inventory Reports")
+            render_saved_reports_compact_for_track(TRACK_INVENTORY, title="", key_prefix="reports_inventory")
+        return True
+
+    if page_name == "Excel Report":
+        st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
+        if st.session_state.get("excel_bytes"):
+            st.download_button(
+                "Download Excel Report",
+                data=st.session_state.excel_bytes,
+                file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
+                use_container_width=True,
+            )
+        else:
+            st.info("Generate results first to enable Excel download. This page is available even without data.")
+        return True
+
+    if page_name == "AI Chatbot":
+        st.markdown('<div class="panel-title">AI Chatbot</div>', unsafe_allow_html=True)
+        if st.session_state.get("run_frames"):
+            st.session_state["dashboard_tab"] = "Chatbot"
+            render_executive_dashboard(st.session_state.run_frames)
+        else:
+            st.info("Generate results first to use chatbot. This page is available even without data.")
+        return True
+
+    if page_name == "Settings":
+        st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;">
+          <h4>Settings</h4>
+          <p>• Help and support</p>
+          <p>• Report retention preferences</p>
+          <p>• Session management</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Logout", type="primary"):
+            st.session_state.team_authenticated = False
+            st.session_state.upload_left_page = "Track Uploads"
+            st.rerun()
+        return True
+
+    return False
 
 
 def render_dashboard_header() -> None:
@@ -4179,7 +4358,9 @@ elif team_upload_view:
     render_main_page(show_subtitle=st.session_state.get("team_authenticated", False))
     access_granted = team_upload_access_granted()
     if access_granted:
-        render_upload_left_panel()
+        upload_left_page = render_upload_left_panel()
+        if render_upload_sidebar_page(upload_left_page):
+            st.stop()
         st.markdown('<div class="clean-upload-page-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
         api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
@@ -4283,7 +4464,6 @@ elif team_upload_view:
                     st.rerun()
                 render_saved_reports_compact_for_track(TRACK_INVENTORY, title="Saved Inventory Reports", key_prefix="inventory")
 
-        render_action_cards()
 else:
     if st.session_state.run_frames:
         render_executive_dashboard(st.session_state.run_frames)
