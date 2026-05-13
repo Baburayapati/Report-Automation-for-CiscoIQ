@@ -1051,6 +1051,31 @@ body:has(.exact-upload-shell) .stButton > button {
   }
 }
 
+
+/* FINAL UPLOAD PAGE CLEANUP */
+body:has(.exact-upload-shell) .block-container > div {
+  margin-left:236px !important;
+  padding:128px 36px 28px 36px !important;
+  max-width: none !important;
+}
+body:has(.exact-upload-shell) div[data-testid="stHorizontalBlock"]:has(button[key*="open_dashboard"]),
+body:has(.exact-upload-shell) div[data-testid="stHorizontalBlock"]:has(button[key*="open_chatbot"]),
+body:has(.exact-upload-shell) .upload-page-quick-row,
+body:has(.exact-upload-shell) .quick-grid {
+  display:none !important;
+}
+
+/* Keep upload cards looking exact and avoid horizontal cut-off */
+body:has(.exact-upload-shell) div[data-testid="stHorizontalBlock"] {
+  width: 100% !important;
+}
+body:has(.exact-upload-shell) [data-testid="column"] {
+  min-width: 0 !important;
+}
+body:has(.exact-upload-shell) [data-testid="stVerticalBlockBorderWrapper"] {
+  min-height: 330px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1687,11 +1712,11 @@ def render_exact_upload_layout_chrome() -> None:
   <div class="exact-sidebar">
     <div class="exact-logo">▥</div>
     <a class="exact-nav" href="?view=dashboard" target="_self">⌂ Dashboard</a>
-    <a class="exact-nav active" href="?page=uploads" target="_self">▣ Track Uploads</a>
-    <a class="exact-nav" href="?page=reports" target="_self">▤ Reports</a>
-    <a class="exact-nav" href="?page=excel" target="_self">▥ Excel Report</a>
-    <a class="exact-nav" href="?page=chatbot" target="_self">☻ AI Chatbot</a>
-    <a class="exact-nav" href="?page=settings" target="_self">⚙ Settings</a>
+    <a class="exact-nav active" href="#" target="_self">▣ Track Uploads</a>
+    <a class="exact-nav" href="#" target="_self">▤ Reports</a>
+    <a class="exact-nav" href="#" target="_self">▥ Excel Report</a>
+    <a class="exact-nav" href="#" target="_self">☻ AI Chatbot</a>
+    <a class="exact-nav" href="#" target="_self">⚙ Settings</a>
   </div>
   <div class="exact-topbar">
     <div class="exact-top-title">CiscoIQ Performance Report App</div>
@@ -4101,7 +4126,8 @@ elif team_upload_view:
     if access_granted:
         render_exact_upload_layout_chrome()
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
-        api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
+        api_col, ui_col = st.columns(2, gap="small")
+        cloud_col, inv_col = st.columns(2, gap="small")
 
         with api_col:
             with st.container(border=True):
