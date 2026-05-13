@@ -1241,6 +1241,99 @@ body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] {
   border-radius: 14px !important;
 }
 
+
+/* FINAL CENTERED UPLOAD + REPORTS/DASHBOARD FIX */
+body:has(.upload-left-panel-marker) .block-container {
+  max-width: none !important;
+  padding: 108px 34px 28px 286px !important;
+}
+
+/* remove top right actions */
+.upload-top-actions,
+.native-actions {
+  display: none !important;
+}
+
+/* Center the upload content like the reference */
+body:has(.upload-left-panel-marker) .clean-upload-page-marker ~ div,
+body:has(.upload-left-panel-marker) .panel-title {
+  max-width: 1420px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
+  max-width: 1420px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Upload cards uniform */
+body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  min-height: 350px !important;
+}
+
+/* Dashboard static card */
+.dashboard-static-card {
+  max-width: 720px;
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04);
+}
+.dashboard-static-title {
+  font-size: 24px;
+  font-weight: 950;
+  color: #0f2b68;
+  margin-bottom: 10px;
+}
+.dashboard-static-desc {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+.dashboard-static-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 12px;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  font-weight: 850;
+  background: linear-gradient(90deg,#2563eb,#7c3aed);
+}
+
+/* Reports tab four-column UI */
+.reports-subtitle {
+  max-width: 1420px;
+  margin: -6px auto 16px auto;
+  color: #64748b;
+  font-size: 14px;
+}
+.report-program-card {
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 16px;
+  min-height: 340px;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04);
+}
+.report-program-title {
+  font-size: 18px;
+  font-weight: 950;
+  color: #0f2b68;
+  margin-bottom: 14px;
+}
+.report-program-card .panel-title,
+.report-program-card h3,
+.report-program-card h4 {
+  display: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1877,7 +1970,7 @@ def render_upload_left_panel() -> str:
         """
 <div class="upload-topbar">
   <div class="upload-top-title">CiscoIQ Performance Report App</div>
-  <div class="upload-top-actions"><span>Share</span><span>⭐</span><span>🖊️</span><span>🐙</span></div>
+  <div class="upload-top-actions"></div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -1914,23 +2007,44 @@ def render_upload_left_panel() -> str:
 def render_upload_left_page(page_name: str) -> bool:
     """Return True if a left-panel page was rendered and upload cards should not be shown."""
     if page_name == "Dashboard":
-        if st.session_state.get("run_frames"):
-            render_executive_dashboard(st.session_state.run_frames)
-        else:
-            st.markdown('<div class="panel-title">Dashboard</div>', unsafe_allow_html=True)
-            st.info("Generate results first. Dashboard metrics will appear here after upload and generation.")
+        st.markdown('<div class="panel-title">Dashboard</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="dashboard-static-card">
+          <div class="dashboard-static-title">View All Results</div>
+          <div class="dashboard-static-desc">
+            Use this static dashboard entry to open the generated performance results after uploading and generating files.
+          </div>
+          <a class="dashboard-static-btn" href="?view=dashboard" target="_self">Open Results Dashboard ↗</a>
+        </div>
+        """, unsafe_allow_html=True)
         return True
 
     if page_name == "Reports":
         st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
-        st.info("Saved uploaded JSON/CSV reports across tracks are listed here.")
-        col_a, col_b = st.columns(2, gap="medium")
-        with col_a:
+        st.markdown('<div class="reports-subtitle">Saved uploaded JSON/CSV files are organized by program track.</div>', unsafe_allow_html=True)
+
+        r1, r2, r3, r4 = st.columns(4, gap="small")
+
+        with r1:
+            st.markdown('<div class="report-program-card"><div class="report-program-title">API Reports</div>', unsafe_allow_html=True)
             render_api_saved_reports_compact()
-            render_saved_reports_compact_for_track(TRACK_CLOUD, title="Saved Cloud Reports", key_prefix="reports_cloud")
-        with col_b:
-            render_saved_reports_compact_for_track(TRACK_UI, title="Saved UI Reports", key_prefix="reports_ui")
-            render_saved_reports_compact_for_track(TRACK_INVENTORY, title="Saved Inventory Reports", key_prefix="reports_inventory")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with r2:
+            st.markdown('<div class="report-program-card"><div class="report-program-title">UI Reports</div>', unsafe_allow_html=True)
+            render_saved_reports_compact_for_track(TRACK_UI, title="", key_prefix="reports_ui")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with r3:
+            st.markdown('<div class="report-program-card"><div class="report-program-title">Cloud Assist Reports</div>', unsafe_allow_html=True)
+            render_saved_reports_compact_for_track(TRACK_CLOUD, title="", key_prefix="reports_cloud")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with r4:
+            st.markdown('<div class="report-program-card"><div class="report-program-title">Inventory Reports</div>', unsafe_allow_html=True)
+            render_saved_reports_compact_for_track(TRACK_INVENTORY, title="", key_prefix="reports_inventory")
+            st.markdown('</div>', unsafe_allow_html=True)
+
         return True
 
     if page_name == "Excel Report":
@@ -4399,7 +4513,7 @@ elif team_upload_view:
                     key="generate_api_results",
                     use_container_width=True,
                 )
-                st.info("No saved API reports yet.")
+                st.info("Saved files will appear under Reports tab.")
 
         if uploaded_files and generate_clicked:
             if st.session_state.get('save_reports_checkbox', True):
