@@ -1151,6 +1151,96 @@ body:has(.exact-upload-shell) .upload-page-quick-row {
   .exact-sidebar, .exact-topbar { position: relative !important; width: 100% !important; left: 0 !important; }
 }
 
+
+/* NATIVE SIDEBAR FINAL FIX */
+body:has(.native-upload-marker) .block-container {
+  max-width: none !important;
+  padding: 118px 34px 28px 34px !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] {
+  background: linear-gradient(180deg,#071633 0%,#071f57 55%,#06142f 100%) !important;
+  border-right: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 12px 0 30px rgba(15,23,42,.14) !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] * {
+  color: #ffffff !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  border-radius: 14px !important;
+  border: 0 !important;
+  font-weight: 850 !important;
+  color: #ffffff !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body:has(.native-upload-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
+  box-shadow: 0 12px 28px rgba(124,58,237,.36) !important;
+}
+.native-topbar {
+  position: fixed;
+  left: 244px;
+  right: 0;
+  top: 0;
+  height: 92px;
+  background: #ffffff;
+  border-bottom: 1px solid #dbe4f0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px 0 38px;
+  box-sizing: border-box;
+}
+.native-top-title {
+  font-size: 22px;
+  font-weight: 950;
+  color: #0f172a;
+}
+.native-actions {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  color: #0f172a;
+  font-weight: 800;
+}
+body:has(.native-upload-marker) .hero-title-box,
+body:has(.native-upload-marker) .hero-subtitle {
+  display: none !important;
+}
+body:has(.native-upload-marker) .panel-title {
+  font-size: 16px !important;
+  margin-bottom: 10px !important;
+}
+body:has(.native-upload-marker) [data-testid="stVerticalBlockBorderWrapper"] {
+  min-height: 0 !important;
+  padding: 8px !important;
+}
+body:has(.native-upload-marker) [data-testid="stFileUploaderDropzone"] {
+  min-height: 64px !important;
+  padding: 8px 10px !important;
+}
+body:has(.native-upload-marker) .stButton > button {
+  min-height: 34px !important;
+  height: 34px !important;
+  font-size: 12px !important;
+}
+body:has(.native-upload-marker) .main-page-card:has(.mini-link),
+body:has(.native-upload-marker) .main-page-card:has(.stDownloadButton),
+body:has(.native-upload-marker) .quick-grid,
+body:has(.native-upload-marker) .upload-page-quick-row,
+body:has(.native-upload-marker) .exact-upload-shell {
+  display: none !important;
+}
+@media(max-width:1100px){
+  .native-topbar { position: relative; left: 0; height: auto; padding: 14px; }
+  body:has(.native-upload-marker) .block-container { padding: 20px !important; }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1801,6 +1891,105 @@ def render_exact_upload_layout_chrome() -> None:
 """,
         unsafe_allow_html=True,
     )
+
+
+
+def render_native_upload_sidebar() -> str:
+    st.markdown('<div class="native-upload-marker"></div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+<div class="native-topbar">
+  <div class="native-top-title">CiscoIQ Performance Report App</div>
+  <div class="native-actions"><span>Share</span><span>⭐</span><span>✎</span><span>◖</span></div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+    nav_items = [
+        ("Dashboard", "⌂ Dashboard"),
+        ("Track Uploads", "▣ Track Uploads"),
+        ("Reports", "▤ Reports"),
+        ("Excel Report", "▥ Excel Report"),
+        ("AI Chatbot", "☻ AI Chatbot"),
+        ("Settings", "⚙ Settings"),
+    ]
+    current_page = st.session_state.get("upload_sidebar_page", "Track Uploads")
+
+    with st.sidebar:
+        st.markdown('<div style="font-size:30px;font-weight:900;margin:8px 4px 34px 4px;">▥</div>', unsafe_allow_html=True)
+        for page_value, page_label in nav_items:
+            if st.button(
+                page_label,
+                key=f"upload_nav_{sanitize_token(page_value)}",
+                type="primary" if current_page == page_value else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state["upload_sidebar_page"] = page_value
+                current_page = page_value
+                st.rerun()
+
+    return current_page
+
+
+def render_upload_side_page(page_name: str) -> bool:
+    """Return True when a side page was rendered and upload cards should stop."""
+    if page_name == "Dashboard":
+        if st.session_state.get("run_frames"):
+            render_executive_dashboard(st.session_state.run_frames)
+        else:
+            st.markdown('<div class="panel-title">Dashboard</div>', unsafe_allow_html=True)
+            st.info("Upload and generate results first. The dashboard metrics will appear here after generation.")
+        return True
+
+    if page_name == "Reports":
+        st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
+        st.info("Uploaded JSON and CSV files saved for team visibility will appear here.")
+        render_saved_reports_table(show_title=False)
+        return True
+
+    if page_name == "Excel Report":
+        st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
+        if st.session_state.get("excel_bytes"):
+            st.download_button(
+                "Download Excel Report",
+                data=st.session_state.excel_bytes,
+                file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
+                use_container_width=True,
+            )
+        else:
+            st.info("Generate results first to enable Excel download.")
+        return True
+
+    if page_name == "AI Chatbot":
+        st.markdown('<div class="panel-title">AI Chatbot</div>', unsafe_allow_html=True)
+        if st.session_state.get("run_frames"):
+            st.session_state["dashboard_tab"] = "Chatbot"
+            render_executive_dashboard(st.session_state.run_frames)
+        else:
+            st.info("Generate a report first, then use the dashboard chatbot for SLA, slow APIs, errors, regions and comparisons.")
+        return True
+
+    if page_name == "Settings":
+        st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;">
+          <h4>Account & App Settings</h4>
+          <p>• Logout / session reset</p>
+          <p>• Help and support information</p>
+          <p>• Notification preferences</p>
+          <p>• Report retention settings</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Logout", type="primary"):
+            st.session_state.team_authenticated = False
+            st.session_state.run_frames = []
+            st.session_state.excel_bytes = None
+            st.session_state["upload_sidebar_page"] = "Track Uploads"
+            st.rerun()
+        return True
+
+    return False
 
 
 def render_dashboard_header() -> None:
@@ -4199,50 +4388,9 @@ elif team_upload_view:
     render_main_page(show_subtitle=st.session_state.get("team_authenticated", False))
     access_granted = team_upload_access_granted()
     if access_granted:
-        render_exact_upload_layout_chrome()
-        upload_page = str(params.get("page", "uploads")).lower()
-
-        if upload_page == "reports":
-            st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
-            st.info("Uploaded JSON and CSV files saved for team visibility will appear here.")
-            render_saved_reports_table(show_title=False)
+        upload_nav_page = render_native_upload_sidebar()
+        if render_upload_side_page(upload_nav_page):
             st.stop()
-
-        if upload_page == "settings":
-            st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
-            st.markdown("""
-            <div style="background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;">
-              <h4>Account & App Settings</h4>
-              <p>• Logout / session reset</p>
-              <p>• Help and support information</p>
-              <p>• Notification preferences</p>
-              <p>• Report retention settings</p>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("Logout", type="primary"):
-                st.session_state.team_authenticated = False
-                st.session_state.run_frames = []
-                st.rerun()
-            st.stop()
-
-        if upload_page == "chatbot":
-            st.markdown('<div class="panel-title">AI Chatbot</div>', unsafe_allow_html=True)
-            st.info("Generate a report first, then open the dashboard chatbot for SLA, slow API, errors, regions and comparisons.")
-            st.stop()
-
-        if upload_page == "excel":
-            st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
-            if st.session_state.get("excel_bytes"):
-                st.download_button(
-                    "Download Excel Report",
-                    data=st.session_state.excel_bytes,
-                    file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
-                    use_container_width=True,
-                )
-            else:
-                st.info("Generate results first to enable Excel download.")
-            st.stop()
-
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
         api_col, ui_col = st.columns(2, gap="small")
         cloud_col, inv_col = st.columns(2, gap="small")
