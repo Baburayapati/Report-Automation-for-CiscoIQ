@@ -707,6 +707,47 @@ div[style*="min-height: 34px"]:empty {
   border-bottom-left-radius: 22px;
 }
 
+
+/* LAYOUT MATCH FIX */
+.sshot-wrapper{
+  display:grid !important;
+  grid-template-columns:360px 1fr !important;
+  align-items:start !important;
+}
+.sshot-left{
+  padding-top:18px !important;
+  min-height:260px !important;
+}
+.sshot-right{
+  padding:18px 18px 10px 0 !important;
+}
+.sshot-region-card{
+  min-height:auto !important;
+  padding:8px 10px !important;
+}
+.sshot-region-card::before{
+  display:none !important;
+  content:none !important;
+}
+.sshot-region-card > div:first-child:empty{
+  display:none !important;
+}
+.sshot-region-card div[style*="height"]{
+  display:none !important;
+}
+.sshot-tabs{
+  margin:0 0 14px 378px !important;
+  padding-top:10px !important;
+}
+div[style*="border-radius:999px"]:empty,
+div[style*="border-radius: 999px"]:empty,
+div[style*="height:34px"]:empty,
+div[style*="height: 34px"]:empty,
+div[style*="height: 70px"]:empty,
+div[style*="height:70px"]:empty{
+  display:none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2024,7 +2065,6 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
     with left_nav:
         st.markdown('<div class="sshot-left">', unsafe_allow_html=True)
         st.markdown('<div class="sshot-title">1. Programs</div>', unsafe_allow_html=True)
-
         program_options = [
             ("🎧  Cisco IQ SaaS Support Services", PROGRAM_SAAS),
             ("▧  Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Assets"),
