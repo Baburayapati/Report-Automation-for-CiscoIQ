@@ -355,6 +355,43 @@ div[role="radiogroup"] label:has(input:checked) {
   box-shadow:0 12px 28px rgba(15,23,42,.045) !important;
 }
 
+
+
+/* v-upload-filename-inline: move saved/uploaded file name into the empty rounded upload bar */
+[data-testid="stFileUploader"] {
+  position: relative !important;
+}
+
+[data-testid="stFileUploaderFile"] {
+  margin-top: -42px !important;
+  padding-left: 14px !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-testid="stFileUploaderFile"] > div {
+  width: 100% !important;
+}
+
+[data-testid="stFileUploaderFileName"] {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-weight: 800 !important;
+}
+
+[data-testid="stFileUploaderFileSize"],
+[data-testid="stFileUploaderDeleteBtn"] {
+  display: none !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
