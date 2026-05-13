@@ -355,43 +355,6 @@ div[role="radiogroup"] label:has(input:checked) {
   box-shadow:0 12px 28px rgba(15,23,42,.045) !important;
 }
 
-
-
-/* v-upload-filename-inline: move saved/uploaded file name into the empty rounded upload bar */
-[data-testid="stFileUploader"] {
-  position: relative !important;
-}
-
-[data-testid="stFileUploaderFile"] {
-  margin-top: -42px !important;
-  padding-left: 14px !important;
-  height: 38px !important;
-  display: flex !important;
-  align-items: center !important;
-  font-weight: 800 !important;
-  color: #0f172a !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-[data-testid="stFileUploaderFile"] > div {
-  width: 100% !important;
-}
-
-[data-testid="stFileUploaderFileName"] {
-  display: block !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  font-weight: 800 !important;
-}
-
-[data-testid="stFileUploaderFileSize"],
-[data-testid="stFileUploaderDeleteBtn"] {
-  display: none !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -3025,18 +2988,21 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
     st.markdown(
         """
 <style>
-.compact-saved-row {
+.compact-saved-cell-name {
     background: #f8fbff;
     border: 1px solid #dbe4f0;
     border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 8px;
-}
-.compact-saved-cell-name {
+    padding: 8px 14px;
+    min-height: 26px;
+    display: flex;
+    align-items: center;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 800;
     color: #0f172a;
-    margin-bottom: 10px;
+    margin: 0 0 10px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 </style>
 """,
@@ -3054,7 +3020,6 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         include_users = track_name in {TRACK_API, TRACK_UI}
         report_name = f"{report_title(region, users, devices, include_users=include_users)}-{date_token}"
 
-        st.markdown('<div class="compact-saved-row">', unsafe_allow_html=True)
         st.markdown(f'<div class="compact-saved-cell-name">{report_name}</div>', unsafe_allow_html=True)
 
         action_generate_col, action_remove_col = st.columns(2, gap="small")
@@ -3076,7 +3041,6 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
             remove_saved_upload(item.get("saved_name", ""))
             st.success("Removed saved report.")
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def saved_reports_rows(uploads: List[Dict[str, str]]) -> pd.DataFrame:
