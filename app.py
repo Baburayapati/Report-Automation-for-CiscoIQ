@@ -22,6 +22,33 @@ from main import build_report, build_comparison_report, build_single_report_fram
 APP_TITLE = "CiscoIQ Performance Report App"
 APP_NAME_TOKEN = "CiscoIQ"
 
+
+def render_executive_upload_shell():
+    st.markdown("""
+<div class="exec-shell">
+  <div class="exec-sidebar">
+    <a class="exec-nav" href="?view=dashboard" target="_self">📊 Dashboard</a>
+    <a class="exec-nav active" href="?page=uploads" target="_self">📂 Track Uploads</a>
+    <a class="exec-nav" href="?page=reports" target="_self">📑 Reports</a>
+    <a class="exec-nav" href="?page=excel" target="_self">📥 Excel Report</a>
+    <a class="exec-nav" href="?page=chatbot" target="_self">🤖 AI Chatbot</a>
+    <a class="exec-nav" href="?page=settings" target="_self">⚙️ Settings</a>
+  </div>
+  <div class="exec-content">
+    <div class="exec-top">
+      <div class="exec-title">CiscoIQ Performance Report App</div>
+      <div style="display:flex;gap:18px;font-size:18px;">
+        <span>Share</span>
+        <span>⭐</span>
+        <span>✏️</span>
+        <span>🐙</span>
+      </div>
+    </div>
+""", unsafe_allow_html=True)
+
+def close_executive_upload_shell():
+    st.markdown("</div></div>", unsafe_allow_html=True)
+
 def render_portal_layout():
     st.markdown("""
 <div class="portal-sidebar">
@@ -996,6 +1023,56 @@ color:#fff !important;text-decoration:none !important;font-weight:800;}
 /* LOGIN PAGE CLEANUP */
 div.quick-grid:first-of-type{
   display:none !important;
+}
+
+
+/* EXECUTIVE UPLOAD PORTAL */
+.exec-shell{
+display:grid;
+grid-template-columns:220px 1fr;
+gap:22px;
+align-items:start;
+margin-top:8px;
+}
+.exec-sidebar{
+background:linear-gradient(180deg,#02122f,#071a49 60%,#08142e);
+border-radius:18px;
+padding:18px 14px;
+min-height:880px;
+}
+.exec-nav{
+display:flex;
+align-items:center;
+gap:12px;
+padding:14px 14px;
+border-radius:14px;
+margin-bottom:10px;
+font-weight:800;
+font-size:15px;
+color:#fff !important;
+text-decoration:none !important;
+}
+.exec-nav.active{
+background:linear-gradient(90deg,#2563eb,#7c3aed);
+box-shadow:0 12px 24px rgba(124,58,237,.35);
+}
+.exec-content{
+background:#fff;
+border:1px solid #dbe4f0;
+border-radius:18px;
+padding:18px;
+}
+.exec-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding-bottom:16px;
+margin-bottom:16px;
+border-bottom:1px solid #e2e8f0;
+}
+.exec-title{
+font-size:28px;
+font-weight:900;
 }
 
 </style>
@@ -4159,5 +4236,7 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+close_executive_upload_shell()
 
 close_portal_layout()
