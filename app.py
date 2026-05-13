@@ -1076,6 +1076,81 @@ body:has(.exact-upload-shell) [data-testid="stVerticalBlockBorderWrapper"] {
   min-height: 330px !important;
 }
 
+
+/* REAL FINAL UPLOAD PAGE FIX */
+body:has(.exact-upload-shell) .block-container {
+  margin-left: 236px !important;
+  width: calc(100vw - 236px) !important;
+  max-width: calc(100vw - 236px) !important;
+  padding: 126px 30px 30px 30px !important;
+  box-sizing: border-box !important;
+}
+body:has(.exact-upload-shell) .block-container > div {
+  margin-left: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+.exact-upload-shell {
+  pointer-events: none !important;
+}
+.exact-sidebar {
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+}
+.exact-sidebar a {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+.exact-topbar {
+  z-index: 2147483646 !important;
+  pointer-events: auto !important;
+}
+
+/* compact upload section */
+body:has(.exact-upload-shell) .panel-title {
+  font-size: 16px !important;
+  margin: 0 0 10px 0 !important;
+}
+body:has(.exact-upload-shell) [data-testid="stVerticalBlockBorderWrapper"] {
+  min-height: 0 !important;
+  padding: 8px !important;
+}
+body:has(.exact-upload-shell) [data-testid="stFileUploader"] {
+  padding: 8px !important;
+}
+body:has(.exact-upload-shell) [data-testid="stFileUploaderDropzone"] {
+  min-height: 64px !important;
+  padding: 8px 10px !important;
+}
+body:has(.exact-upload-shell) .stButton > button {
+  min-height: 34px !important;
+  height: 34px !important;
+  font-size: 12px !important;
+}
+body:has(.exact-upload-shell) [data-testid="stCheckbox"] {
+  margin-top: -6px !important;
+  margin-bottom: -4px !important;
+}
+
+/* remove the old bottom cards section */
+body:has(.exact-upload-shell) .main-page-card:has(.mini-link),
+body:has(.exact-upload-shell) .main-page-card:has(.stDownloadButton),
+body:has(.exact-upload-shell) .quick-grid,
+body:has(.exact-upload-shell) .upload-page-quick-row {
+  display: none !important;
+}
+
+@media(max-width:1100px){
+  body:has(.exact-upload-shell) .block-container {
+    margin-left: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 20px !important;
+  }
+  .exact-sidebar, .exact-topbar { position: relative !important; width: 100% !important; left: 0 !important; }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1712,11 +1787,11 @@ def render_exact_upload_layout_chrome() -> None:
   <div class="exact-sidebar">
     <div class="exact-logo">▥</div>
     <a class="exact-nav" href="?view=dashboard" target="_self">⌂ Dashboard</a>
-    <a class="exact-nav active" href="#" target="_self">▣ Track Uploads</a>
-    <a class="exact-nav" href="#" target="_self">▤ Reports</a>
-    <a class="exact-nav" href="#" target="_self">▥ Excel Report</a>
-    <a class="exact-nav" href="#" target="_self">☻ AI Chatbot</a>
-    <a class="exact-nav" href="#" target="_self">⚙ Settings</a>
+    <a class="exact-nav active" href="?page=uploads" target="_self">▣ Track Uploads</a>
+    <a class="exact-nav" href="?page=reports" target="_self">▤ Reports</a>
+    <a class="exact-nav" href="?page=excel" target="_self">▥ Excel Report</a>
+    <a class="exact-nav" href="?page=chatbot" target="_self">☻ AI Chatbot</a>
+    <a class="exact-nav" href="?page=settings" target="_self">⚙ Settings</a>
   </div>
   <div class="exact-topbar">
     <div class="exact-top-title">CiscoIQ Performance Report App</div>
@@ -4125,6 +4200,49 @@ elif team_upload_view:
     access_granted = team_upload_access_granted()
     if access_granted:
         render_exact_upload_layout_chrome()
+        upload_page = str(params.get("page", "uploads")).lower()
+
+        if upload_page == "reports":
+            st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
+            st.info("Uploaded JSON and CSV files saved for team visibility will appear here.")
+            render_saved_reports_table(show_title=False)
+            st.stop()
+
+        if upload_page == "settings":
+            st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
+            st.markdown("""
+            <div style="background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;">
+              <h4>Account & App Settings</h4>
+              <p>• Logout / session reset</p>
+              <p>• Help and support information</p>
+              <p>• Notification preferences</p>
+              <p>• Report retention settings</p>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("Logout", type="primary"):
+                st.session_state.team_authenticated = False
+                st.session_state.run_frames = []
+                st.rerun()
+            st.stop()
+
+        if upload_page == "chatbot":
+            st.markdown('<div class="panel-title">AI Chatbot</div>', unsafe_allow_html=True)
+            st.info("Generate a report first, then open the dashboard chatbot for SLA, slow API, errors, regions and comparisons.")
+            st.stop()
+
+        if upload_page == "excel":
+            st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
+            if st.session_state.get("excel_bytes"):
+                st.download_button(
+                    "Download Excel Report",
+                    data=st.session_state.excel_bytes,
+                    file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
+                    use_container_width=True,
+                )
+            else:
+                st.info("Generate results first to enable Excel download.")
+            st.stop()
+
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
         api_col, ui_col = st.columns(2, gap="small")
         cloud_col, inv_col = st.columns(2, gap="small")
