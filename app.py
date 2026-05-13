@@ -708,44 +708,114 @@ div[style*="min-height: 34px"]:empty {
 }
 
 
-/* LAYOUT MATCH FIX */
-.sshot-wrapper{
-  display:grid !important;
-  grid-template-columns:360px 1fr !important;
-  align-items:start !important;
+/* EXACT NAV LAYOUT FIX - matches requested screenshot using real Streamlit columns */
+.exact-nav-anchor {
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
-.sshot-left{
-  padding-top:18px !important;
-  min-height:260px !important;
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] {
+  background: rgba(255,255,255,.94) !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  box-shadow: 0 18px 44px rgba(15,23,42,.075) !important;
+  margin: 12px 0 14px 0 !important;
+  gap: 0 !important;
 }
-.sshot-right{
-  padding:18px 18px 10px 0 !important;
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child {
+  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%) !important;
+  padding: 16px 16px 14px 16px !important;
+  min-height: 248px !important;
 }
-.sshot-region-card{
-  min-height:auto !important;
-  padding:8px 10px !important;
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) {
+  padding: 16px 18px 14px 18px !important;
 }
-.sshot-region-card::before{
-  display:none !important;
-  content:none !important;
+.exact-label {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  margin: 0 0 10px 0;
+  color: #0f2b68;
 }
-.sshot-region-card > div:first-child:empty{
-  display:none !important;
+.exact-label.white {
+  color: #ffffff;
 }
-.sshot-region-card div[style*="height"]{
-  display:none !important;
+/* Button styles inside exact nav */
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] .stButton > button {
+  height: 42px !important;
+  min-height: 42px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  border: 1px solid #dbe4f0 !important;
+  box-shadow: 0 8px 18px rgba(15,23,42,.06) !important;
+  white-space: nowrap !important;
 }
-.sshot-tabs{
-  margin:0 0 14px 378px !important;
-  padding-top:10px !important;
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button[kind="secondary"] {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button[kind="primary"] {
+  background: #ffffff !important;
+  color: #4f46e5 !important;
+  border-color: rgba(255,255,255,.8) !important;
+  box-shadow: 0 12px 24px rgba(15,23,42,.16) !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg,#2563eb,#7c3aed) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button[kind="secondary"] {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+/* Region filter exact compact card */
+.exact-region-card {
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 10px 11px 12px 11px;
+  box-shadow: 0 12px 24px rgba(15,23,42,.055);
+  min-height: 88px;
+  margin-top: 0;
+}
+.exact-region-card [data-testid="stSelectbox"] { margin-top: -8px !important; }
+.exact-region-card [data-baseweb="select"] > div {
+  min-height: 36px !important;
+  height: 36px !important;
+  border-radius: 11px !important;
+  font-size: 12px !important;
+}
+/* Remove old accidental blank bars/boxes */
+.sshot-left, .sshot-right, .sshot-wrapper, .sshot-tabs,
+.exec-nav-card, .enterprise-nav-shell {
+  all: unset;
 }
 div[style*="border-radius:999px"]:empty,
 div[style*="border-radius: 999px"]:empty,
 div[style*="height:34px"]:empty,
 div[style*="height: 34px"]:empty,
 div[style*="height: 70px"]:empty,
-div[style*="height:70px"]:empty{
-  display:none !important;
+div[style*="height:70px"]:empty,
+.saved-report-name-box,
+.empty-file-name-box,
+.report-name-placeholder,
+.exec-empty-space {
+  display: none !important;
+}
+@media(max-width:1100px){
+  .exact-nav-anchor + div[data-testid="stHorizontalBlock"] {
+    display: block !important;
+  }
 }
 
 </style>
@@ -1390,6 +1460,7 @@ def render_dashboard_header() -> None:
 """,
         unsafe_allow_html=True,
     )
+
 
 
 
@@ -2058,13 +2129,14 @@ def goto_tab_button(label: str, tab_name: str, key: str) -> None:
 
 
 def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
+    # Top header intentionally removed. The nav below is the leadership view.
 
-    st.markdown('<div class="sshot-wrapper">', unsafe_allow_html=True)
-    left_nav, right_nav = st.columns([1.0, 3.35], gap="small")
+    st.markdown('<div class="exact-nav-anchor"></div>', unsafe_allow_html=True)
+    left_nav, right_nav = st.columns([1.0, 3.55], gap="small")
 
     with left_nav:
-        st.markdown('<div class="sshot-left">', unsafe_allow_html=True)
-        st.markdown('<div class="sshot-title">1. Programs</div>', unsafe_allow_html=True)
+        st.markdown('<div class="exact-label white">1. Programs</div>', unsafe_allow_html=True)
+
         program_options = [
             ("🎧  Cisco IQ SaaS Support Services", PROGRAM_SAAS),
             ("▧  Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Assets"),
@@ -2087,27 +2159,21 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
                 active_program = program_name
                 st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     with right_nav:
-        st.markdown('<div class="sshot-right">', unsafe_allow_html=True)
-
         if active_program != PROGRAM_SAAS:
-            st.markdown('<div class="sshot-title">2. Program Tracks</div>', unsafe_allow_html=True)
+            st.markdown('<div class="exact-label">2. Program Tracks</div>', unsafe_allow_html=True)
             st.info(f"{active_program} is planned for Q4FY26. Dashboard enablement is in upcoming release windows.")
-            st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
             render_saved_reports_table(show_title=False)
             return
 
-        st.markdown('<div class="sshot-title">2. Program Tracks</div>', unsafe_allow_html=True)
-
-        track_area, region_area = st.columns([4.65, 1.0], gap="small")
+        st.markdown('<div class="exact-label">2. Program Tracks</div>', unsafe_allow_html=True)
 
         track_options = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
         active_track = st.session_state.get("active_track", "API")
         if active_track not in track_options:
             active_track = "API"
+
+        track_area, region_area = st.columns([4.7, 1.0], gap="small")
 
         with track_area:
             t1, t2, t3, t4 = st.columns([.58, .68, 1.55, 1.95], gap="small")
@@ -2124,8 +2190,8 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
                     st.rerun()
 
         with region_area:
-            st.markdown('<div class="sshot-region-card">', unsafe_allow_html=True)
-            st.markdown('<div class="sshot-title" style="margin-bottom:7px;">Region Filter</div>', unsafe_allow_html=True)
+            st.markdown('<div class="exact-region-card">', unsafe_allow_html=True)
+            st.markdown('<div class="exact-label" style="margin-bottom:7px;">Region Filter</div>', unsafe_allow_html=True)
             available_regions = sorted(set([frames.get("Region", region_from_frames(frames)) for frames in run_frames if frames.get("Region", region_from_frames(frames))]))
             region_choices = ["All"] + [r for r in available_regions if str(r).upper() not in {"UNKNOWN", "N/A", "NA"}]
             if len(region_choices) == 1:
@@ -2133,21 +2199,15 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
             region_focus = st.selectbox("Region", region_choices, key="dashboard_region_focus", label_visibility="collapsed")
             st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('<div class="exact-label" style="margin-top:14px;">3. Dashboard Views</div>', unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if active_track != "API":
-        with st.container(border=True):
-            st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
-            render_non_api_track_view(active_track)
-        return
-
-    st.markdown('<div class="sshot-tabs">', unsafe_allow_html=True)
-    st.markdown('<div class="sshot-title">3. Dashboard Views</div>', unsafe_allow_html=True)
+        if active_track != "API":
+            with st.container(border=True):
+                st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
+                render_non_api_track_view(active_track)
+            return
 
     selected_tab = dashboard_view_tabs()
-    st.markdown('</div>', unsafe_allow_html=True)
 
     main_col, side_col = st.columns([4.35, .95], gap="medium")
 
