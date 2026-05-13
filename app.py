@@ -762,28 +762,88 @@ def extract_env_token(file_name: str) -> str:
     return "PROD"
 
 
-def to_mmddyyyy(date_value: str) -> str:
-    text = str(date_value or "").strip()
-    if re.fullmatch(r"\d{8}", text):
-        return text
-    match = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[-\s_]*(\d{1,2})[-\s_,]*(\d{4})", text)
-    if match:
-        month_map = {
-            "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
-            "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
-            "aug": "08", "august": "08", "sep": "09", "september": "09", "oct": "10", "october": "10",
-            "nov": "11", "november": "11", "dec": "12", "december": "12",
-        }
-        month = month_map.get(match.group(1).lower(), datetime.now().strftime("%m"))
-        day = f"{int(match.group(2)):02d}"
-        year = match.group(3)
-        return f"{month}{day}{year}"
-    iso = re.search(r"(20\d{2})[-_\s]?(\d{1,2})[-_\s]?(\d{1,2})", text)
-    if iso:
-        year, month, day = iso.groups()
-        return f"{int(month):02d}{int(day):02d}{year}"
-    return datetime.now().strftime("%m%d%Y")
+def extract_date_token_from_filename(value: str) -> str:
+    """Return date as MM-DD-YYYY from common filename formats.
 
+    Supported examples:
+    - 12052026
+    - 12/05/2026
+    - 12-05-2026
+    - 12_05_2026
+    - 2026-12-05
+    - Dec-05-2026 / December 5 2026
+    """
+    text = str(value or "").strip()
+    if not text:
+        return "N/A"
+
+    month_map = {
+        "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
+        "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
+        "aug": "08", "august": "08", "sep": "09", "sept": "09", "september": "09", "oct": "10", "october": "10",
+        "nov": "11", "november": "11", "dec": "12", "december": "12",
+    }
+
+    # Month name formats: Dec-05-2026, December_5_2026, Dec 05 26
+    month_pattern = r"(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
+    m = re.search(month_pattern + r"[\s_\-/.,]*(\d{1,2})(?:st|nd|rd|th)?[\s_\-/.,]*(\d{2,4})", text, re.IGNORECASE)
+    if m:
+        mm = month_map.get(m.group(1).lower()[:3], "")
+        dd = int(m.group(2))
+        yy = m.group(3)
+        yyyy = int("20" + yy) if len(yy) == 2 else int(yy)
+        if mm and 1 <= dd <= 31 and 2000 <= yyyy <= 2100:
+            return f"{mm}-{dd:02d}-{yyyy}"
+
+    # ISO format: 2026-12-05 / 2026_12_05 / 2026/12/05
+    m = re.search(r"(?<!\d)(20\d{2})[\-_/.\s](\d{1,2})[\-_/.\s](\d{1,2})(?!\d)", text)
+    if m:
+        yyyy, mm, dd = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        if 1 <= mm <= 12 and 1 <= dd <= 31:
+            return f"{mm:02d}-{dd:02d}-{yyyy}"
+
+    # Numeric separated date. Default is MM-DD-YYYY for report naming.
+    # If first number is > 12 and second is <= 12, treat it as DD-MM-YYYY.
+    for m in re.finditer(r"(?<!\d)(\d{1,2})[\-_/.\s](\d{1,2})[\-_/.\s](\d{2,4})(?!\d)", text):
+        first, second, year = int(m.group(1)), int(m.group(2)), m.group(3)
+        yyyy = int("20" + year) if len(year) == 2 else int(year)
+        if not (2000 <= yyyy <= 2100):
+            continue
+        if first > 12 and second <= 12:
+            dd, mm = first, second
+        else:
+            mm, dd = first, second
+        if 1 <= mm <= 12 and 1 <= dd <= 31:
+            return f"{mm:02d}-{dd:02d}-{yyyy}"
+
+    # Compact MMDDYYYY: 12052026 -> 12-05-2026.
+    # Also handles DDMMYYYY only when the first part cannot be a month, e.g. 25052026 -> 05-25-2026.
+    for m in re.finditer(r"(?<!\d)(\d{8})(?!\d)", text):
+        token = m.group(1)
+        # Skip obvious epoch-like or year-first tokens here; ISO compact below handles YYYYMMDD.
+        yyyy_tail = int(token[4:8])
+        if 2000 <= yyyy_tail <= 2100:
+            first, second = int(token[0:2]), int(token[2:4])
+            if first > 12 and second <= 12:
+                dd, mm = first, second
+            else:
+                mm, dd = first, second
+            if 1 <= mm <= 12 and 1 <= dd <= 31:
+                return f"{mm:02d}-{dd:02d}-{yyyy_tail}"
+        yyyy_head = int(token[0:4])
+        if 2000 <= yyyy_head <= 2100:
+            mm, dd = int(token[4:6]), int(token[6:8])
+            if 1 <= mm <= 12 and 1 <= dd <= 31:
+                return f"{mm:02d}-{dd:02d}-{yyyy_head}"
+
+    return "N/A"
+
+
+def to_mmddyyyy(date_value: str) -> str:
+    parsed = extract_date_token_from_filename(date_value)
+    if parsed != "N/A":
+        return parsed.replace("-", "")
+    return datetime.now().strftime("%m%d%Y")
 
 def to_mm_dd_yyyy(date_value: str) -> str:
     token = to_mmddyyyy(date_value)
@@ -2108,24 +2168,7 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
     if duration_match:
         duration = f"{duration_match.group(1)} Hour"
 
-    date = "N/A"
-    date_match = re.search(
-        r"(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|JAN|FEB|MAR|APR|JUN|JUL|AUG|SEP|SEPT|OCT|NOV|DEC)[_\- ]?(\d{1,2})[_\-, ]+(\d{4})",
-        upper,
-    )
-    if date_match:
-        month = date_match.group(1).title()
-        day = date_match.group(2)
-        year = date_match.group(3)
-        date = f"{month}-{day}-{year}"
-    if date == "N/A":
-        mmddyyyy = re.search(r"(?:^|[_\-\s])(\d{8})(?:$|[_\-\s])", upper)
-        if mmddyyyy:
-            token = mmddyyyy.group(1)
-            mm = token[0:2]
-            dd = token[2:4]
-            yyyy = token[4:8]
-            date = f"{mm}-{dd}-{yyyy}"
+    date = extract_date_token_from_filename(stem)
 
     users = "N/A"
     user_patterns = [
