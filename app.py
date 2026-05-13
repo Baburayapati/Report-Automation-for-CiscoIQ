@@ -1025,15 +1025,15 @@ def dashboard_view_tabs() -> str:
     if "nav_target" in st.session_state:
         current_tab = st.session_state.pop("nav_target")
 
-    valid_tabs = ["Overview", "Track Comparison", "Detailed Report", "Chatbot"]
-    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Track Comparison", "Reports": "Overview", "Trends": "Overview", "AI Chatbot": "Chatbot"}
+    valid_tabs = ["Overview", "Comparison Summary", "Detailed Report", "Chatbot"]
+    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Comparison Summary", "Track Comparison": "Comparison Summary", "Reports": "Overview", "Trends": "Overview", "AI Chatbot": "Chatbot"}
     current_tab = legacy_tabs.get(current_tab, current_tab)
     if current_tab not in valid_tabs:
         current_tab = "Overview"
 
     labels = {
         "Overview": "◆ Overview",
-        "Track Comparison": "▦ Track Comparison",
+        "Comparison Summary": "▦ Comparison Summary",
         "Detailed Report": "⌕ Detailed Report",
         "Chatbot": "● AI Chatbot",
     }
@@ -1563,26 +1563,22 @@ def build_dashboard_track_comparison(run_frames: List[Dict[str, pd.DataFrame]]) 
         return [round(counts[name] / total * 100, 2) for name in bucket_names]
 
     def build_section(tracks: List[str], is_askai: bool) -> pd.DataFrame:
+        # One compact card per uploaded result. Do not create/show a "Total" row.
         rows = []
         bucket_names = ["0 - 10s", "10 - 20s", "20 - 30s", "> 30s"] if is_askai else ["0 - 2s", "3 - 4s", "4 - 6s", "> 6s"]
-        row_targets = ["Total"] + tracks
 
-        for target in row_targets:
-            for frames in run_frames:
-                api_df = frames["APIs"].copy()
-                if target == "Total":
-                    api_rows = api_df[api_df["Feature"].astype(str).isin(tracks)] if tracks else api_df
-                else:
-                    api_rows = api_df[api_df["Feature"].astype(str) == str(target)]
-                values = avg_bucket_summary_for_rows(api_rows, is_askai)
-                row = {
-                    "_TrackKey": target,
-                    "Track": target,
-                    "Result": comparison_header_label(frames),
-                }
-                for name, value in zip(bucket_names, values):
-                    row[name] = value
-                rows.append(row)
+        for frames in run_frames:
+            api_df = frames["APIs"].copy()
+            api_rows = api_df[api_df["Feature"].astype(str).isin(tracks)] if tracks else pd.DataFrame()
+            if api_rows.empty:
+                continue
+            values = avg_bucket_summary_for_rows(api_rows, is_askai)
+            row = {
+                "Result": comparison_header_label(frames),
+            }
+            for name, value in zip(bucket_names, values):
+                row[name] = value
+            rows.append(row)
         return pd.DataFrame(rows)
 
     return build_section(askai_tracks, True), build_section(other_tracks, False)
@@ -1607,17 +1603,16 @@ def render_tableau_comparison_matrix(data: pd.DataFrame, title: str) -> None:
     if data.empty:
         return
 
-    total = data[data["_TrackKey"] == "Total"].copy()
-    if total.empty:
-        total = data.copy()
+    view = data.copy()
+    view = view.dropna(how="all")
 
-    bucket_cols = [c for c in total.columns if c not in {"_TrackKey", "Track", "Result"}]
-    if not bucket_cols:
+    bucket_cols = [c for c in view.columns if c not in {"Result"}]
+    if not bucket_cols or view.empty:
         return
 
-    header_cells = "".join([f'<th colspan="{len(bucket_cols)}">{row["Result"]}</th>' for _, row in total.iterrows()])
-    bucket_cells = "".join([f"<td>{bucket}</td>" for _ in range(len(total)) for bucket in bucket_cols])
-    value_cells = "".join([f"<td>{_fmt_pct(row[bucket])}</td>" for _, row in total.iterrows() for bucket in bucket_cols])
+    header_cells = "".join([f'<th colspan="{len(bucket_cols)}">{row["Result"]}</th>' for _, row in view.iterrows()])
+    bucket_cells = "".join([f"<td>{bucket}</td>" for _ in range(len(view)) for bucket in bucket_cols])
+    value_cells = "".join([f"<td>{_fmt_pct(row[bucket])}</td>" for _, row in view.iterrows() for bucket in bucket_cols])
 
     html = f"""
 <style>
@@ -1682,14 +1677,14 @@ def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]])
     if askai_df.empty and other_df.empty:
         return
 
-    st.markdown('<div class="panel-title" style="margin-top:12px;">TRACK COMPARISON DASHBOARD</div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title" style="margin-top:12px;">COMPARISON SUMMARY</div>', unsafe_allow_html=True)
     if not other_df.empty:
         render_tableau_comparison_matrix(other_df, "CIQ Support Capabilities (Assets, Assessments and Support)")
     if not askai_df.empty:
         render_tableau_comparison_matrix(askai_df, "CIQ Support Capabilities (Ask AI)")
 
 def render_compare_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    st.markdown('<div class="panel"><div class="panel-title">TRACK COMPARISON <span class="tag">Avg response distribution</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel"><div class="panel-title">COMPARISON SUMMARY <span class="tag">Avg response distribution</span></div>', unsafe_allow_html=True)
 
     askai_df, other_df = build_dashboard_track_comparison(run_frames)
 
@@ -1703,19 +1698,7 @@ def render_compare_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
     else:
         st.info("No AskAI tracks found.")
 
-    st.markdown("### Track-level Avg Bucket Details")
-    st.caption("Only Avg response buckets are shown. Min, Max, and Max Seconds are intentionally removed.")
-    details = []
-    if not other_df.empty:
-        details.append(display_track_comparison_df(other_df[other_df["_TrackKey"] != "Total"]))
-    if not askai_df.empty:
-        details.append(display_track_comparison_df(askai_df[askai_df["_TrackKey"] != "Total"]))
-    if details:
-        detail_df = pd.concat(details, ignore_index=True)
-        st.dataframe(detail_df, use_container_width=True, hide_index=True, height=min(620, 72 + 35 * len(detail_df)))
-
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 def render_trends_tab(run_frames: List[Dict[str, pd.DataFrame]], compact: bool = False, show_table: bool = True) -> None:
     if not compact:
@@ -1862,7 +1845,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
 
         df = combined_df(selected_frames)
 
-        if selected_tab == "Track Comparison":
+        if selected_tab == "Comparison Summary":
             render_compare_tab(selected_frames)
             return
 
@@ -1909,24 +1892,13 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
                 goto_tab_button('View SLA Breaches →', 'Detailed Report', 'view_sla_breaches_btn')
 
         with st.container(border=True):
-            st.markdown('<div class="panel-title">TRENDS DASHBOARD</div>', unsafe_allow_html=True)
-            render_trends_tab(selected_frames, compact=True, show_table=True)
+            st.markdown('<div class="panel-title">COMPARISON SUMMARY</div>', unsafe_allow_html=True)
+            render_track_comparison_dashboard(selected_frames)
+            goto_tab_button('Open Full Comparison Summary →', 'Comparison Summary', 'overview_full_compare_btn')
 
         with st.container(border=True):
-            st.markdown('<div class="panel-title">TRACK COMPARISON SUMMARY <span class="tag">Total rows only</span></div>', unsafe_allow_html=True)
-            askai_compare, other_compare = build_dashboard_track_comparison(selected_frames)
-
-            if not askai_compare.empty:
-                st.markdown("#### AskAI Tracks - Total")
-                askai_total = askai_compare[askai_compare["_TrackKey"] == "Total"].copy()
-                st.dataframe(display_track_comparison_df(askai_total), use_container_width=True, hide_index=True, height=220)
-
-            if not other_compare.empty:
-                st.markdown("#### Assets / Assessments / Home / Settings / Support Tracks - Total")
-                other_total = other_compare[other_compare["_TrackKey"] == "Total"].copy()
-                st.dataframe(display_track_comparison_df(other_total), use_container_width=True, hide_index=True, height=220)
-
-            goto_tab_button('Open Full Track Comparison →', 'Track Comparison', 'overview_full_compare_btn')
+            st.markdown('<div class="panel-title">TRENDS DASHBOARD</div>', unsafe_allow_html=True)
+            render_trends_tab(selected_frames, compact=True, show_table=True)
 
 
 def standard_api_cols(df: pd.DataFrame) -> List[str]:
@@ -1997,7 +1969,7 @@ def chat_answer(question: str, run_frames: List[Dict[str, pd.DataFrame]]) -> Tup
 
     if q in farewells or any(w in q for w in ["bye", "goodbye", "see you"]):
         return (
-            "Bye! Quick reminder before you go: the dashboard has SLA status, slow APIs, error APIs, region comparison, and Track Comparison. "
+            "Bye! Quick reminder before you go: the dashboard has SLA status, slow APIs, error APIs, region comparison, and Comparison Summary. "
             "Come back anytime and ask me about any API, track, region, or SLA breach.",
             None,
         )
