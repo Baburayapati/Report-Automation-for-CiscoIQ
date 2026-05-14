@@ -790,6 +790,48 @@ def to_mm_dd_yyyy(date_value: str) -> str:
     return f"{token[:2]}-{token[2:4]}-{token[4:8]}"
 
 
+def extract_mmddyyyy_from_text(value: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+
+    compact = re.search(r"(?:^|[_\-\s])(\d{8})(?:$|[_\-\s])", text)
+    if compact:
+        token = compact.group(1)
+        mm = int(token[0:2])
+        dd = int(token[2:4])
+        yyyy = int(token[4:8])
+        if 1 <= mm <= 12 and 1 <= dd <= 31 and 1900 <= yyyy <= 2100:
+            return token
+
+    month_date = re.search(
+        r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|sept|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[_\-\s]?(\d{1,2})[_\-,\s]+(\d{4})",
+        text,
+    )
+    if month_date:
+        month_map = {
+            "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
+            "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
+            "aug": "08", "august": "08", "sep": "09", "sept": "09", "september": "09", "oct": "10", "october": "10",
+            "nov": "11", "november": "11", "dec": "12", "december": "12",
+        }
+        month = month_map.get(month_date.group(1).lower(), "")
+        day = f"{int(month_date.group(2)):02d}"
+        year = month_date.group(3)
+        if month:
+            return f"{month}{day}{year}"
+
+    iso = re.search(r"(20\d{2})[-_/\s]?(\d{1,2})[-_/\s]?(\d{1,2})", text)
+    if iso:
+        year, month, day = iso.groups()
+        mm = int(month)
+        dd = int(day)
+        if 1 <= mm <= 12 and 1 <= dd <= 31:
+            return f"{mm:02d}{dd:02d}{year}"
+
+    return ""
+
+
 def build_standard_report_name(track_name: str, program_name: str, original_name: str, extension: str) -> str:
     info = infer_saved_report_info(original_name)
     date_token = to_mmddyyyy(info.get("date", ""))
@@ -1011,9 +1053,14 @@ def dashboard_view_tabs() -> str:
             selected_tab = tab_value
     st.session_state["dashboard_tab"] = selected_tab
     if current_run_id:
-        st.query_params["view"] = "dashboard"
-        st.query_params["run_id"] = current_run_id
-        st.query_params["tab"] = selected_tab
+        if (
+            st.query_params.get("view", "") != "dashboard"
+            or st.query_params.get("run_id", "") != current_run_id
+            or st.query_params.get("tab", "") != selected_tab
+        ):
+            st.query_params["view"] = "dashboard"
+            st.query_params["run_id"] = current_run_id
+            st.query_params["tab"] = selected_tab
     return selected_tab
 
 
@@ -1294,7 +1341,8 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
 
     cache = st.session_state.setdefault("_dashboard_filter_meta_cache", {})
     labels_key = "|".join([str(frames.get("Label", "")) for frames in run_frames])
-    meta_key = f"{st.session_state.get('run_id','')}::{forced_track}::{labels_key}"
+    active_program = st.session_state.get("active_program", PROGRAM_SAAS)
+    meta_key = f"{st.session_state.get('run_id','')}::{active_program}::{forced_track}::{labels_key}"
     meta = cache.get(meta_key)
     if meta is None:
         rows = []
@@ -1306,9 +1354,9 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
             region = frames.get("Region", region_from_frames(frames))
             if not region or region == "Unknown":
                 region = inferred.get("region", "Unknown")
-            date = normalize_filter_date(info_row.get("Date", "N/A"), label)
-            if date == "N/A":
-                date = normalize_filter_date(inferred.get("date", "N/A"), label)
+            inferred_date = normalize_filter_date(inferred.get("date", "N/A"), label)
+            info_date = normalize_filter_date(info_row.get("Date", "N/A"), label)
+            date = inferred_date if inferred_date != "N/A" else info_date
             duration = str(info_row.get("Duration", "N/A"))
             if not duration or duration == "N/A":
                 duration = inferred.get("duration", "N/A")
@@ -1372,7 +1420,8 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
             unsafe_allow_html=True,
         )
 
-        scope_key = f"{st.session_state.get('run_id','')}::{forced_track}"
+        scope_key = f"{st.session_state.get('run_id','')}::{active_program}::{forced_track}"
+        scope_token = hashlib.md5(scope_key.encode("utf-8")).hexdigest()[:12]
         all_filters = st.session_state.setdefault("applied_dashboard_filters", {})
         current_filters = all_filters.get(scope_key, {
             "file": file_options[0],
@@ -1391,23 +1440,23 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
             "Result File",
             file_options,
             index=file_options.index(current_filters.get("file", file_options[0])),
-            key="dashboard_filter_file_choice",
+            key=f"dashboard_filter_file_choice_{scope_token}",
         )
         selected_date_choice = st.selectbox(
             "Date",
             date_options,
             index=date_options.index(current_filters.get("date", date_options[0])),
-            key="dashboard_filter_date_choice",
+            key=f"dashboard_filter_date_choice_{scope_token}",
         )
         selected_region_choice = st.selectbox(
             "Region",
             region_options,
             index=region_options.index(current_filters.get("region", region_options[0])),
-            key="dashboard_filter_region_choice",
+            key=f"dashboard_filter_region_choice_{scope_token}",
         )
 
-        apply_clicked = st.button("Apply Filters", type="primary", use_container_width=True, key="dashboard_apply_filters")
-        reset_clicked = st.button("Reset Filters", use_container_width=True, key="dashboard_reset_filters")
+        apply_clicked = st.button("Apply Filters", type="primary", use_container_width=True, key=f"dashboard_apply_filters_{scope_token}")
+        reset_clicked = st.button("Reset Filters", use_container_width=True, key=f"dashboard_reset_filters_{scope_token}")
 
         if reset_clicked:
             all_filters[scope_key] = {
