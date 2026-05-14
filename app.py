@@ -1330,7 +1330,7 @@ body:has(.upload-left-panel-marker) .upload-page-quick-row {
   box-shadow: 0 10px 24px rgba(15,23,42,.04);
 }
 .dashboard-static-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 950;
   color: #0f2b68;
   margin-bottom: 10px;
@@ -1456,7 +1456,7 @@ body:has(.upload-left-panel-marker) div[data-testid="stVerticalBlockBorderWrappe
 }
 
 .dashboard-static-title {
-  font-size: 26px !important;
+  font-size: 20px !important;
   line-height: 1.15 !important;
   margin-bottom: 12px !important;
 }
@@ -1544,6 +1544,27 @@ body:has(.upload-left-panel-marker) .panel-title:has(+ .dashboard-static-card) {
 .track-tab,
 button,
 .stButton > button {
+  transition: none !important;
+}
+
+
+/* DASHBOARD TAB SPEED + SMALL TITLE */
+.dashboard-static-title {
+  font-size: 20px !important;
+  line-height: 1.15 !important;
+}
+.dashboard-static-card {
+  max-width: 900px !important;
+}
+.ciq-tab-link,
+.ciq-track-link,
+.ciq-program-link,
+.stButton > button {
+  transition: none !important;
+  animation: none !important;
+}
+.js-plotly-plot,
+.plot-container {
   transition: none !important;
 }
 
@@ -2230,7 +2251,7 @@ def render_upload_sidebar_page(page_name: str) -> bool:
           <div class="dashboard-static-desc">
             Share this static dashboard URL with management. After you generate results, this link opens the latest dashboard view.
           </div>
-          <a class="dashboard-static-btn" href="{dash_href}" target="_blank">Open Results Dashboard ↗</a>
+          <a class="dashboard-static-btn" href="{dash_href}" target="_self">Open Results Dashboard ↗</a>
           <div class="static-url-box">{dash_href}</div>
           <div class="page-url-row">
             <span>Upload:</span> <code>{base_app_url}</code><br/>
@@ -2367,11 +2388,6 @@ def dashboard_view_tabs() -> str:
                 st.query_params["run_id"] = current_run_id
                 st.query_params["tab"] = tab_value
             st.rerun()
-
-    if current_run_id:
-        st.query_params["view"] = "dashboard"
-        st.query_params["run_id"] = current_run_id
-        st.query_params["tab"] = current_tab
 
     return current_tab
 
@@ -2765,7 +2781,7 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
 def auto_insights(run_frames: List[Dict[str, pd.DataFrame]]) -> List[Tuple[str, str, str]]:
     df = combined_df(run_frames)
     s = summarize_run(df)
-    tracks = track_summary(df)
+    tracks = cached_track_summary(df)
     result = []
     if len(run_frames) > 1:
         summary_rows = []
@@ -2784,6 +2800,50 @@ def auto_insights(run_frames: List[Dict[str, pd.DataFrame]]) -> List[Tuple[str, 
     result.append(("i", "#2563eb", f"Overall SLA compliance is {s['sla_compliance']}% with {s['errors']:,} errors."))
     return result[:5]
 
+
+
+
+def dashboard_frames_cache_key(run_frames: List[Dict[str, pd.DataFrame]], extra: str = "") -> str:
+    """Stable lightweight key for current dashboard data so tab clicks reuse cached calculations."""
+    parts = [str(extra), str(st.session_state.get("run_id", ""))]
+    for frames in run_frames or []:
+        label = str(frames.get("Label", ""))
+        apis = frames.get("APIs")
+        shape = getattr(apis, "shape", ("", ""))
+        parts.append(f"{label}:{shape}")
+    return "|".join(parts)
+
+
+def cached_combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
+    key = dashboard_frames_cache_key(run_frames, "combined_df")
+    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
+    if key not in cache:
+        cache[key] = combined_df(run_frames)
+    return cache[key]
+
+
+def cached_track_summary(df: pd.DataFrame) -> pd.DataFrame:
+    key = f"track_summary:{st.session_state.get('run_id','')}:{getattr(df, 'shape', '')}:{','.join(map(str, df.columns[:6])) if not df.empty else 'empty'}"
+    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
+    if key not in cache:
+        cache[key] = track_summary(df)
+    return cache[key]
+
+
+def cached_track_comparison(run_frames: List[Dict[str, pd.DataFrame]]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    key = dashboard_frames_cache_key(run_frames, "track_comparison")
+    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
+    if key not in cache:
+        cache[key] = build_dashboard_track_comparison(run_frames)
+    return cache[key]
+
+
+def cached_auto_insights(run_frames: List[Dict[str, pd.DataFrame]]) -> List[Tuple[str, str, str]]:
+    key = dashboard_frames_cache_key(run_frames, "auto_insights")
+    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
+    if key not in cache:
+        cache[key] = auto_insights(run_frames)
+    return cache[key]
 
 
 def response_bucket(value: float, is_askai: bool) -> str:
@@ -2895,7 +2955,7 @@ def display_track_comparison_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    askai_df, other_df = build_dashboard_track_comparison(run_frames)
+    askai_df, other_df = cached_track_comparison(run_frames)
 
     def render_section(title: str, data: pd.DataFrame, height: int) -> None:
         if data.empty:
@@ -2922,7 +2982,7 @@ def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]])
 def render_compare_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
     st.markdown('<div class="panel"><div class="panel-title">TRACK COMPARISON <span class="tag">Grouped by result</span></div>', unsafe_allow_html=True)
 
-    askai_df, other_df = build_dashboard_track_comparison(run_frames)
+    askai_df, other_df = cached_track_comparison(run_frames)
 
     st.markdown("### AskAI Tracks")
     st.caption("Result includes the region. Repeated Track and Result cells are intentionally blank to keep Avg, Min and Max rows grouped together.")
@@ -3112,7 +3172,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
 
     with side_col:
         selected_frames = get_filtered_frames(run_frames, forced_region=region_focus, forced_track=active_track)
-        insights = auto_insights(selected_frames)
+        insights = cached_auto_insights(selected_frames)
         st.markdown('<div class="side-card"><div class="panel-title">REPORT ACTIONS</div>', unsafe_allow_html=True)
         if st.session_state.get("excel_bytes"):
             st.download_button(
@@ -3137,14 +3197,14 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         except Exception:
             dashboard_url = ""
         if dashboard_url:
-            st.markdown(f'<a class="primary-pill" href="{dashboard_url}?view=dashboard&tab=Overview" target="_blank" style="width:100%;text-align:center;">Open Dashboard in New Tab ↗</a>', unsafe_allow_html=True)
+            st.markdown(f'<a class="primary-pill" href="{dashboard_url}?view=dashboard&tab=Overview" target="_self" style="width:100%;text-align:center;">Open Dashboard in New Tab ↗</a>', unsafe_allow_html=True)
 
     with main_col:
         if not selected_frames:
             st.warning("No reports match the selected filters. Please update Data & Filters.")
             return
 
-        df = combined_df(selected_frames)
+        df = cached_combined_df(selected_frames)
 
         if selected_tab == "Track Comparison":
             render_compare_tab(selected_frames)
@@ -3165,7 +3225,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         st.markdown("</div>", unsafe_allow_html=True)
 
         c1, c2 = st.columns([1.35, 1], gap="medium")
-        tracks = track_summary(df)
+        tracks = cached_track_summary(df)
 
         with c1:
             with st.container(border=True):
@@ -3204,7 +3264,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
 
 def render_overview_comparison_summary(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
     """Compact overview-only comparison. Full Avg/Min/Max details stay in Track Comparison tab."""
-    askai_df, other_df = build_dashboard_track_comparison(run_frames)
+    askai_df, other_df = cached_track_comparison(run_frames)
 
     def avg_total_cards(df: pd.DataFrame, title: str, buckets: List[str]) -> None:
         if df.empty:
@@ -4682,7 +4742,7 @@ def render_action_cards() -> None:
             st.markdown('<div class="action-card-title">AI Chatbot</div>', unsafe_allow_html=True)
             st.markdown('<div class="action-card-text">Open the dashboard chatbot and ask questions about SLA, slow APIs, errors, regions and comparisons.</div>', unsafe_allow_html=True)
             link_class = "action-link purple" if has_report else "action-link disabled"
-            st.markdown(f'<a class="{link_class}" href="{chatbot_href}" target="_blank">Open Chatbot ↗</a>', unsafe_allow_html=True)
+            st.markdown(f'<a class="{link_class}" href="{chatbot_href}" target="_self">Open Chatbot ↗</a>', unsafe_allow_html=True)
 
 # Session state
 if "excel_bytes" not in st.session_state: st.session_state.excel_bytes = None
