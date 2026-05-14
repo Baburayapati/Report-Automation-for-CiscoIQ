@@ -1744,32 +1744,26 @@ body:has(.upload-left-panel-marker) .block-container {
 }
 
 
-/* SIMPLE VISIBLE API EXCEL PAGE */
-.excel-only-wrapper {
-  background: rgba(255,255,255,.94);
-  border: 1px solid #dbe4f0;
-  border-radius: 16px;
-  padding: 18px 18px 10px 18px;
-  box-shadow: 0 10px 24px rgba(15,23,42,.04);
-}
+
+/* EXCEL EMPTY BAR + FAST BUTTON FIX */
 .excel-only-title {
-  font-size: 18px;
-  font-weight: 900;
-  color: #0f2b68;
-  margin-bottom: 16px;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: #0f2b68 !important;
+  margin-bottom: 16px !important;
 }
 .excel-only-name {
-  font-size: 15px;
-  font-weight: 850;
-  color: #111827;
-  margin: 12px 0 10px 0;
-  word-break: break-word;
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: #111827 !important;
+  margin: 12px 0 10px 0 !important;
+  word-break: break-word !important;
 }
 .excel-only-gap {
-  height: 18px;
+  height: 18px !important;
 }
-body:has(.excel-only-wrapper) .stDownloadButton > button,
-body:has(.excel-only-wrapper) .stButton > button {
+body:has(.excel-only-title) .stDownloadButton > button,
+body:has(.excel-only-title) .stButton > button {
   display: inline-flex !important;
   min-height: 38px !important;
   border-radius: 10px !important;
@@ -2501,63 +2495,61 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     if page_name == "Excel Report":
-        # Simple API-only Excel page. No old Reports columns, no hidden-slot cleanup, no JS overlay.
+        # API-only Excel page. No HTML wrapper, so no empty bar appears above the heading.
         api_uploads = [
             item for item in normalize_saved_uploads(load_saved_uploads())
             if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == TRACK_API
         ]
 
-        st.markdown('<div class="excel-only-wrapper">', unsafe_allow_html=True)
-        st.markdown('<div class="excel-only-title">API Excel Reports</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown('<div class="excel-only-title">API Excel Reports</div>', unsafe_allow_html=True)
 
-        if not api_uploads:
-            st.info("No saved API reports yet.")
-            st.markdown('</div>', unsafe_allow_html=True)
-            return True
+            if not api_uploads:
+                st.info("No saved API reports yet.")
+                return True
 
-        for idx, item in enumerate(api_uploads):
-            original_name = item.get("file_name", "API_Report.json")
-            saved_name = item.get("saved_name", "")
-            saved_path = SAVED_REPORTS_DIR / saved_name
-            display_name = compact_saved_file_label(original_name)
+            for idx, item in enumerate(api_uploads):
+                original_name = item.get("file_name", "API_Report.json")
+                saved_name = item.get("saved_name", "")
+                saved_path = SAVED_REPORTS_DIR / saved_name
+                display_name = compact_saved_file_label(original_name)
 
-            st.markdown(f'<div class="excel-only-name">{display_name}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="excel-only-name">{display_name}</div>', unsafe_allow_html=True)
 
-            col_download, col_remove = st.columns(2, gap="medium")
+                col_download, col_remove = st.columns(2, gap="medium")
 
-            with col_download:
-                if saved_path.exists():
-                    try:
-                        with tempfile.TemporaryDirectory() as tmpdir:
-                            output_path = Path(tmpdir) / f"{display_name}.xlsx"
-                            build_report(saved_path, output_path)
-                            excel_bytes_for_download = output_path.read_bytes()
+                with col_download:
+                    if saved_path.exists():
+                        try:
+                            excel_bytes_for_download = cached_excel_bytes_for_saved_api(
+                                str(saved_path),
+                                display_name,
+                                saved_path.stat().st_mtime,
+                            )
+                            st.download_button(
+                                "Download Excel Report",
+                                data=excel_bytes_for_download,
+                                file_name=f"{display_name}.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                key=f"excel_simple_download_{idx}_{sanitize_token(saved_name)}",
+                                use_container_width=True,
+                            )
+                        except Exception as exc:
+                            st.error(f"Unable to prepare Excel report: {exc}")
+                    else:
+                        st.warning("Saved source file is missing.")
 
-                        st.download_button(
-                            "Download Excel Report",
-                            data=excel_bytes_for_download,
-                            file_name=f"{display_name}.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            key=f"excel_simple_download_{idx}_{sanitize_token(saved_name)}",
-                            use_container_width=True,
-                        )
-                    except Exception as exc:
-                        st.error(f"Unable to prepare Excel report: {exc}")
-                else:
-                    st.warning("Saved source file is missing.")
+                with col_remove:
+                    if st.button(
+                        "Remove",
+                        key=f"excel_simple_remove_{idx}_{sanitize_token(saved_name)}",
+                        use_container_width=True,
+                    ):
+                        remove_saved_upload(saved_name)
+                        st.rerun()
 
-            with col_remove:
-                if st.button(
-                    "Remove",
-                    key=f"excel_simple_remove_{idx}_{sanitize_token(saved_name)}",
-                    use_container_width=True,
-                ):
-                    remove_saved_upload(saved_name)
-                    st.rerun()
+                st.markdown('<div class="excel-only-gap"></div>', unsafe_allow_html=True)
 
-            st.markdown('<div class="excel-only-gap"></div>', unsafe_allow_html=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
         return True
 
     if page_name == "AI Chatbot":
@@ -3874,6 +3866,16 @@ def load_saved_uploads() -> List[Dict[str, str]]:
 
 
 
+
+
+@st.cache_data(show_spinner=False)
+def cached_excel_bytes_for_saved_api(saved_path_str: str, display_name: str, mtime: float) -> bytes:
+    """Build Excel bytes for one saved API JSON file and cache by path/name/mtime."""
+    saved_path = Path(saved_path_str)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir) / f"{display_name}.xlsx"
+        build_report(saved_path, output_path)
+        return output_path.read_bytes()
 
 def compact_saved_file_label(file_name: str) -> str:
     """Return short report label similar to Reports tab: Region-Users-Devices-Date."""
