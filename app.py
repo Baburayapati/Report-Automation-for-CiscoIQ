@@ -19,10 +19,9 @@ import streamlit.components.v1 as components
 
 from main import build_report, build_comparison_report, build_single_report_frames
 
+
 APP_TITLE = "CiscoIQ Performance Report App"
 APP_NAME_TOKEN = "CiscoIQ"
-
-
 SAVED_REPORT_LIMIT = 15
 PROGRAM_SAAS = "Cisco IQ SaaS Support Services"
 TRACK_API = "API"
@@ -357,1239 +356,10 @@ div[role="radiogroup"] label:has(input:checked) {
 }
 
 
-/* FINAL UI POLISH: compact tabs/cards and reliable active button look */
-div[data-testid="stHorizontalBlock"] .stButton > button {
-  min-height: 36px !important;
-  height: 36px !important;
-  padding: 6px 10px !important;
-  font-size: 12px !important;
-  border-radius: 10px !important;
-  line-height: 1.1 !important;
-}
-.nav-button-row {
-  padding: 6px !important;
-  margin-bottom: 8px !important;
-}
-.track-upload-card {
-  padding: 10px 12px !important;
-  margin-bottom: 8px !important;
-}
-[data-testid="stFileUploader"] {
-  padding: 10px !important;
-  min-height: 62px !important;
-}
-[data-testid="stFileUploaderDropzone"] {
-  min-height: 74px !important;
-  padding: 10px 12px !important;
-}
-[data-testid="stFileUploaderFile"] {
-  margin-top: 6px !important;
-  min-height: 34px !important;
-  border-radius: 999px !important;
-  border: 1px solid #d5e1f2 !important;
-  background: #f8fbff !important;
-  padding: 6px 12px !important;
-  display: flex !important;
-  align-items: center !important;
-}
-[data-testid="stFileUploaderFileName"] {
-  font-weight: 800 !important;
-  color: #0f172a !important;
-}
-div[data-testid="stDataFrame"] {
-  margin-bottom: 0 !important;
-}
-
-
-/* ENTERPRISE NAV POLISH - hierarchy: Programs > Program Tracks > Dashboard Tabs */
-.enterprise-nav-shell {
-  background: rgba(255,255,255,.96);
-  border: 1px solid #dbe4f0;
-  border-radius: 18px;
-  padding: 12px 14px 14px 14px;
-  margin: 8px 0 14px 0;
-  box-shadow: 0 12px 30px rgba(15,23,42,.06);
-}
-.nav-section-label {
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 900;
-  color: #0f2b68;
-  letter-spacing: .8px;
-  text-transform: uppercase;
-  margin: 2px 0 7px 2px;
-}
-.nav-section-sub {
-  font-size: 10px;
-  color: #64748b;
-  font-weight: 700;
-  margin: -2px 0 7px 2px;
-}
-.region-filter-card {
-  background: linear-gradient(135deg,#f8fbff,#eef4ff);
-  border: 1px solid #dbeafe;
-  border-radius: 14px;
-  padding: 8px 10px 10px 10px;
-  min-height: 74px;
-  box-shadow: 0 8px 20px rgba(37,99,235,.06);
-}
-.region-filter-card .region-field-label {
-  font-size: 11px !important;
-  margin: 0 0 4px 0 !important;
-}
-.region-filter-card [data-testid="stSelectbox"] {
-  margin-top: -8px !important;
-}
-.region-filter-card [data-baseweb="select"] > div {
-  min-height: 34px !important;
-  border-radius: 10px !important;
-  font-size: 12px !important;
-}
-
-/* Compact program and track tab buttons */
-div[data-testid="stHorizontalBlock"] .stButton > button {
-  min-height: 34px !important;
-  height: 34px !important;
-  padding: 5px 9px !important;
-  font-size: 11.5px !important;
-  line-height: 1.05 !important;
-  border-radius: 10px !important;
-  font-weight: 850 !important;
-  box-shadow: 0 6px 14px rgba(15,23,42,.055) !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-/* Dashboard tabs should look like smaller executive tabs */
-.dashboard-tabs-row {
-  background: #ffffff;
-  border: 1px solid #dbe4f0;
-  border-radius: 14px;
-  padding: 7px;
-  margin: 2px 0 10px 0;
-  box-shadow: 0 8px 18px rgba(15,23,42,.04);
-}
-.dashboard-tabs-row + div .stButton > button {
-  min-height: 34px !important;
-  height: 34px !important;
-  font-size: 11.5px !important;
-}
-
-/* Better exact-fit track cards / upload cards */
-.track-upload-card, .main-page-card, .upload-card {
-  border-radius: 16px !important;
-}
-.track-upload-card {
-  padding: 10px 11px !important;
-  margin-bottom: 8px !important;
-  min-height: auto !important;
-}
-[data-testid="stFileUploader"] {
-  padding: 10px !important;
-  min-height: 60px !important;
-}
-[data-testid="stFileUploaderDropzone"] {
-  min-height: 72px !important;
-  padding: 10px 12px !important;
-  border-radius: 14px !important;
-}
-[data-testid="stFileUploader"] section {
-  padding: 8px !important;
-}
-.stButton > button, .stDownloadButton > button {
-  min-height: 36px !important;
-}
-.panel-title {
-  margin-bottom: 8px !important;
-}
-.side-card {
-  padding: 12px !important;
-  border-radius: 16px !important;
-}
-.block-container {
-  max-width: 1600px !important;
-  padding-top: .4rem !important;
-}
-
-
-/* FINAL CLEANUP: remove empty pill bars and tighten enterprise nav */
-.enterprise-nav-shell {
-  padding: 8px 10px 10px 10px !important;
-  margin: 4px 0 10px 0 !important;
-  border-radius: 14px !important;
-}
-.nav-section-label {
-  margin: 0 0 4px 1px !important;
-  font-size: 10px !important;
-}
-.nav-section-sub {
-  display: none !important;
-}
-.dashboard-tabs-row {
-  padding: 5px !important;
-  margin: 0 0 6px 0 !important;
-  border-radius: 12px !important;
-}
-.region-filter-card {
-  padding: 5px 7px 7px 7px !important;
-  min-height: 50px !important;
-  border-radius: 12px !important;
-}
-.region-filter-card .region-field-label {
-  font-size: 10px !important;
-  margin-bottom: 2px !important;
-}
-.region-filter-card [data-testid="stSelectbox"] {
-  margin-top: -10px !important;
-}
-.region-filter-card [data-baseweb="select"] > div {
-  min-height: 30px !important;
-  height: 30px !important;
-  border-radius: 9px !important;
-}
-div[data-testid="stHorizontalBlock"] .stButton > button,
-.dashboard-tabs-row + div .stButton > button {
-  min-height: 30px !important;
-  height: 30px !important;
-  padding: 3px 8px !important;
-  font-size: 10.5px !important;
-  border-radius: 9px !important;
-}
-
-/* remove blank saved-report filename placeholder bars */
-.saved-report-name-box,
-.empty-file-name-box,
-.report-name-placeholder,
-div:empty[class*="saved"],
-div:empty[class*="placeholder"] {
-  display: none !important;
-}
-
-/* defensive: hide empty custom html pill bars */
-div[style*="border-radius:999px"]:empty,
-div[style*="border-radius: 999px"]:empty,
-div[style*="height:34px"]:empty,
-div[style*="height: 34px"]:empty {
-  display: none !important;
-}
-
-/* reduce accidental whitespace from markdown-only separators */
-[data-testid="stMarkdownContainer"] p:empty {
-  display: none !important;
-}
-[data-testid="stMarkdownContainer"]:has(p:empty) {
-  margin: 0 !important;
-}
-
-
-/* SCREENSHOT STYLE DASHBOARD NAV - Programs left, tracks/views right */
-.sshot-wrapper {
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 18px;
-  background: rgba(255,255,255,.94);
-  border: 1px solid #dbe4f0;
-  border-radius: 22px;
-  margin: 12px 0 10px 0;
-  padding: 0;
-  overflow: hidden;
-  box-shadow: 0 18px 44px rgba(15,23,42,.075);
-}
-.sshot-left {
-  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
-  padding: 17px 16px 16px 16px;
-  min-height: 222px;
-}
-.sshot-right {
-  padding: 18px 18px 16px 0;
-}
-.sshot-title {
-  font-size: 11px;
-  font-weight: 950;
-  letter-spacing: .9px;
-  text-transform: uppercase;
-  margin: 0 0 10px 2px;
-  color: #0f2b68;
-}
-.sshot-left .sshot-title {
-  color: white;
-}
-.sshot-region-card {
-  background: #ffffff;
-  border: 1px solid #dbe4f0;
-  border-radius: 16px;
-  padding: 10px 11px 12px 11px;
-  box-shadow: 0 12px 24px rgba(15,23,42,.055);
-  min-height: 86px;
-}
-.sshot-region-card [data-testid="stSelectbox"] {
-  margin-top: -8px !important;
-}
-.sshot-region-card [data-baseweb="select"] > div {
-  min-height: 36px !important;
-  height: 36px !important;
-  border-radius: 11px !important;
-  font-size: 12px !important;
-}
-.sshot-wrapper .stButton > button, .sshot-tabs .stButton > button {
-  height: 42px !important;
-  min-height: 42px !important;
-  padding: 6px 14px !important;
-  border-radius: 12px !important;
-  font-size: 13px !important;
-  font-weight: 850 !important;
-  white-space: nowrap !important;
-  line-height: 1.05 !important;
-  border: 1px solid #dbe4f0 !important;
-  box-shadow: 0 8px 18px rgba(15,23,42,.06) !important;
-}
-.sshot-left .stButton > button {
-  justify-content: flex-start !important;
-  text-align: left !important;
-  background: transparent !important;
-  color: #ffffff !important;
-  border: 1px solid transparent !important;
-  box-shadow: none !important;
-}
-.sshot-left .stButton > button[kind="primary"] {
-  background: #ffffff !important;
-  color: #4f46e5 !important;
-  border-color: rgba(255,255,255,.8) !important;
-  box-shadow: 0 12px 24px rgba(15,23,42,.16) !important;
-}
-.sshot-right .stButton > button[kind="primary"], .sshot-tabs .stButton > button[kind="primary"] {
-  background: linear-gradient(90deg,#2563eb,#7c3aed) !important;
-  color: #ffffff !important;
-  border-color: transparent !important;
-}
-.sshot-right .stButton > button[kind="secondary"], .sshot-tabs .stButton > button[kind="secondary"] {
-  background: #ffffff !important;
-  color: #111827 !important;
-}
-.sshot-wrapper [data-testid="stVerticalBlock"] {
-  gap: .38rem !important;
-}
-.sshot-tabs {
-  background: rgba(255,255,255,.94);
-  border: 1px solid #dbe4f0;
-  border-radius: 18px;
-  padding: 12px 14px 14px 14px;
-  margin: 0 0 14px 378px;
-  box-shadow: 0 14px 32px rgba(15,23,42,.055);
-}
-/* remove all old blank bars */
-.exec-empty-space,
-.saved-report-name-box,
-.empty-file-name-box,
-.report-name-placeholder,
-div[style*="border-radius:999px"]:empty,
-div[style*="border-radius: 999px"]:empty,
-div[style*="height:34px"]:empty,
-div[style*="height: 34px"]:empty,
-div[style*="min-height:34px"]:empty,
-div[style*="min-height: 34px"]:empty {
-  display: none !important;
-}
-@media(max-width:1100px){
-  .sshot-wrapper { grid-template-columns: 1fr; }
-  .sshot-right { padding: 14px; }
-  .sshot-tabs { margin-left: 0; }
-}
-
-
-/* HEADER REMOVED + PROGRAMS INSIDE BLUE PANEL */
-.sshot-wrapper{
-  overflow: hidden !important;
-}
-.sshot-left{
-  border-top-left-radius: 22px;
-  border-bottom-left-radius: 22px;
-}
-
-
-/* EXACT NAV LAYOUT FIX - matches requested screenshot using real Streamlit columns */
-.exact-nav-anchor {
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] {
-  background: rgba(255,255,255,.94) !important;
-  border: 1px solid #dbe4f0 !important;
-  border-radius: 22px !important;
-  overflow: hidden !important;
-  box-shadow: 0 18px 44px rgba(15,23,42,.075) !important;
-  margin: 12px 0 14px 0 !important;
-  gap: 0 !important;
-}
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child {
-  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%) !important;
-  padding: 16px 16px 14px 16px !important;
-  min-height: 248px !important;
-}
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) {
-  padding: 16px 18px 14px 18px !important;
-}
-.exact-label {
-  font-size: 11px;
-  font-weight: 950;
-  letter-spacing: .9px;
-  text-transform: uppercase;
-  margin: 0 0 10px 0;
-  color: #0f2b68;
-}
-.exact-label.white {
-  color: #ffffff;
-}
-/* Button styles inside exact nav */
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] .stButton > button {
-  height: 42px !important;
-  min-height: 42px !important;
-  border-radius: 12px !important;
-  font-size: 13px !important;
-  font-weight: 850 !important;
-  border: 1px solid #dbe4f0 !important;
-  box-shadow: 0 8px 18px rgba(15,23,42,.06) !important;
-  white-space: nowrap !important;
-}
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button {
-  justify-content: flex-start !important;
-  text-align: left !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button[kind="secondary"] {
-  background: transparent !important;
-  color: #ffffff !important;
-}
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:first-child .stButton > button[kind="primary"] {
-  background: #ffffff !important;
-  color: #4f46e5 !important;
-  border-color: rgba(255,255,255,.8) !important;
-  box-shadow: 0 12px 24px rgba(15,23,42,.16) !important;
-}
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button[kind="primary"] {
-  background: linear-gradient(90deg,#2563eb,#7c3aed) !important;
-  color: #ffffff !important;
-  border-color: transparent !important;
-}
-.exact-nav-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button[kind="secondary"] {
-  background: #ffffff !important;
-  color: #111827 !important;
-}
-/* Region filter exact compact card */
-.exact-region-card {
-  background: #ffffff;
-  border: 1px solid #dbe4f0;
-  border-radius: 16px;
-  padding: 10px 11px 12px 11px;
-  box-shadow: 0 12px 24px rgba(15,23,42,.055);
-  min-height: 88px;
-  margin-top: 0;
-}
-.exact-region-card [data-testid="stSelectbox"] { margin-top: -8px !important; }
-.exact-region-card [data-baseweb="select"] > div {
-  min-height: 36px !important;
-  height: 36px !important;
-  border-radius: 11px !important;
-  font-size: 12px !important;
-}
-/* Remove old accidental blank bars/boxes */
-.sshot-left, .sshot-right, .sshot-wrapper, .sshot-tabs,
-.exec-nav-card, .enterprise-nav-shell {
-  all: unset;
-}
-div[style*="border-radius:999px"]:empty,
-div[style*="border-radius: 999px"]:empty,
-div[style*="height:34px"]:empty,
-div[style*="height: 34px"]:empty,
-div[style*="height: 70px"]:empty,
-div[style*="height:70px"]:empty,
-.saved-report-name-box,
-.empty-file-name-box,
-.report-name-placeholder,
-.exec-empty-space {
-  display: none !important;
-}
-@media(max-width:1100px){
-  .exact-nav-anchor + div[data-testid="stHorizontalBlock"] {
-    display: block !important;
-  }
-}
-
-
-/* FINAL HTML NAV MATCH - fixed screenshot-style layout */
-.ciq-nav-wrap {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 18px;
-  background: rgba(255,255,255,.96);
-  border: 1px solid #dbe4f0;
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: 0 18px 44px rgba(15,23,42,.075);
-  margin: 12px 0 16px 0;
-}
-.ciq-program-panel {
-  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
-  padding: 18px 16px 18px 16px;
-  min-height: 224px;
-}
-.ciq-main-panel {
-  padding: 18px 18px 16px 0;
-}
-.ciq-title {
-  font-size: 11px;
-  font-weight: 950;
-  letter-spacing: .9px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  color: #0f2b68;
-}
-.ciq-program-panel .ciq-title {
-  color: #fff;
-}
-.ciq-program-link,
-.ciq-track-link,
-.ciq-tab-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 42px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 850;
-  text-decoration: none !important;
-  box-sizing: border-box;
-}
-.ciq-program-link {
-  justify-content: flex-start;
-  padding: 0 14px;
-  color: #fff !important;
-  margin-bottom: 10px;
-  border: 1px solid transparent;
-}
-.ciq-program-link.active {
-  background: #fff;
-  color: #4f46e5 !important;
-  border-color: rgba(255,255,255,.8);
-  box-shadow: 0 12px 24px rgba(15,23,42,.16);
-}
-.ciq-track-grid {
-  display: grid;
-  grid-template-columns: .58fr .68fr 1.55fr 1.95fr 190px;
-  gap: 14px;
-  align-items: start;
-  margin-bottom: 16px;
-}
-.ciq-track-link,
-.ciq-tab-link {
-  color: #111827 !important;
-  background: #fff;
-  border: 1px solid #dbe4f0;
-  box-shadow: 0 8px 18px rgba(15,23,42,.06);
-  padding: 0 10px;
-  white-space: nowrap;
-}
-.ciq-track-link.active,
-.ciq-tab-link.active {
-  color: #fff !important;
-  background: linear-gradient(90deg,#2563eb,#7c3aed);
-  border-color: transparent;
-}
-.ciq-region-card {
-  grid-row: span 2;
-  background: #fff;
-  border: 1px solid #dbe4f0;
-  border-radius: 16px;
-  padding: 11px;
-  min-height: 92px;
-  box-shadow: 0 12px 24px rgba(15,23,42,.055);
-}
-.ciq-region-title {
-  font-size: 11px;
-  font-weight: 950;
-  letter-spacing: .8px;
-  text-transform: uppercase;
-  color: #0f2b68;
-  margin-bottom: 8px;
-}
-.ciq-region-select {
-  width: 100%;
-  height: 38px;
-  border: 1px solid #dbe4f0;
-  border-radius: 11px;
-  background: #f8fafc;
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 650;
-  color: #111827;
-}
-.ciq-tab-grid {
-  display: grid;
-  grid-template-columns: 1.05fr 1.42fr 1.32fr 1.15fr 190px;
-  gap: 14px;
-  align-items: start;
-}
-.ciq-spacer {
-  width: 190px;
-}
-@media(max-width:1100px){
-  .ciq-nav-wrap { grid-template-columns: 1fr; }
-  .ciq-main-panel { padding: 16px; }
-  .ciq-track-grid, .ciq-tab-grid { grid-template-columns: 1fr; }
-  .ciq-spacer { display:none; }
-}
-
-
-/* CLEAN UPLOAD PAGE ONLY - do not affect login or dashboard */
-.clean-upload-page-marker + div,
-body:has(.clean-upload-page-marker) .block-container {
-  max-width: 1480px !important;
-}
-
-/* 2x2 upload cards - neat, compact, readable */
-body:has(.clean-upload-page-marker) [data-testid="stVerticalBlockBorderWrapper"] {
-  border-radius: 16px !important;
-  background: rgba(255,255,255,.96) !important;
-  border: 1px solid #dbe4f0 !important;
-  box-shadow: 0 10px 24px rgba(15,23,42,.045) !important;
-}
-
-body:has(.clean-upload-page-marker) [data-testid="stFileUploader"] {
-  padding: 10px !important;
-}
-
-body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] {
-  min-height: 78px !important;
-  padding: 10px 12px !important;
-  border-radius: 14px !important;
-}
-
-body:has(.clean-upload-page-marker) .stButton > button {
-  min-height: 38px !important;
-  border-radius: 11px !important;
-}
-
-/* Hide the three lower shortcut cards only on upload page:
-   Executive Dashboard / Excel Report / AI Chatbot */
-body:has(.clean-upload-page-marker) .main-page-card,
-body:has(.clean-upload-page-marker) .feature-grid,
-body:has(.clean-upload-page-marker) .quick-grid,
-body:has(.clean-upload-page-marker) .upload-page-quick-row {
-  display: none !important;
-}
-
-
-/* FORCE HIDE BOTTOM EXECUTIVE/EXCEL/CHATBOT CARDS */
-body:has(.clean-upload-page-marker) div[data-testid="stHorizontalBlock"]:has(.main-page-card){
-    display:none !important;
-}
-body:has(.clean-upload-page-marker) .main-page-card{
-    display:none !important;
-}
-
-
-/* LEFT PANEL FOR UPLOAD PAGE */
-body:has(.upload-left-panel-marker) .block-container {
-  max-width: none !important;
-  padding: 108px 30px 24px 286px !important;
-}
-.upload-left-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 248px;
-  height: 100vh;
-  background: linear-gradient(180deg,#061633 0%,#071e52 58%,#06142f 100%);
-  z-index: 9998;
-  padding: 28px 14px;
-  box-sizing: border-box;
-  box-shadow: 12px 0 30px rgba(15,23,42,.16);
-}
-.upload-left-logo {
-  color: #ffffff;
-  font-size: 30px;
-  font-weight: 900;
-  margin: 8px 10px 36px 10px;
-}
-.upload-left-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 46px;
-  padding: 0 14px;
-  border-radius: 14px;
-  margin-bottom: 12px;
-  color: #dbeafe !important;
-  text-decoration: none !important;
-  font-size: 15px;
-  font-weight: 850;
-}
-.upload-left-link.active {
-  background: linear-gradient(90deg,#4f46e5,#7c3aed);
-  color: #ffffff !important;
-  box-shadow: 0 12px 28px rgba(124,58,237,.38);
-}
-.upload-left-link:hover {
-  background: rgba(255,255,255,.10);
-  color: #ffffff !important;
-}
-.upload-topbar {
-  position: fixed;
-  top: 0;
-  left: 248px;
-  right: 0;
-  height: 82px;
-  background: #ffffff;
-  border-bottom: 1px solid #dbe4f0;
-  z-index: 9997;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 30px 0 34px;
-  box-sizing: border-box;
-}
-.upload-top-title {
-  font-size: 22px;
-  font-weight: 950;
-  color: #0f172a;
-}
-.upload-top-actions {
-  display:flex;
-  align-items:center;
-  gap:18px;
-  font-size:14px;
-  font-weight:850;
-  color:#0f172a;
-}
-body:has(.upload-left-panel-marker) .hero-title-box,
-body:has(.upload-left-panel-marker) .hero-subtitle {
-  display: none !important;
-}
-@media(max-width:1100px){
-  body:has(.upload-left-panel-marker) .block-container {
-    padding: 20px !important;
-  }
-  .upload-left-sidebar,.upload-topbar {
-    position: relative;
-    left: auto;
-    width: auto;
-    height: auto;
-  }
-}
-
-
-/* 4 COLUMN + CLEAN TOP ACTIONS FIX */
-body:has(.upload-left-panel-marker) .block-container {
-  max-width: none !important;
-  padding: 108px 24px 24px 286px !important;
-}
-
-body:has(.upload-left-panel-marker) .upload-top-actions,
-body:has(.native-upload-marker) .native-actions,
-body:has(.exact-upload-shell) .exact-actions {
-  display: flex !important;
-  align-items: center !important;
-  gap: 16px !important;
-  font-size: 14px !important;
-  font-weight: 800 !important;
-  color: #0f172a !important;
-  white-space: nowrap !important;
-}
-
-body:has(.upload-left-panel-marker) .upload-top-actions span,
-body:has(.native-upload-marker) .native-actions span,
-body:has(.exact-upload-shell) .exact-actions span {
-  line-height: 1 !important;
-}
-
-/* Prevent browser/Streamlit toolbar visual duplication on top-right where possible */
-body:has(.upload-left-panel-marker) [data-testid="stToolbar"],
-body:has(.native-upload-marker) [data-testid="stToolbar"],
-body:has(.exact-upload-shell) [data-testid="stToolbar"] {
-  display: none !important;
-}
-
-/* Keep 4 upload cards side-by-side and compact */
-body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"],
-body:has(.clean-upload-page-marker) div[data-testid="stHorizontalBlock"] {
-  gap: 12px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"],
-body:has(.clean-upload-page-marker) [data-testid="stVerticalBlockBorderWrapper"] {
-  min-height: 300px !important;
-  border-radius: 15px !important;
-  padding: 10px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"],
-body:has(.clean-upload-page-marker) [data-testid="stFileUploaderDropzone"] {
-  min-height: 76px !important;
-  padding: 8px 10px !important;
-  border-radius: 14px !important;
-}
-
-
-/* SIDEBAR NAV FIX + REMOVE UPLOAD BOTTOM CARDS */
-body:has(.upload-left-panel-marker) .block-container {
-  max-width: none !important;
-  padding: 108px 26px 26px 286px !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stSidebar"] {
-  width: 244px !important;
-  min-width: 244px !important;
-  background: linear-gradient(180deg,#061633 0%,#071d50 58%,#06142f 100%) !important;
-  border-right: 1px solid rgba(255,255,255,.08) !important;
-  box-shadow: 10px 0 30px rgba(15,23,42,.16) !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stSidebar"] > div:first-child {
-  padding: 20px 12px !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stSidebar"] * {
-  color: #ffffff !important;
-}
-.upload-left-logo {
-  color:#fff !important;
-  font-size:28px !important;
-  margin: 10px 8px 34px 8px !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
-  margin-bottom: 10px !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
-  height: 48px !important;
-  min-height: 48px !important;
-  border-radius: 14px !important;
-  padding: 0 14px !important;
-  font-size: 14px !important;
-  font-weight: 850 !important;
-  justify-content: flex-start !important;
-  text-align: left !important;
-  border: none !important;
-  background: transparent !important;
-  color: #dbeafe !important;
-  box-shadow: none !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
-  background: linear-gradient(90deg,#4f46e5,#7c3aed) !important;
-  box-shadow: 0 10px 24px rgba(124,58,237,.36) !important;
-  color:#fff !important;
-}
-.upload-topbar {
-  position: fixed !important;
-  top: 0 !important;
-  left: 244px !important;
-  right: 0 !important;
-  height: 86px !important;
-  background:#fff !important;
-  border-bottom:1px solid #dbe4f0 !important;
-  z-index:9997 !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  padding:0 32px 0 38px !important;
-}
-.upload-top-title {
-  font-size:22px !important;
-  font-weight:950 !important;
-  color:#0f172a !important;
-}
-.upload-top-actions { display:none !important; }
-body:has(.upload-left-panel-marker) [data-testid="stToolbar"] { display:none !important; }
-body:has(.upload-left-panel-marker) .hero-title-box,
-body:has(.upload-left-panel-marker) .hero-subtitle { display:none !important; }
-
-/* keep upload cards in 4 columns */
-body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
-  gap: 14px !important;
-  margin-bottom: 22px !important;
-}
-body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
-  background: rgba(255,255,255,.96) !important;
-  border:1px solid #dbe4f0 !important;
-  border-radius:16px !important;
-  box-shadow:0 10px 24px rgba(15,23,42,.04) !important;
-  padding:14px !important;
-}
-
-/* remove Executive Dashboard / Excel Report / AI Chatbot cards under Program Track Uploads */
-body:has(.upload-left-panel-marker) .main-page-card,
-body:has(.upload-left-panel-marker) .quick-grid,
-body:has(.upload-left-panel-marker) .upload-page-quick-row {
-  display:none !important;
-}
-
-
-/* 2X2 TRACK UPLOADS + REPORTS UI */
-body:has(.upload-left-panel-marker) .block-container {
-  max-width: none !important;
-  padding: 108px 34px 28px 286px !important;
-}
-
-body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
-  gap: 18px !important;
-  margin-bottom: 18px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
-  min-height: 300px !important;
-  max-height: none !important;
-  border-radius: 16px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] {
-  min-height: 72px !important;
-  height: 78px !important;
-  border-radius: 14px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] button {
-  height: 34px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stAlert"] {
-  min-height: 48px !important;
-}
-
-/* Reports tab cards in clean 2x2 */
-body:has(.upload-left-panel-marker) .report-program-card {
-  min-height: 260px !important;
-  border-radius: 16px !important;
-}
-
-
-/* FINAL NAV + REPORTS + 2X2 FIX */
-body:has(.upload-left-panel-marker) .block-container {
-  max-width: none !important;
-  padding: 108px 26px 26px 26px !important;
-}
-
-/* if topbar is fixed, align it with native sidebar width */
-.upload-topbar {
-  left: 244px !important;
-  right: 0 !important;
-}
-
-/* 2x2 cards remain clean */
-body:has(.upload-left-panel-marker) div[data-testid="stHorizontalBlock"] {
-  gap: 18px !important;
-  margin-bottom: 18px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stVerticalBlockBorderWrapper"] {
-  min-height: 300px !important;
-  border-radius: 16px !important;
-  background: rgba(255,255,255,.96) !important;
-  border: 1px solid #dbe4f0 !important;
-  box-shadow: 0 10px 24px rgba(15,23,42,.04) !important;
-  padding: 14px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stFileUploaderDropzone"] {
-  min-height: 72px !important;
-  height: 78px !important;
-  border-radius: 14px !important;
-}
-
-body:has(.upload-left-panel-marker) [data-testid="stAlert"] {
-  min-height: 44px !important;
-  border-radius: 10px !important;
-}
-
-/* remove bottom shortcut cards under Program Track Uploads */
-body:has(.upload-left-panel-marker) .main-page-card,
-body:has(.upload-left-panel-marker) .quick-grid,
-body:has(.upload-left-panel-marker) .upload-page-quick-row {
-  display: none !important;
-}
-
-/* Reports tab 2x2 cards */
-.report-program-card {
-  background: #ffffff;
-  border: 1px solid #dbe4f0;
-  border-radius: 16px;
-  padding: 16px;
-  min-height: 260px;
-  box-shadow: 0 10px 24px rgba(15,23,42,.04);
-}
-.report-program-title {
-  font-size: 18px;
-  font-weight: 950;
-  color: #0f2b68;
-  margin-bottom: 14px;
-}
-.dashboard-static-card {
-  max-width: 720px;
-  background: #ffffff;
-  border: 1px solid #dbe4f0;
-  border-radius: 18px;
-  padding: 24px;
-  box-shadow: 0 10px 24px rgba(15,23,42,.04);
-}
-.dashboard-static-title {
-  font-size: 20px;
-  font-weight: 950;
-  color: #0f2b68;
-  margin-bottom: 10px;
-}
-.dashboard-static-desc {
-  color: #64748b;
-  font-size: 14px;
-  line-height: 1.55;
-  margin-bottom: 20px;
-}
-.dashboard-static-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 42px;
-  padding: 0 18px;
-  border-radius: 12px;
-  color: #ffffff !important;
-  text-decoration: none !important;
-  font-weight: 850;
-  background: linear-gradient(90deg,#2563eb,#7c3aed);
-}
-
-
-/* REPORTS INSIDE CARDS FIX */
-.reports-subtitle {
-  color: #64748b !important;
-  font-size: 15px !important;
-  margin: -4px 0 18px 0 !important;
-}
-
-.report-program-card {
-  background: #ffffff !important;
-  border: 1px solid #dbe4f0 !important;
-  border-radius: 16px !important;
-  padding: 18px !important;
-  min-height: 260px !important;
-  box-shadow: 0 10px 24px rgba(15,23,42,.04) !important;
-  margin-bottom: 18px !important;
-}
-
-.report-program-title {
-  font-size: 22px !important;
-  font-weight: 950 !important;
-  color: #0f2b68 !important;
-  margin-bottom: 14px !important;
-}
-
-.report-program-card .panel-title,
-.report-program-card h2,
-.report-program-card h3,
-.report-program-card h4 {
-  display: none !important;
-}
-
-.report-program-card [data-testid="stVerticalBlockBorderWrapper"] {
-  min-height: auto !important;
-  max-height: none !important;
-  padding: 10px !important;
-}
-
-.report-program-card [data-testid="stAlert"] {
-  min-height: 48px !important;
-  border-radius: 10px !important;
-}
-
-.report-program-card .stButton > button {
-  height: 38px !important;
-  border-radius: 10px !important;
-}
-
-
-/* REPORTS REAL CONTAINER CARDS FINAL */
-.reports-subtitle {
-  color: #64748b !important;
-  font-size: 15px !important;
-  margin: -4px 0 18px 0 !important;
-}
-
-body:has(.upload-left-panel-marker) .report-program-title {
-  font-size: 22px !important;
-  font-weight: 950 !important;
-  color: #0f2b68 !important;
-  margin-bottom: 14px !important;
-}
-
-/* Reports page bordered containers */
-body:has(.upload-left-panel-marker) div[data-testid="stVerticalBlockBorderWrapper"] {
-  border-radius: 16px !important;
-}
-
-/* Compact saved rows */
-.compact-saved-row {
-  background: #f8fbff !important;
-  border: 1px solid #dbe4f0 !important;
-  border-radius: 10px !important;
-  padding: 10px !important;
-  margin-bottom: 10px !important;
-}
-
-.compact-saved-cell-name {
-  font-size: 14px !important;
-  font-weight: 800 !important;
-  color: #0f172a !important;
-  margin-bottom: 8px !important;
-}
-
-.compact-saved-row .stButton > button {
-  height: 36px !important;
-  border-radius: 10px !important;
-}
-
-/* Remove previous fake HTML cards if any */
-.report-program-card {
-  display: none !important;
-}
-
-
-/* DASHBOARD STATIC CARD + TAB RESPONSIVENESS FIX */
-.dashboard-static-card {
-  max-width: 920px !important;
-  padding: 22px 26px !important;
-}
-
-.dashboard-static-title {
-  font-size: 20px !important;
-  line-height: 1.15 !important;
-  margin-bottom: 12px !important;
-}
-
-.dashboard-static-desc {
-  font-size: 15px !important;
-  line-height: 1.45 !important;
-  margin-bottom: 20px !important;
-}
-
-.dashboard-static-btn {
-  height: 40px !important;
-  padding: 0 18px !important;
-  font-size: 15px !important;
-  border-radius: 12px !important;
-}
-
-/* keep top dashboard nav clicks snappy visually */
-button[kind="primary"],
-.stButton > button {
-  transition: none !important;
-}
-
-
-body:has(.upload-left-panel-marker) .panel-title:has(+ .dashboard-static-card) {
-  display: none !important;
-}
-
-
-/* STATIC DASHBOARD URL + PERFORMANCE POLISH */
-.dashboard-static-card {
-  max-width: 960px !important;
-  padding: 20px 24px !important;
-}
-.dashboard-static-title {
-  font-size: 22px !important;
-  line-height: 1.15 !important;
-  margin-bottom: 10px !important;
-}
-.dashboard-static-desc {
-  font-size: 14px !important;
-  line-height: 1.45 !important;
-  margin-bottom: 16px !important;
-}
-.dashboard-static-btn {
-  height: 38px !important;
-  padding: 0 16px !important;
-  font-size: 14px !important;
-  border-radius: 11px !important;
-}
-.static-url-box {
-  margin-top: 14px;
-  background: #f8fbff;
-  border: 1px solid #dbe4f0;
-  border-radius: 10px;
-  padding: 10px 12px;
-  color: #0f2b68;
-  font-size: 13px;
-  font-weight: 700;
-  word-break: break-all;
-}
-.page-url-row {
-  margin-top: 12px;
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.7;
-}
-.page-url-row span {
-  color: #0f2b68;
-  font-weight: 800;
-}
-.page-url-row code {
-  background: #eef4ff;
-  border-radius: 6px;
-  padding: 2px 6px;
-  color: #0f172a;
-}
-
-/* Faster perceived tab clicks: remove animation/large shadows */
-* {
-  transition-duration: 0s !important;
-  animation-duration: 0s !important;
-}
-.executive-tab,
-.track-tab,
-button,
-.stButton > button {
-  transition: none !important;
-}
-
-
-/* DASHBOARD TAB SPEED + SMALL TITLE */
-.dashboard-static-title {
-  font-size: 20px !important;
-  line-height: 1.15 !important;
-}
-.dashboard-static-card {
-  max-width: 900px !important;
-}
-.ciq-tab-link,
-.ciq-track-link,
-.ciq-program-link,
-.stButton > button {
-  transition: none !important;
-  animation: none !important;
-}
-.js-plotly-plot,
-.plot-container {
-  transition: none !important;
-}
-
-
-/* ROUTES + DASHBOARD SPEED FIX */
-.dashboard-static-title {
-  font-size: 18px !important;
-  line-height: 1.15 !important;
-}
-.dashboard-static-card {
-  max-width: 900px !important;
-  padding: 18px 22px !important;
-}
-.dashboard-static-desc {
-  font-size: 13px !important;
-  margin-bottom: 14px !important;
-}
-.dashboard-static-btn {
-  height: 36px !important;
-  font-size: 13px !important;
-}
-.ciq-tab-link,
-.ciq-track-link,
-.ciq-program-link,
-.stButton > button {
+/* Dashboard no-full-refresh polish */
+div[role="radiogroup"] label,
+.stButton > button,
+.stDownloadButton > button {
   transition: none !important;
   animation: none !important;
 }
@@ -1599,9 +369,6 @@ button,
 
 params = st.query_params
 view_param = str(params.get("view", "")).strip().strip("./ ").lower()
-page_param = str(params.get("page", "")).strip().strip("./ ").lower()
-if page_param == "login":
-    st.session_state.team_authenticated = False
 dashboard_only = view_param == "dashboard"
 team_upload_view = not dashboard_only
 run_id = params.get("run_id", "")
@@ -2004,47 +771,26 @@ def extract_env_token(file_name: str) -> str:
     return "PROD"
 
 
-def extract_mmddyyyy_from_text(value: str) -> str | None:
-    """Return MMDDYYYY parsed from common filename/date formats."""
-    text = str(value or "").strip()
-    if not text:
-        return None
-    month_map = {
-        "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
-        "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
-        "aug": "08", "august": "08", "sep": "09", "sept": "09", "september": "09", "oct": "10", "october": "10",
-        "nov": "11", "november": "11", "dec": "12", "december": "12",
-    }
-    def valid(mm: str, dd: str, yyyy: str) -> str | None:
-        try:
-            mm_i, dd_i, yy_i = int(mm), int(dd), int(yyyy)
-            if 1 <= mm_i <= 12 and 1 <= dd_i <= 31 and 2000 <= yy_i <= 2100:
-                return f"{mm_i:02d}{dd_i:02d}{yy_i:04d}"
-        except Exception:
-            return None
-        return None
-    m = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[_\-/\s,]*(\d{1,2})[_\-/\s,]*(20\d{2})", text)
-    if m:
-        month = month_map.get(m.group(1).lower())
-        out = valid(month, m.group(2), m.group(3)) if month else None
-        if out:
-            return out
-    m = re.search(r"(?<!\d)(20\d{2})[_\-/\s]?(\d{1,2})[_\-/\s]?(\d{1,2})(?!\d)", text)
-    if m:
-        out = valid(m.group(2), m.group(3), m.group(1))
-        if out:
-            return out
-    for m in re.finditer(r"(?<!\d)(\d{1,2})[_\-/\s]?(\d{1,2})[_\-/\s]?(20\d{2})(?!\d)", text):
-        out = valid(m.group(1), m.group(2), m.group(3))
-        if out:
-            return out
-    return None
-
-
 def to_mmddyyyy(date_value: str) -> str:
-    parsed = extract_mmddyyyy_from_text(date_value)
-    if parsed:
-        return parsed
+    text = str(date_value or "").strip()
+    if re.fullmatch(r"\d{8}", text):
+        return text
+    match = re.search(r"(?i)(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[-\s_]*(\d{1,2})[-\s_,]*(\d{4})", text)
+    if match:
+        month_map = {
+            "jan": "01", "january": "01", "feb": "02", "february": "02", "mar": "03", "march": "03",
+            "apr": "04", "april": "04", "may": "05", "jun": "06", "june": "06", "jul": "07", "july": "07",
+            "aug": "08", "august": "08", "sep": "09", "september": "09", "oct": "10", "october": "10",
+            "nov": "11", "november": "11", "dec": "12", "december": "12",
+        }
+        month = month_map.get(match.group(1).lower(), datetime.now().strftime("%m"))
+        day = f"{int(match.group(2)):02d}"
+        year = match.group(3)
+        return f"{month}{day}{year}"
+    iso = re.search(r"(20\d{2})[-_\s]?(\d{1,2})[-_\s]?(\d{1,2})", text)
+    if iso:
+        year, month, day = iso.groups()
+        return f"{int(month):02d}{int(day):02d}{year}"
     return datetime.now().strftime("%m%d%Y")
 
 
@@ -2055,7 +801,7 @@ def to_mm_dd_yyyy(date_value: str) -> str:
 
 def build_standard_report_name(track_name: str, program_name: str, original_name: str, extension: str) -> str:
     info = infer_saved_report_info(original_name)
-    date_token = to_mmddyyyy(info.get("date", "") or original_name)
+    date_token = to_mmddyyyy(info.get("date", ""))
     epoch_token = f"EPOC-{int(datetime.now().timestamp())}"
     users_token = normalize_users_token(info.get("users", "N/A"))
     devices_token = normalize_devices_token(info.get("devices", "N/A"))
@@ -2226,143 +972,39 @@ def combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
 
 
 
-
-def render_upload_left_panel() -> str:
-    """Native Streamlit sidebar navigation; does not reload app or lose login session."""
-    st.markdown('<div class="upload-left-panel-marker"></div>', unsafe_allow_html=True)
-    st.markdown(
-        """
-<div class="upload-topbar">
-  <div class="upload-top-title">CiscoIQ Performance Report App</div>
-  <div class="upload-top-actions"></div>
-</div>
-""",
-        unsafe_allow_html=True,
-    )
-
-    if "upload_left_page" not in st.session_state:
-        st.session_state.upload_left_page = "Track Uploads"
-
-    nav_items = [
-        ("Dashboard", "⌂  Dashboard"),
-        ("Track Uploads", "▣  Track Uploads"),
-        ("Reports", "▤  Reports"),
-        ("Excel Report", "▥  Excel Report"),
-        ("AI Chatbot", "☻  AI Chatbot"),
-        ("Settings", "⚙  Settings"),
-    ]
-
-    with st.sidebar:
-        st.markdown('<div class="upload-left-logo">▥</div>', unsafe_allow_html=True)
-        for page_name, label in nav_items:
-            active = st.session_state.upload_left_page == page_name
-            if st.button(
-                label,
-                key=f"upload_nav_{sanitize_token(page_name)}",
-                type="primary" if active else "secondary",
-                use_container_width=True,
-            ):
-                st.session_state.upload_left_page = page_name
-                st.rerun()
-
-    return st.session_state.upload_left_page
+def dashboard_frames_cache_key(run_frames: List[Dict[str, pd.DataFrame]], extra: str = "") -> str:
+    parts = [str(extra), str(st.session_state.get("run_id", ""))]
+    for frames in run_frames or []:
+        label = str(frames.get("Label", ""))
+        apis = frames.get("APIs")
+        shape = getattr(apis, "shape", ("", ""))
+        parts.append(f"{label}:{shape}")
+    return "|".join(parts)
 
 
-def render_upload_sidebar_page(page_name: str) -> bool:
-    """Return True if a sidebar page was rendered and upload cards should stop."""
-    if page_name == "Dashboard":
-        base_app_url = "https://ciscoiq-report-automation.streamlit.app/"
-        run_id_value = st.session_state.get("run_id", "")
-        dash_href = f"{base_app_url}?view=dashboard&run_id={run_id_value}" if run_id_value else f"{base_app_url}?view=dashboard"
-        st.markdown(f"""
-        <div class="dashboard-static-card">
-          <div class="dashboard-static-title">View All Results</div>
-          <div class="dashboard-static-desc">
-            Share this dashboard URL with management. After you generate results, this opens the latest dashboard view.
-          </div>
-          <a class="dashboard-static-btn" href="{dash_href}" target="_blank">Open Results Dashboard ↗</a>
-          <div class="static-url-box">{dash_href}</div>
-          <div class="page-url-row">
-            <span>Login:</span> <code>{base_app_url}?page=login</code><br/>
-            <span>Upload:</span> <code>{base_app_url}?page=upload</code><br/>
-            <span>Dashboard:</span> <code>{base_app_url}?view=dashboard</code><br/>
-            <span>Chatbot:</span> <code>{base_app_url}?view=dashboard&tab=Chatbot</code>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-        return True
+def cached_combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
+    key = dashboard_frames_cache_key(run_frames, "combined_df")
+    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
+    if key not in cache:
+        cache[key] = combined_df(run_frames)
+    return cache[key]
 
-    if page_name == "Reports":
-        st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
-        st.markdown(
-            '<div class="reports-subtitle">Saved uploaded JSON/CSV files are organized by track.</div>',
-            unsafe_allow_html=True,
-        )
 
-        r1, r2 = st.columns(2, gap="medium")
-        r3, r4 = st.columns(2, gap="medium")
+def cached_track_summary(df: pd.DataFrame) -> pd.DataFrame:
+    key = f"track_summary:{st.session_state.get('run_id','')}:{getattr(df, 'shape', '')}"
+    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
+    if key not in cache:
+        cache[key] = track_summary(df)
+    return cache[key]
 
-        with r1:
-            with st.container(border=True):
-                st.markdown('<div class="report-program-title">API Reports</div>', unsafe_allow_html=True)
-                render_saved_reports_compact_for_track(TRACK_API, title="", key_prefix="reports_api")
 
-        with r2:
-            with st.container(border=True):
-                st.markdown('<div class="report-program-title">UI Reports</div>', unsafe_allow_html=True)
-                render_saved_reports_compact_for_track(TRACK_UI, title="", key_prefix="reports_ui")
+def cached_auto_insights(run_frames: List[Dict[str, pd.DataFrame]]) -> List[Tuple[str, str, str]]:
+    key = dashboard_frames_cache_key(run_frames, "auto_insights")
+    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
+    if key not in cache:
+        cache[key] = auto_insights(run_frames)
+    return cache[key]
 
-        with r3:
-            with st.container(border=True):
-                st.markdown('<div class="report-program-title">Cloud Assist Reports</div>', unsafe_allow_html=True)
-                render_saved_reports_compact_for_track(TRACK_CLOUD, title="", key_prefix="reports_cloud")
-
-        with r4:
-            with st.container(border=True):
-                st.markdown('<div class="report-program-title">Inventory Reports</div>', unsafe_allow_html=True)
-                render_saved_reports_compact_for_track(TRACK_INVENTORY, title="", key_prefix="reports_inventory")
-
-        return True
-
-    if page_name == "Excel Report":
-        st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
-        if st.session_state.get("excel_bytes"):
-            st.download_button(
-                "Download Excel Report",
-                data=st.session_state.excel_bytes,
-                file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
-                use_container_width=True,
-            )
-        else:
-            st.info("Generate results first to enable Excel download. This page is available even without data.")
-        return True
-
-    if page_name == "AI Chatbot":
-        st.markdown('<div class="panel-title">AI Chatbot</div>', unsafe_allow_html=True)
-        if st.session_state.get("run_frames"):
-            st.session_state["dashboard_tab"] = "Chatbot"
-            render_executive_dashboard(st.session_state.run_frames)
-        else:
-            st.info("Generate results first to use chatbot. This page is available even without data.")
-        return True
-
-    if page_name == "Settings":
-        st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
-        st.markdown("""
-        <div style="background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;">
-          <h4>Settings</h4>
-          <p>• Help and support</p>
-          <p>• Report retention preferences</p>
-          <p>• Session management</p>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Logout", type="primary"):
-            st.session_state.team_authenticated = False
-            st.session_state.upload_left_page = "Track Uploads"
-            st.rerun()
-        return True
-
-    return False
 
 def render_dashboard_header() -> None:
     st.markdown(
@@ -2371,6 +1013,8 @@ def render_dashboard_header() -> None:
   <div class="brand">
     <div class="brand-icon">📈</div>
     <div>
+      <div class="brand-title">CiscoIQ Performance Report App</div>
+      <div class="brand-sub">Real-time performance insights across regions</div>
     </div>
   </div>
   <div class="nav-time">Dashboard View<br/>Last Updated</div>
@@ -2380,11 +1024,9 @@ def render_dashboard_header() -> None:
     )
 
 
-
-
-
 def dashboard_view_tabs() -> str:
-    current_tab = params.get("tab", "") or st.session_state.get("dashboard_tab", "Overview")
+    # Fast tab switch: session_state only. Updating query params on every click caused full page refresh/spinner.
+    current_tab = st.session_state.get("dashboard_tab") or params.get("tab", "") or "Overview"
     if "nav_target" in st.session_state:
         current_tab = st.session_state.pop("nav_target")
 
@@ -2394,31 +1036,32 @@ def dashboard_view_tabs() -> str:
     if current_tab not in valid_tabs:
         current_tab = "Overview"
 
-    st.session_state["dashboard_tab"] = current_tab
-    current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
-
     tabs = [
-        ("Overview", "◈  Overview"),
-        ("Track Comparison", "▥  Track Comparison"),
-        ("Detailed Report", "▣  Detailed Report"),
-        ("Chatbot", "●  AI Chatbot"),
+        ("Overview", "Overview"),
+        ("Track Comparison", "Track Comparison"),
+        ("Detailed Report", "Detailed Report"),
+        ("Chatbot", "AI Chatbot"),
     ]
-    tab_cols = st.columns([1.05, 1.42, 1.32, 1.15], gap="small")
+    icons = {
+        "Overview": "◆",
+        "Track Comparison": "▦",
+        "Detailed Report": "⌕",
+        "Chatbot": "●",
+    }
+
+    selected_tab = current_tab
+    tab_cols = st.columns(len(tabs), gap="small")
     for col, (tab_value, tab_label) in zip(tab_cols, tabs):
         if col.button(
-            tab_label,
-            key=f"dashboard_view_{sanitize_token(tab_value)}",
+            f"{icons[tab_value]} {tab_label}",
+            key=f"dashboard_view_{tab_value}",
             type="primary" if current_tab == tab_value else "secondary",
             use_container_width=True,
         ):
-            st.session_state["dashboard_tab"] = tab_value
-            if current_run_id:
-                st.query_params["view"] = "dashboard"
-                st.query_params["run_id"] = current_run_id
-                st.query_params["tab"] = tab_value
-            st.rerun()
+            selected_tab = tab_value
 
-    return current_tab
+    st.session_state["dashboard_tab"] = selected_tab
+    return selected_tab
 
 
 def kpi_cards(df: pd.DataFrame, previous_df: pd.DataFrame | None = None, title: str = "AGGREGATED PERFORMANCE OVERVIEW METRICS", compact: bool = False) -> None:
@@ -2831,50 +1474,6 @@ def auto_insights(run_frames: List[Dict[str, pd.DataFrame]]) -> List[Tuple[str, 
 
 
 
-
-def dashboard_frames_cache_key(run_frames: List[Dict[str, pd.DataFrame]], extra: str = "") -> str:
-    """Stable lightweight key for current dashboard data so tab clicks reuse cached calculations."""
-    parts = [str(extra), str(st.session_state.get("run_id", ""))]
-    for frames in run_frames or []:
-        label = str(frames.get("Label", ""))
-        apis = frames.get("APIs")
-        shape = getattr(apis, "shape", ("", ""))
-        parts.append(f"{label}:{shape}")
-    return "|".join(parts)
-
-
-def cached_combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
-    key = dashboard_frames_cache_key(run_frames, "combined_df")
-    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
-    if key not in cache:
-        cache[key] = combined_df(run_frames)
-    return cache[key]
-
-
-def cached_track_summary(df: pd.DataFrame) -> pd.DataFrame:
-    key = f"track_summary:{st.session_state.get('run_id','')}:{getattr(df, 'shape', '')}:{','.join(map(str, df.columns[:6])) if not df.empty else 'empty'}"
-    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
-    if key not in cache:
-        cache[key] = track_summary(df)
-    return cache[key]
-
-
-def cached_track_comparison(run_frames: List[Dict[str, pd.DataFrame]]) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    key = dashboard_frames_cache_key(run_frames, "track_comparison")
-    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
-    if key not in cache:
-        cache[key] = build_dashboard_track_comparison(run_frames)
-    return cache[key]
-
-
-def cached_auto_insights(run_frames: List[Dict[str, pd.DataFrame]]) -> List[Tuple[str, str, str]]:
-    key = dashboard_frames_cache_key(run_frames, "auto_insights")
-    cache = st.session_state.setdefault("_dashboard_calc_cache", {})
-    if key not in cache:
-        cache[key] = auto_insights(run_frames)
-    return cache[key]
-
-
 def response_bucket(value: float, is_askai: bool) -> str:
     value = float(value or 0)
     if is_askai:
@@ -2984,7 +1583,7 @@ def display_track_comparison_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    askai_df, other_df = cached_track_comparison(run_frames)
+    askai_df, other_df = build_dashboard_track_comparison(run_frames)
 
     def render_section(title: str, data: pd.DataFrame, height: int) -> None:
         if data.empty:
@@ -2995,7 +1594,7 @@ def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]])
             detail = data[data["_TrackKey"] != "Total"].copy()
             if not total.empty:
                 st.caption("Total response distribution by uploaded result. Percent columns show APIs inside each response bucket.")
-                st.dataframe(display_track_comparison_df(total), use_container_width=True, hide_index=True, height=min(260, 78 + 36 * len(total)))
+                st.dataframe(display_track_comparison_df(total), use_container_width=True, hide_index=True, height=min(220, 72 + 38 * len(total)))
             if not detail.empty:
                 st.caption("Track-level breakdown using Avg, Min and Max response metrics.")
                 st.dataframe(display_track_comparison_df(detail), use_container_width=True, hide_index=True, height=height)
@@ -3011,19 +1610,19 @@ def render_track_comparison_dashboard(run_frames: List[Dict[str, pd.DataFrame]])
 def render_compare_tab(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
     st.markdown('<div class="panel"><div class="panel-title">TRACK COMPARISON <span class="tag">Grouped by result</span></div>', unsafe_allow_html=True)
 
-    askai_df, other_df = cached_track_comparison(run_frames)
+    askai_df, other_df = build_dashboard_track_comparison(run_frames)
 
     st.markdown("### AskAI Tracks")
     st.caption("Result includes the region. Repeated Track and Result cells are intentionally blank to keep Avg, Min and Max rows grouped together.")
     if not askai_df.empty:
-        st.dataframe(display_track_comparison_df(askai_df), use_container_width=True, hide_index=True, height=min(520, 78 + 36 * len(askai_df)))
+        st.dataframe(display_track_comparison_df(askai_df), use_container_width=True, hide_index=True, height=420)
     else:
         st.info("No AskAI tracks found.")
 
     st.markdown("### Assets / Assessments / Home / Settings / Support Tracks")
     st.caption("Result includes the region. Repeated Track and Result cells are intentionally blank to keep Avg, Min and Max rows grouped together.")
     if not other_df.empty:
-        st.dataframe(display_track_comparison_df(other_df), use_container_width=True, hide_index=True, height=min(620, 78 + 36 * len(other_df)))
+        st.dataframe(display_track_comparison_df(other_df), use_container_width=True, hide_index=True, height=620)
     else:
         st.info("No non-AskAI tracks found.")
 
@@ -3060,7 +1659,7 @@ def render_trends_tab(run_frames: List[Dict[str, pd.DataFrame]], compact: bool =
                 "samples": "Samples",
             })
             needed_cols = ["Result", "Region", "Avg Sec", "P95 Sec", "Max Sec", "Success %", "Error %", "SLA Pass %", "Health Score"]
-            st.dataframe(table[safe_cols(table, needed_cols)], use_container_width=True, hide_index=True, height=min(260, 78 + 36 * len(table)) if compact else min(520, 78 + 36 * len(table)))
+            st.dataframe(table[safe_cols(table, needed_cols)], use_container_width=True, hide_index=True, height=220 if compact else None)
     if not compact:
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -3086,101 +1685,23 @@ def goto_tab_button(label: str, tab_name: str, key: str) -> None:
 
 
 def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    # Screenshot-matched executive navigation rendered as HTML links.
-    current_run_id = params.get("run_id", "") or st.session_state.get("run_id", "")
-    selected_tab = params.get("tab", "") or st.session_state.get("dashboard_tab", "Overview")
-    legacy_tabs = {"Drilldown": "Detailed Report", "Compare": "Track Comparison", "Reports": "Overview", "Trends": "Overview"}
-    selected_tab = legacy_tabs.get(selected_tab, selected_tab)
-    if selected_tab not in ["Overview", "Track Comparison", "Detailed Report", "Chatbot"]:
-        selected_tab = "Overview"
-    st.session_state["dashboard_tab"] = selected_tab
+    render_dashboard_header()
 
-    active_program = params.get("program", "") or st.session_state.get("active_program", PROGRAM_SAAS)
-    program_values = [PROGRAM_SAAS, "Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Risk App", "CX AI Assistant", "AI Framework"]
-    if active_program not in program_values:
+    st.markdown('<div class="panel-title">PROGRAMS</div>', unsafe_allow_html=True)
+    program_options = [
+        PROGRAM_SAAS,
+        "Cisco IQ Onprem - Assets",
+        "Cisco IQ Onprem - Risk App",
+        "CX AI Assistant",
+    ]
+    active_program = st.session_state.get("active_program", PROGRAM_SAAS)
+    if active_program not in program_options:
         active_program = PROGRAM_SAAS
-    st.session_state["active_program"] = active_program
-
-    active_track = params.get("track", "") or st.session_state.get("active_track", "API")
-    track_values = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
-    if active_track not in track_values:
-        active_track = "API"
-    st.session_state["active_track"] = active_track
-
-    def nav_url(tab=None, program=None, track=None):
-        import urllib.parse
-        q = {
-            "view": "dashboard",
-            "run_id": current_run_id,
-            "tab": tab or selected_tab,
-            "program": program or active_program,
-            "track": track or active_track,
-        }
-        return "?" + urllib.parse.urlencode(q)
-
-    def active_cls(is_active: bool) -> str:
-        return " active" if is_active else ""
-
-    programs_html = [
-        ("🎧", "Cisco IQ SaaS Support Services", PROGRAM_SAAS),
-        ("▧", "Cisco IQ Onprem - Assets", "Cisco IQ Onprem - Assets"),
-        ("🛡", "Cisco IQ Onprem - Risk App", "Cisco IQ Onprem - Risk App"),
-        ("✣", "CX AI Assistant", "CX AI Assistant"),
-        ("🤖", "AI Framework", "AI Framework"),
-    ]
-    tracks_html = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
-    tabs_html = [
-        ("Overview", "◈ Overview"),
-        ("Track Comparison", "▥ Track Comparison"),
-        ("Detailed Report", "▣ Detailed Report"),
-        ("Chatbot", "● AI Chatbot"),
-    ]
-
-    available_regions = sorted(set([frames.get("Region", region_from_frames(frames)) for frames in run_frames if frames.get("Region", region_from_frames(frames))]))
-    region_choices = ["All"] + [r for r in available_regions if str(r).upper() not in {"UNKNOWN", "N/A", "NA"}]
-    if len(region_choices) == 1:
-        region_choices = ["All", "US", "EMEA", "APJC"]
-
-    program_links = ""
-    for icon, label, value in programs_html:
-        program_links += f'<a class="ciq-program-link{active_cls(active_program == value)}" target="_self" href="{nav_url(program=value, tab="Overview", track="API")}"><span style="width:28px;display:inline-block;">{icon}</span>{label}</a>'
-
-    track_links = ""
-    for value in tracks_html:
-        track_links += f'<a class="ciq-track-link{active_cls(active_track == value)}" target="_self" href="{nav_url(track=value, tab="Overview")}">{value}</a>'
-
-    tab_links = ""
-    for value, label in tabs_html:
-        tab_links += f'<a class="ciq-tab-link{active_cls(selected_tab == value)}" target="_self" href="{nav_url(tab=value)}">{label}</a>'
-
-    region_options = "".join([f'<option>{"All" if r == "All" else r}</option>' for r in region_choices])
-
-    st.markdown(
-        f"""
-<div class="ciq-nav-wrap">
-  <div class="ciq-program-panel">
-    <div class="ciq-title">1. Programs</div>
-    {program_links}
-  </div>
-  <div class="ciq-main-panel">
-    <div class="ciq-title">2. Program Tracks</div>
-    <div class="ciq-track-grid">
-      {track_links}
-      <div class="ciq-region-card">
-        <div class="ciq-region-title">Region Filter</div>
-        <select class="ciq-region-select">{region_options}</select>
-      </div>
-    </div>
-    <div class="ciq-title">3. Dashboard Views</div>
-    <div class="ciq-tab-grid">
-      {tab_links}
-      <div class="ciq-spacer"></div>
-    </div>
-  </div>
-</div>
-""",
-        unsafe_allow_html=True,
-    )
+    pcols = st.columns(4, gap="small")
+    for col, program_name in zip(pcols, program_options):
+        if col.button(program_name, key=f"program_tab_{program_name}", type="primary" if active_program == program_name else "secondary", use_container_width=True):
+            st.session_state["active_program"] = program_name
+            active_program = program_name
 
     if active_program != PROGRAM_SAAS:
         with st.container(border=True):
@@ -3189,13 +1710,29 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
             render_saved_reports_table(show_title=False)
         return
 
-    region_focus = "All"
+    st.markdown('<div class="panel-title">PROGRAM TRACKS</div>', unsafe_allow_html=True)
+    track_options = ["API", "UI", "Cloud Assist Connector", "Customer Inventory Benchmarking"]
+    active_track = st.session_state.get("active_track", "API")
+    if active_track not in track_options:
+        active_track = "API"
+    top_track_row = st.columns([4.3, 1.2], gap="small")
+    with top_track_row[1]:
+        st.markdown('<div class="region-field-label">Region</div>', unsafe_allow_html=True)
+        region_focus = st.selectbox("Region", ["All", "US", "EMEA", "APJC"], key="dashboard_region_focus", label_visibility="collapsed")
+
+    t1, t2, t3, t4 = top_track_row[0].columns([1.2, 1, 1.3, 1.6], gap="small")
+    for col, track_name in zip([t1, t2, t3, t4], track_options):
+        if col.button(track_name, key=f"track_tab_{track_name}", type="primary" if active_track == track_name else "secondary", use_container_width=True):
+            st.session_state["active_track"] = track_name
+            active_track = track_name
 
     if active_track != "API":
         with st.container(border=True):
             st.markdown(f'<div class="panel-title">{active_track}</div>', unsafe_allow_html=True)
             render_non_api_track_view(active_track)
         return
+
+    selected_tab = dashboard_view_tabs()
 
     main_col, side_col = st.columns([4.35, .95], gap="medium")
 
@@ -3226,7 +1763,7 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
         except Exception:
             dashboard_url = ""
         if dashboard_url:
-            st.markdown(f'<a class="primary-pill" href="{dashboard_url}?view=dashboard&tab=Overview" target="_self" style="width:100%;text-align:center;">Open Dashboard in New Tab ↗</a>', unsafe_allow_html=True)
+            st.markdown(f'<a class="primary-pill" href="{dashboard_url}?view=dashboard&tab=Overview" target="_blank" style="width:100%;text-align:center;">Open Dashboard in New Tab ↗</a>', unsafe_allow_html=True)
 
     with main_col:
         if not selected_frames:
@@ -3282,56 +1819,24 @@ def render_executive_dashboard(run_frames: List[Dict[str, pd.DataFrame]]) -> Non
                 goto_tab_button('View SLA Breaches →', 'Detailed Report', 'view_sla_breaches_btn')
 
         with st.container(border=True):
-            st.markdown('<div class="panel-title">COMPARISON SUMMARY <span class="tag">Avg buckets</span></div>', unsafe_allow_html=True)
-            render_overview_comparison_summary(selected_frames)
-            goto_tab_button('Open Full Comparison →', 'Track Comparison', 'overview_full_compare_btn')
-
-        with st.container(border=True):
             st.markdown('<div class="panel-title">TRENDS DASHBOARD</div>', unsafe_allow_html=True)
             render_trends_tab(selected_frames, compact=True, show_table=True)
 
+        with st.container(border=True):
+            st.markdown('<div class="panel-title">TRACK COMPARISON SUMMARY <span class="tag">Total rows only</span></div>', unsafe_allow_html=True)
+            askai_compare, other_compare = build_dashboard_track_comparison(selected_frames)
 
-def render_overview_comparison_summary(run_frames: List[Dict[str, pd.DataFrame]]) -> None:
-    """Compact overview-only comparison. Full Avg/Min/Max details stay in Track Comparison tab."""
-    askai_df, other_df = cached_track_comparison(run_frames)
+            if not askai_compare.empty:
+                st.markdown("#### AskAI Tracks - Total")
+                askai_total = askai_compare[askai_compare["_TrackKey"] == "Total"].copy()
+                st.dataframe(display_track_comparison_df(askai_total), use_container_width=True, hide_index=True, height=220)
 
-    def avg_total_cards(df: pd.DataFrame, title: str, buckets: List[str]) -> None:
-        if df.empty:
-            return
-        data = df[(df["_TrackKey"] == "Total") & (df["Metric"] == "Avg")].copy()
-        if data.empty:
-            return
-        st.markdown(f"#### {title}")
-        cols = st.columns(min(3, len(data)), gap="medium")
-        for i, (_, row) in enumerate(data.iterrows()):
-            with cols[i % len(cols)]:
-                parts = []
-                for bucket in buckets:
-                    label = bucket.replace("sec", "s")
-                    value = float(row.get(bucket, 0) or 0)
-                    parts.append(f'<div class="compare-bucket"><span>{label}</span><b>{value:.2f}%</b></div>')
-                bucket_html = "".join(parts)
-                st.markdown(f'''
-<div class="overview-compare-card">
-  <div class="overview-compare-title">{row.get('Result', '')}</div>
-  <div class="overview-compare-grid">{bucket_html}</div>
-</div>
-''', unsafe_allow_html=True)
+            if not other_compare.empty:
+                st.markdown("#### Assets / Assessments / Home / Settings / Support Tracks - Total")
+                other_total = other_compare[other_compare["_TrackKey"] == "Total"].copy()
+                st.dataframe(display_track_comparison_df(other_total), use_container_width=True, hide_index=True, height=220)
 
-    st.markdown("""
-<style>
-.overview-compare-card {background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #dbe4f0; border-radius: 16px; padding: 14px; box-shadow: 0 10px 24px rgba(15,23,42,.06); margin-bottom: 12px;}
-.overview-compare-title {font-size: 14px; font-weight: 900; color: #0f2b68; margin-bottom: 12px;}
-.overview-compare-grid {display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;}
-.compare-bucket {background: #eef5ff; border: 1px solid #dbeafe; border-radius: 12px; padding: 10px 8px; text-align: center;}
-.compare-bucket span {display:block; font-size: 12px; color:#64748b; font-weight:800;}
-.compare-bucket b {display:block; margin-top: 5px; font-size: 18px; color:#111827;}
-</style>
-""", unsafe_allow_html=True)
-
-    avg_total_cards(other_df, "Assets / Assessments / Home / Settings / Support", ["0-2sec %", "3-4sec %", "4-6sec %", ">6sec %"])
-    avg_total_cards(askai_df, "AskAI", ["0-10sec %", "10-20sec %", "20-30sec %", ">30sec %"])
-
+            goto_tab_button('Open Full Track Comparison →', 'Track Comparison', 'overview_full_compare_btn')
 
 
 def standard_api_cols(df: pd.DataFrame) -> List[str]:
@@ -3649,9 +2154,23 @@ def infer_saved_report_info(file_name: str) -> Dict[str, str]:
         duration = f"{duration_match.group(1)} Hour"
 
     date = "N/A"
-    parsed_date = extract_mmddyyyy_from_text(stem)
-    if parsed_date:
-        date = f"{parsed_date[:2]}-{parsed_date[2:4]}-{parsed_date[4:8]}"
+    date_match = re.search(
+        r"(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|JAN|FEB|MAR|APR|JUN|JUL|AUG|SEP|SEPT|OCT|NOV|DEC)[_\- ]?(\d{1,2})[_\-, ]+(\d{4})",
+        upper,
+    )
+    if date_match:
+        month = date_match.group(1).title()
+        day = date_match.group(2)
+        year = date_match.group(3)
+        date = f"{month}-{day}-{year}"
+    if date == "N/A":
+        mmddyyyy = re.search(r"(?:^|[_\-\s])(\d{8})(?:$|[_\-\s])", upper)
+        if mmddyyyy:
+            token = mmddyyyy.group(1)
+            mm = token[0:2]
+            dd = token[2:4]
+            yyyy = token[4:8]
+            date = f"{mm}-{dd}-{yyyy}"
 
     users = "N/A"
     user_patterns = [
@@ -4018,6 +2537,7 @@ def generate_dashboard_from_json_paths(json_paths: List[Path], labels: List[str]
         st.session_state.report_file_name = "JMeter_Report.xlsx"
         st.session_state.messages = []
         st.session_state.run_id = new_run_id
+        st.session_state["_dashboard_calc_cache"] = {}
 
 
 def sanitize_column_name(name: str) -> str:
@@ -4200,7 +2720,6 @@ def build_api_like_df_from_csv(csv_path: Path, track_name: str) -> pd.DataFrame:
     return df
 
 
-@st.cache_data(show_spinner=False)
 def build_excel_bytes_from_frames(run_frames: List[Dict[str, pd.DataFrame]]) -> bytes:
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -4507,10 +3026,10 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         st.info(f"No saved {track_name} reports yet.")
         return
 
-    if title is None:
-        st.markdown(f"**Saved {track_name} Reports**")
-    elif str(title).strip():
+    if title:
         st.markdown(f"**{title}**")
+    else:
+        st.markdown(f"**Saved {track_name} Reports**")
 
     st.markdown(
         """
@@ -4748,7 +3267,7 @@ def render_action_cards() -> None:
             st.markdown('<div class="action-card-title">Executive Dashboard</div>', unsafe_allow_html=True)
             st.markdown('<div class="action-card-text">Open the leadership-ready dashboard with KPIs, region comparison, heatmaps and drilldowns.</div>', unsafe_allow_html=True)
             link_class = "action-link" if has_report else "action-link disabled"
-            st.markdown(f'<a class="{link_class}" href="{dashboard_href}" target="_self">Open Dashboard ↗</a>', unsafe_allow_html=True)
+            st.markdown(f'<a class="{link_class}" href="{dashboard_href}" target="_blank">Open Dashboard ↗</a>', unsafe_allow_html=True)
 
     with c2:
         with st.container(border=True):
@@ -4771,7 +3290,7 @@ def render_action_cards() -> None:
             st.markdown('<div class="action-card-title">AI Chatbot</div>', unsafe_allow_html=True)
             st.markdown('<div class="action-card-text">Open the dashboard chatbot and ask questions about SLA, slow APIs, errors, regions and comparisons.</div>', unsafe_allow_html=True)
             link_class = "action-link purple" if has_report else "action-link disabled"
-            st.markdown(f'<a class="{link_class}" href="{chatbot_href}" target="_self">Open Chatbot ↗</a>', unsafe_allow_html=True)
+            st.markdown(f'<a class="{link_class}" href="{chatbot_href}" target="_blank">Open Chatbot ↗</a>', unsafe_allow_html=True)
 
 # Session state
 if "excel_bytes" not in st.session_state: st.session_state.excel_bytes = None
@@ -4800,13 +3319,8 @@ elif team_upload_view:
     render_main_page(show_subtitle=st.session_state.get("team_authenticated", False))
     access_granted = team_upload_access_granted()
     if access_granted:
-        upload_left_page = render_upload_left_panel()
-        if render_upload_sidebar_page(upload_left_page):
-            st.stop()
-        st.markdown('<div class="clean-upload-page-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="panel-title">Program Track Uploads</div>', unsafe_allow_html=True)
-        api_col, ui_col = st.columns(2, gap="medium")
-        cloud_col, inv_col = st.columns(2, gap="medium")
+        api_col, ui_col, cloud_col, inv_col = st.columns(4, gap="small")
 
         with api_col:
             with st.container(border=True):
@@ -4829,6 +3343,7 @@ elif team_upload_view:
                     key="generate_api_results",
                     use_container_width=True,
                 )
+                render_api_saved_reports_compact()
 
         if uploaded_files and generate_clicked:
             if st.session_state.get('save_reports_checkbox', True):
@@ -4861,10 +3376,10 @@ elif team_upload_view:
                     st.session_state.report_file_name = "JMeter_Report.xlsx"
                     st.session_state.messages = []
                     st.session_state.run_id = new_run_id
+                    st.session_state["_dashboard_calc_cache"] = {}
                     st.toast("Report generated successfully.", icon="✅")
                     st.success("Dashboard generated. Share the dashboard link below with management.")
-                    st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_self">Open Results Dashboard ↗</a>', unsafe_allow_html=True)
-                    st.info("Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
+                    st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_blank">Open Management Dashboard ↗</a>', unsafe_allow_html=True)
                 except Exception as exc:
                     st.error(f"Failed to generate report: {exc}")
 
@@ -4877,9 +3392,9 @@ elif team_upload_view:
                     if st.session_state.get("save_ui_reports_checkbox", True):
                         save_uploaded_files_for_track(ui_files, TRACK_UI)
                     generate_dashboard_from_uploaded_csv_files(TRACK_UI, ui_files)
-                    st.success("Generated UI dashboard and report. Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
-                    st.session_state.upload_left_page = "Dashboard"
+                    st.success("Generated UI dashboard and report.")
                     st.rerun()
+                render_saved_reports_compact_for_track(TRACK_UI, title="Saved UI Reports", key_prefix="ui")
 
         with cloud_col:
             with st.container(border=True):
@@ -4890,9 +3405,9 @@ elif team_upload_view:
                     if st.session_state.get("save_cloud_reports_checkbox", True):
                         save_uploaded_files_for_track(cloud_files, TRACK_CLOUD)
                     generate_dashboard_from_uploaded_csv_files(TRACK_CLOUD, cloud_files)
-                    st.success("Generated Cloud Assist dashboard and report. Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
-                    st.session_state.upload_left_page = "Dashboard"
+                    st.success("Generated Cloud Assist dashboard and report.")
                     st.rerun()
+                render_saved_reports_compact_for_track(TRACK_CLOUD, title="Saved Cloud Reports", key_prefix="cloud")
 
         with inv_col:
             with st.container(border=True):
@@ -4903,10 +3418,11 @@ elif team_upload_view:
                     if st.session_state.get("save_inventory_reports_checkbox", True):
                         save_uploaded_files_for_track(inv_files, TRACK_INVENTORY)
                     generate_dashboard_from_uploaded_csv_files(TRACK_INVENTORY, inv_files)
-                    st.success("Generated Customer Inventory Benchmarking dashboard and report. Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
-                    st.session_state.upload_left_page = "Dashboard"
+                    st.success("Generated Customer Inventory Benchmarking dashboard and report.")
                     st.rerun()
+                render_saved_reports_compact_for_track(TRACK_INVENTORY, title="Saved Inventory Reports", key_prefix="inventory")
 
+        render_action_cards()
 else:
     if st.session_state.run_frames:
         render_executive_dashboard(st.session_state.run_frames)
