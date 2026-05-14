@@ -1485,6 +1485,68 @@ body:has(.upload-left-panel-marker) .panel-title:has(+ .dashboard-static-card) {
   display: none !important;
 }
 
+
+/* STATIC DASHBOARD URL + PERFORMANCE POLISH */
+.dashboard-static-card {
+  max-width: 960px !important;
+  padding: 20px 24px !important;
+}
+.dashboard-static-title {
+  font-size: 22px !important;
+  line-height: 1.15 !important;
+  margin-bottom: 10px !important;
+}
+.dashboard-static-desc {
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+  margin-bottom: 16px !important;
+}
+.dashboard-static-btn {
+  height: 38px !important;
+  padding: 0 16px !important;
+  font-size: 14px !important;
+  border-radius: 11px !important;
+}
+.static-url-box {
+  margin-top: 14px;
+  background: #f8fbff;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #0f2b68;
+  font-size: 13px;
+  font-weight: 700;
+  word-break: break-all;
+}
+.page-url-row {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.page-url-row span {
+  color: #0f2b68;
+  font-weight: 800;
+}
+.page-url-row code {
+  background: #eef4ff;
+  border-radius: 6px;
+  padding: 2px 6px;
+  color: #0f172a;
+}
+
+/* Faster perceived tab clicks: remove animation/large shadows */
+* {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+}
+.executive-tab,
+.track-tab,
+button,
+.stButton > button {
+  transition: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2159,16 +2221,23 @@ def render_upload_left_panel() -> str:
 def render_upload_sidebar_page(page_name: str) -> bool:
     """Return True if a sidebar page was rendered and upload cards should stop."""
     if page_name == "Dashboard":
+        base_app_url = "https://ciscoiq-report-automation.streamlit.app/"
         run_id_value = st.session_state.get("run_id", "")
-        dash_href = dashboard_url_for_run(run_id_value) if run_id_value else "?view=dashboard"
+        dash_href = f"{base_app_url}?view=dashboard&run_id={run_id_value}" if run_id_value else f"{base_app_url}?view=dashboard"
         st.markdown(f"""
         <div class="dashboard-static-card">
           <div class="dashboard-static-title">View All Results</div>
           <div class="dashboard-static-desc">
-            Dashboard page is available even before data is generated. After you generate any track,
-            use this static link to open the latest results dashboard.
+            Share this static dashboard URL with management. After you generate results, this link opens the latest dashboard view.
           </div>
-          <a class="dashboard-static-btn" href="{dash_href}" target="_self">Open Results Dashboard ↗</a>
+          <a class="dashboard-static-btn" href="{dash_href}" target="_blank">Open Results Dashboard ↗</a>
+          <div class="static-url-box">{dash_href}</div>
+          <div class="page-url-row">
+            <span>Upload:</span> <code>{base_app_url}</code><br/>
+            <span>Dashboard:</span> <code>{base_app_url}?view=dashboard</code><br/>
+            <span>Track Comparison:</span> <code>{base_app_url}?view=dashboard&tab=Track%20Comparison</code><br/>
+            <span>Chatbot:</span> <code>{base_app_url}?view=dashboard&tab=Chatbot</code>
+          </div>
         </div>
         """, unsafe_allow_html=True)
         return True
