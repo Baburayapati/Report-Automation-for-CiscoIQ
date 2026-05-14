@@ -1656,6 +1656,39 @@ button,
   height: 18px;
 }
 
+
+/* API ONLY EXCEL REPORT PAGE */
+.saved-report-title {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: #111827 !important;
+  margin: 18px 0 10px 0 !important;
+  word-break: break-word !important;
+}
+
+.saved-report-divider {
+  height: 22px !important;
+}
+
+body:has(.upload-left-panel-marker) .report-program-title {
+  font-size: 22px !important;
+  font-weight: 950 !important;
+  color: #0f2b68 !important;
+  margin-bottom: 12px !important;
+}
+
+body:has(.upload-left-panel-marker) .reports-subtitle {
+  color: #64748b !important;
+  font-size: 15px !important;
+  margin: -4px 0 18px 0 !important;
+}
+
+body:has(.upload-left-panel-marker) .stDownloadButton > button,
+body:has(.upload-left-panel-marker) .stButton > button {
+  height: 38px !important;
+  border-radius: 10px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2389,7 +2422,7 @@ def render_upload_sidebar_page(page_name: str) -> bool:
     if page_name == "Excel Report":
         st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
         st.markdown(
-            '<div class="reports-subtitle">Download generated Excel workbooks for saved API/JMeter JSON reports.</div>',
+            '<div class="reports-subtitle">API Excel reports are generated from saved API/JMeter JSON files.</div>',
             unsafe_allow_html=True,
         )
 
@@ -2398,20 +2431,22 @@ def render_upload_sidebar_page(page_name: str) -> bool:
             if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == TRACK_API
         ]
 
-        if not api_uploads:
-            st.info("No saved API reports yet. Upload and save API JSON files first.")
-            return True
-
         with st.container(border=True):
             st.markdown('<div class="report-program-title">API Excel Reports</div>', unsafe_allow_html=True)
+
+            if not api_uploads:
+                st.info("No saved API reports yet.")
+                return True
 
             for idx, item in enumerate(api_uploads):
                 original_name = item.get("file_name", "API_Report.json")
                 saved_name = item.get("saved_name", "")
                 saved_path = SAVED_REPORTS_DIR / saved_name
+
+                # Same clean report name style as Reports tab.
                 report_label = infer_saved_report_info(original_name).get("label", Path(original_name).stem)
 
-                st.markdown(f'<div class="excel-report-name">{report_label}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="saved-report-title">{report_label}</div>', unsafe_allow_html=True)
 
                 col_download, col_remove = st.columns(2, gap="medium")
 
@@ -2419,33 +2454,33 @@ def render_upload_sidebar_page(page_name: str) -> bool:
                     if saved_path.exists():
                         try:
                             with tempfile.TemporaryDirectory() as tmpdir:
-                                output_path = Path(tmpdir) / f"{Path(original_name).stem}.xlsx"
+                                output_path = Path(tmpdir) / f"{report_label}.xlsx"
                                 build_report(saved_path, output_path)
                                 excel_data = output_path.read_bytes()
 
                             st.download_button(
                                 "Download Excel Report",
                                 data=excel_data,
-                                file_name=f"{Path(original_name).stem}.xlsx",
+                                file_name=f"{report_label}.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                key=f"excel_saved_download_{idx}_{sanitize_token(saved_name)}",
+                                key=f"api_excel_download_{idx}_{sanitize_token(saved_name)}",
                                 use_container_width=True,
                             )
                         except Exception as exc:
-                            st.error(f"Unable to prepare Excel for {original_name}: {exc}")
+                            st.error(f"Unable to prepare Excel: {exc}")
                     else:
                         st.warning("Saved source file is missing.")
 
                 with col_remove:
                     if st.button(
                         "Remove",
-                        key=f"excel_saved_remove_{idx}_{sanitize_token(saved_name)}",
+                        key=f"api_excel_remove_{idx}_{sanitize_token(saved_name)}",
                         use_container_width=True,
                     ):
                         remove_saved_upload(saved_name)
                         st.rerun()
 
-                st.markdown('<div class="excel-row-gap"></div>', unsafe_allow_html=True)
+                st.markdown('<div class="saved-report-divider"></div>', unsafe_allow_html=True)
 
         return True
 
