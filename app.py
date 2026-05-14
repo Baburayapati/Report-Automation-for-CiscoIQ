@@ -1727,63 +1727,50 @@ body:has(.excel-api-only-page) div:has(> .report-program-title):has(> div:nth-ch
 
 
 
-/* EXCEL REPORT SAME-DOM API ONLY FIX */
-.excel-api-title {
-  font-size: 18px !important;
-  font-weight: 900 !important;
-  color: #0f2b68 !important;
-  margin-bottom: 14px !important;
-}
-.excel-file-title {
-  font-size: 15px !important;
-  font-weight: 850 !important;
-  color: #111827 !important;
-  margin: 12px 0 10px 0 !important;
-  word-break: break-word !important;
-}
-.excel-row-gap {
-  height: 16px !important;
-}
-.excel-clear-slot {
-  min-height: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-}
-.stDownloadButton > button,
-.stButton > button {
-  border-radius: 10px !important;
-}
-
-
-/* EXCEL NO-STALE API ONLY FIX */
-.excel-api-title {
-  font-size: 18px !important;
-  font-weight: 900 !important;
-  color: #0f2b68 !important;
-  margin-bottom: 14px !important;
-}
-.excel-file-title {
-  font-size: 15px !important;
-  font-weight: 850 !important;
-  color: #111827 !important;
-  margin: 12px 0 10px 0 !important;
-  word-break: break-word !important;
-}
-.excel-row-gap {
-  height: 16px !important;
-}
-.excel-hidden-slot {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-}
 /* Hide hidden-slot parent card only, not the API card */
 body:has(.excel-report-active-page) [data-testid="stVerticalBlockBorderWrapper"]:has(.excel-hidden-slot) {
   display: none !important;
 }
 body:has(.excel-report-active-page) .stDownloadButton > button,
 body:has(.excel-report-active-page) .stButton > button {
+  min-height: 38px !important;
+  border-radius: 10px !important;
+}
+
+
+/* REVERT BAD LOADING OVERLAY */
+body:has(.upload-left-panel-marker) .block-container {
+  opacity: 1 !important;
+}
+
+
+/* SIMPLE VISIBLE API EXCEL PAGE */
+.excel-only-wrapper {
+  background: rgba(255,255,255,.94);
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 18px 18px 10px 18px;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04);
+}
+.excel-only-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f2b68;
+  margin-bottom: 16px;
+}
+.excel-only-name {
+  font-size: 15px;
+  font-weight: 850;
+  color: #111827;
+  margin: 12px 0 10px 0;
+  word-break: break-word;
+}
+.excel-only-gap {
+  height: 18px;
+}
+body:has(.excel-only-wrapper) .stDownloadButton > button,
+body:has(.excel-only-wrapper) .stButton > button {
+  display: inline-flex !important;
   min-height: 38px !important;
   border-radius: 10px !important;
 }
@@ -2514,97 +2501,63 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     if page_name == "Excel Report":
-        # Excel page marker + DOM cleanup. This prevents old Reports-tab cards from flashing
-        # during Streamlit hydration after login/refresh.
-        st.markdown('<div class="excel-report-active-page"></div>', unsafe_allow_html=True)
-        components.html(
-            """
-            <script>
-            const hideStaleExcelCards = () => {
-              const doc = window.parent.document;
-              const staleLabels = ["UI Reports", "Cloud Assist Reports", "Inventory Reports", "Generate Results"];
-              doc.querySelectorAll('[data-testid="stVerticalBlockBorderWrapper"], [data-testid="stHorizontalBlock"], div').forEach(el => {
-                const text = (el.innerText || "").trim();
-                if (staleLabels.some(label => text.includes(label))) {
-                  const card = el.closest('[data-testid="stVerticalBlockBorderWrapper"]') || el;
-                  if (!text.includes("API Excel Reports")) {
-                    card.style.display = "none";
-                  }
-                }
-              });
-            };
-            hideStaleExcelCards();
-            setTimeout(hideStaleExcelCards, 100);
-            setTimeout(hideStaleExcelCards, 350);
-            setTimeout(hideStaleExcelCards, 800);
-            </script>
-            """,
-            height=0,
-        )
-
+        # Simple API-only Excel page. No old Reports columns, no hidden-slot cleanup, no JS overlay.
         api_uploads = [
             item for item in normalize_saved_uploads(load_saved_uploads())
             if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == TRACK_API
         ]
 
-        r1, r2 = st.columns(2, gap="medium")
-        r3, r4 = st.columns(2, gap="medium")
+        st.markdown('<div class="excel-only-wrapper">', unsafe_allow_html=True)
+        st.markdown('<div class="excel-only-title">API Excel Reports</div>', unsafe_allow_html=True)
 
-        with r1:
-            with st.container(border=True):
-                st.markdown('<div class="excel-api-title">API Excel Reports</div>', unsafe_allow_html=True)
+        if not api_uploads:
+            st.info("No saved API reports yet.")
+            st.markdown('</div>', unsafe_allow_html=True)
+            return True
 
-                if not api_uploads:
-                    st.info("No saved API reports yet.")
+        for idx, item in enumerate(api_uploads):
+            original_name = item.get("file_name", "API_Report.json")
+            saved_name = item.get("saved_name", "")
+            saved_path = SAVED_REPORTS_DIR / saved_name
+            display_name = compact_saved_file_label(original_name)
+
+            st.markdown(f'<div class="excel-only-name">{display_name}</div>', unsafe_allow_html=True)
+
+            col_download, col_remove = st.columns(2, gap="medium")
+
+            with col_download:
+                if saved_path.exists():
+                    try:
+                        with tempfile.TemporaryDirectory() as tmpdir:
+                            output_path = Path(tmpdir) / f"{display_name}.xlsx"
+                            build_report(saved_path, output_path)
+                            excel_bytes_for_download = output_path.read_bytes()
+
+                        st.download_button(
+                            "Download Excel Report",
+                            data=excel_bytes_for_download,
+                            file_name=f"{display_name}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key=f"excel_simple_download_{idx}_{sanitize_token(saved_name)}",
+                            use_container_width=True,
+                        )
+                    except Exception as exc:
+                        st.error(f"Unable to prepare Excel report: {exc}")
                 else:
-                    for idx, item in enumerate(api_uploads):
-                        original_name = item.get("file_name", "API_Report.json")
-                        saved_name = item.get("saved_name", "")
-                        saved_path = SAVED_REPORTS_DIR / saved_name
-                        display_name = compact_saved_file_label(original_name)
+                    st.warning("Saved source file is missing.")
 
-                        st.markdown(f'<div class="excel-file-title">{display_name}</div>', unsafe_allow_html=True)
+            with col_remove:
+                if st.button(
+                    "Remove",
+                    key=f"excel_simple_remove_{idx}_{sanitize_token(saved_name)}",
+                    use_container_width=True,
+                ):
+                    remove_saved_upload(saved_name)
+                    st.rerun()
 
-                        col_download, col_remove = st.columns(2, gap="medium")
+            st.markdown('<div class="excel-only-gap"></div>', unsafe_allow_html=True)
 
-                        with col_download:
-                            if saved_path.exists():
-                                try:
-                                    with tempfile.TemporaryDirectory() as tmpdir:
-                                        output_path = Path(tmpdir) / f"{display_name}.xlsx"
-                                        build_report(saved_path, output_path)
-                                        excel_bytes_for_download = output_path.read_bytes()
-
-                                    st.download_button(
-                                        "Download Excel Report",
-                                        data=excel_bytes_for_download,
-                                        file_name=f"{display_name}.xlsx",
-                                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                        key=f"excel_download_{idx}_{sanitize_token(saved_name)}",
-                                        use_container_width=True,
-                                    )
-                                except Exception as exc:
-                                    st.error(f"Unable to prepare Excel report: {exc}")
-                            else:
-                                st.warning("Saved source file is missing.")
-
-                        with col_remove:
-                            if st.button(
-                                "Remove",
-                                key=f"excel_remove_{idx}_{sanitize_token(saved_name)}",
-                                use_container_width=True,
-                            ):
-                                remove_saved_upload(saved_name)
-                                st.rerun()
-
-                        st.markdown('<div class="excel-row-gap"></div>', unsafe_allow_html=True)
-
-        # Same DOM positions as Reports tab, but explicitly hidden.
-        # This clears stale UI/Cloud/Inventory cards after login/refresh.
-        for blank_col in (r2, r3, r4):
-            with blank_col:
-                st.markdown('<div class="excel-hidden-slot"></div>', unsafe_allow_html=True)
-
+        st.markdown('</div>', unsafe_allow_html=True)
         return True
 
     if page_name == "AI Chatbot":
