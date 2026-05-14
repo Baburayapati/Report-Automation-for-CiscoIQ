@@ -1769,6 +1769,54 @@ body:has(.excel-only-title) .stButton > button {
   border-radius: 10px !important;
 }
 
+
+/* SIDEBAR ALIGNMENT FIX - UI ONLY */
+.sidebar-nav-item,
+.left-nav-item,
+.nav-link,
+[data-testid="stSidebar"] a {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.sidebar-nav-item .icon,
+.left-nav-item .icon {
+  width: 20px !important;
+  min-width: 20px !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-right: 10px !important;
+}
+
+.sidebar-nav-item,
+.left-nav-item {
+  padding-left: 18px !important;
+}
+
+.sidebar-nav-item.active,
+.left-nav-item.active {
+  border-radius: 18px !important;
+}
+
+/* Top logo/dashboard symbol cleanup */
+.sidebar-logo,
+.nav-logo,
+.left-panel-logo {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-bottom: 18px !important;
+}
+
+.sidebar-logo img,
+.nav-logo img,
+.left-panel-logo img {
+  width: 26px !important;
+  height: 26px !important;
+  object-fit: contain !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
