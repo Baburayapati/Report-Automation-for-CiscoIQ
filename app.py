@@ -1402,6 +1402,52 @@ body:has(.upload-left-panel-marker) .upload-page-quick-row {
   border-radius: 10px !important;
 }
 
+
+/* REPORTS REAL CONTAINER CARDS FINAL */
+.reports-subtitle {
+  color: #64748b !important;
+  font-size: 15px !important;
+  margin: -4px 0 18px 0 !important;
+}
+
+body:has(.upload-left-panel-marker) .report-program-title {
+  font-size: 22px !important;
+  font-weight: 950 !important;
+  color: #0f2b68 !important;
+  margin-bottom: 14px !important;
+}
+
+/* Reports page bordered containers */
+body:has(.upload-left-panel-marker) div[data-testid="stVerticalBlockBorderWrapper"] {
+  border-radius: 16px !important;
+}
+
+/* Compact saved rows */
+.compact-saved-row {
+  background: #f8fbff !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+.compact-saved-cell-name {
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  margin-bottom: 8px !important;
+}
+
+.compact-saved-row .stButton > button {
+  height: 36px !important;
+  border-radius: 10px !important;
+}
+
+/* Remove previous fake HTML cards if any */
+.report-program-card {
+  display: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2102,24 +2148,24 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         r3, r4 = st.columns(2, gap="medium")
 
         with r1:
-            st.markdown('<div class="report-program-card"><div class="report-program-title">API Reports</div>', unsafe_allow_html=True)
-            render_api_saved_reports_compact()
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown('<div class="report-program-title">API Reports</div>', unsafe_allow_html=True)
+                render_saved_reports_compact_for_track(TRACK_API, title="", key_prefix="reports_api")
 
         with r2:
-            st.markdown('<div class="report-program-card"><div class="report-program-title">UI Reports</div>', unsafe_allow_html=True)
-            render_saved_reports_compact_for_track(TRACK_UI, title="", key_prefix="reports_ui")
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown('<div class="report-program-title">UI Reports</div>', unsafe_allow_html=True)
+                render_saved_reports_compact_for_track(TRACK_UI, title="", key_prefix="reports_ui")
 
         with r3:
-            st.markdown('<div class="report-program-card"><div class="report-program-title">Cloud Assist Reports</div>', unsafe_allow_html=True)
-            render_saved_reports_compact_for_track(TRACK_CLOUD, title="", key_prefix="reports_cloud")
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown('<div class="report-program-title">Cloud Assist Reports</div>', unsafe_allow_html=True)
+                render_saved_reports_compact_for_track(TRACK_CLOUD, title="", key_prefix="reports_cloud")
 
         with r4:
-            st.markdown('<div class="report-program-card"><div class="report-program-title">Inventory Reports</div>', unsafe_allow_html=True)
-            render_saved_reports_compact_for_track(TRACK_INVENTORY, title="", key_prefix="reports_inventory")
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown('<div class="report-program-title">Inventory Reports</div>', unsafe_allow_html=True)
+                render_saved_reports_compact_for_track(TRACK_INVENTORY, title="", key_prefix="reports_inventory")
 
         return True
 
@@ -4266,10 +4312,10 @@ def render_saved_reports_compact_for_track(track_name: str, title: str | None = 
         st.info(f"No saved {track_name} reports yet.")
         return
 
-    if title:
-        st.markdown(f"**{title}**")
-    else:
+    if title is None:
         st.markdown(f"**Saved {track_name} Reports**")
+    elif str(title).strip():
+        st.markdown(f"**{title}**")
 
     st.markdown(
         """
