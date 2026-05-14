@@ -1745,6 +1745,40 @@ body:has(.excel-saved-name) .stButton > button {
   border-radius: 10px !important;
 }
 
+
+/* REPORTS + EXCEL CLEANUP FINAL */
+.report-program-title {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: #0f2b68 !important;
+  margin-bottom: 12px !important;
+}
+.excel-saved-name {
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: #111827 !important;
+  margin: 16px 0 9px 0 !important;
+  word-break: break-word !important;
+}
+.excel-row-space {
+  height: 18px !important;
+}
+.reports-subtitle {
+  display: none !important;
+}
+/* Hide page headings on Reports/Excel pages; cards have their own headings */
+body:has(.report-program-title) > div .panel-title {
+  display: none !important;
+}
+body:has(.excel-saved-name) .report-program-title {
+  font-size: 18px !important;
+}
+body:has(.excel-saved-name) .stDownloadButton > button,
+body:has(.excel-saved-name) .stButton > button {
+  height: 38px !important;
+  border-radius: 10px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2445,12 +2479,7 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     if page_name == "Reports":
-        st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
-        st.markdown(
-            '<div class="reports-subtitle">Saved uploaded JSON/CSV files are organized by track.</div>',
-            unsafe_allow_html=True,
-        )
-
+        # No extra page description text.
         r1, r2 = st.columns(2, gap="medium")
         r3, r4 = st.columns(2, gap="medium")
 
@@ -2477,12 +2506,7 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     if page_name == "Excel Report":
-        st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
-        st.markdown(
-            '<div class="reports-subtitle">API Excel reports are generated from saved API/JMeter JSON files only.</div>',
-            unsafe_allow_html=True,
-        )
-
+        # API-only. No page description text, no other program cards.
         api_uploads = [
             item for item in normalize_saved_uploads(load_saved_uploads())
             if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == TRACK_API
@@ -2502,10 +2526,9 @@ def render_upload_sidebar_page(page_name: str) -> bool:
                 display_name = compact_saved_file_label(original_name)
 
                 st.markdown(f'<div class="excel-saved-name">{display_name}</div>', unsafe_allow_html=True)
+                dl_col, rm_col = st.columns(2, gap="medium")
 
-                col_download, col_remove = st.columns(2, gap="medium")
-
-                with col_download:
+                with dl_col:
                     if saved_path.exists():
                         try:
                             with tempfile.TemporaryDirectory() as tmpdir:
@@ -2525,7 +2548,7 @@ def render_upload_sidebar_page(page_name: str) -> bool:
                     else:
                         st.warning("Saved source file is missing.")
 
-                with col_remove:
+                with rm_col:
                     if st.button("Remove", key=f"excel_remove_{idx}_{sanitize_token(saved_name)}", use_container_width=True):
                         remove_saved_upload(saved_name)
                         st.rerun()
@@ -2550,7 +2573,6 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     if page_name == "Settings":
-        st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
         st.markdown(f"""
         <div class="settings-grid">
           <a class="settings-card" href="{base_app_url}?page=login" target="_self">
