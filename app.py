@@ -1354,6 +1354,54 @@ body:has(.upload-left-panel-marker) .upload-page-quick-row {
   background: linear-gradient(90deg,#2563eb,#7c3aed);
 }
 
+
+/* REPORTS INSIDE CARDS FIX */
+.reports-subtitle {
+  color: #64748b !important;
+  font-size: 15px !important;
+  margin: -4px 0 18px 0 !important;
+}
+
+.report-program-card {
+  background: #ffffff !important;
+  border: 1px solid #dbe4f0 !important;
+  border-radius: 16px !important;
+  padding: 18px !important;
+  min-height: 260px !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04) !important;
+  margin-bottom: 18px !important;
+}
+
+.report-program-title {
+  font-size: 22px !important;
+  font-weight: 950 !important;
+  color: #0f2b68 !important;
+  margin-bottom: 14px !important;
+}
+
+.report-program-card .panel-title,
+.report-program-card h2,
+.report-program-card h3,
+.report-program-card h4 {
+  display: none !important;
+}
+
+.report-program-card [data-testid="stVerticalBlockBorderWrapper"] {
+  min-height: auto !important;
+  max-height: none !important;
+  padding: 10px !important;
+}
+
+.report-program-card [data-testid="stAlert"] {
+  min-height: 48px !important;
+  border-radius: 10px !important;
+}
+
+.report-program-card .stButton > button {
+  height: 38px !important;
+  border-radius: 10px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2045,25 +2093,34 @@ def render_upload_sidebar_page(page_name: str) -> bool:
 
     if page_name == "Reports":
         st.markdown('<div class="panel-title">Reports</div>', unsafe_allow_html=True)
-        st.markdown('<div style="color:#64748b;margin:-6px 0 16px 0;">Saved uploaded JSON/CSV files are organized by track.</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="reports-subtitle">Saved uploaded JSON/CSV files are organized by track.</div>',
+            unsafe_allow_html=True,
+        )
+
         r1, r2 = st.columns(2, gap="medium")
         r3, r4 = st.columns(2, gap="medium")
+
         with r1:
             st.markdown('<div class="report-program-card"><div class="report-program-title">API Reports</div>', unsafe_allow_html=True)
             render_api_saved_reports_compact()
             st.markdown('</div>', unsafe_allow_html=True)
+
         with r2:
             st.markdown('<div class="report-program-card"><div class="report-program-title">UI Reports</div>', unsafe_allow_html=True)
             render_saved_reports_compact_for_track(TRACK_UI, title="", key_prefix="reports_ui")
             st.markdown('</div>', unsafe_allow_html=True)
+
         with r3:
             st.markdown('<div class="report-program-card"><div class="report-program-title">Cloud Assist Reports</div>', unsafe_allow_html=True)
             render_saved_reports_compact_for_track(TRACK_CLOUD, title="", key_prefix="reports_cloud")
             st.markdown('</div>', unsafe_allow_html=True)
+
         with r4:
             st.markdown('<div class="report-program-card"><div class="report-program-title">Inventory Reports</div>', unsafe_allow_html=True)
             render_saved_reports_compact_for_track(TRACK_INVENTORY, title="", key_prefix="reports_inventory")
             st.markdown('</div>', unsafe_allow_html=True)
+
         return True
 
     if page_name == "Excel Report":
