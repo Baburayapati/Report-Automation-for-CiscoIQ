@@ -1727,6 +1727,24 @@ body:has(.api-excel-file-name) .report-program-card:not(:first-child) {
   display: none !important;
 }
 
+
+/* CLEAN API ONLY EXCEL PAGE */
+.excel-saved-name {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: #111827 !important;
+  margin: 18px 0 10px 0 !important;
+  word-break: break-word !important;
+}
+.excel-row-space {
+  height: 22px !important;
+}
+body:has(.excel-saved-name) .stDownloadButton > button,
+body:has(.excel-saved-name) .stButton > button {
+  height: 38px !important;
+  border-radius: 10px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2403,8 +2421,9 @@ def render_upload_left_panel() -> str:
 
 def render_upload_sidebar_page(page_name: str) -> bool:
     """Return True if a sidebar page was rendered and upload cards should stop."""
+    base_app_url = "https://ciscoiq-report-automation.streamlit.app/"
+
     if page_name == "Dashboard":
-        base_app_url = "https://ciscoiq-report-automation.streamlit.app/"
         run_id_value = st.session_state.get("run_id", "")
         dash_href = f"{base_app_url}?view=dashboard&run_id={run_id_value}" if run_id_value else f"{base_app_url}?view=dashboard"
         st.markdown(f"""
@@ -2460,7 +2479,7 @@ def render_upload_sidebar_page(page_name: str) -> bool:
     if page_name == "Excel Report":
         st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
         st.markdown(
-            '<div class="reports-subtitle">Download Excel reports generated from saved API/JMeter JSON files only.</div>',
+            '<div class="reports-subtitle">API Excel reports are generated from saved API/JMeter JSON files only.</div>',
             unsafe_allow_html=True,
         )
 
@@ -2480,26 +2499,25 @@ def render_upload_sidebar_page(page_name: str) -> bool:
                 original_name = item.get("file_name", "API_Report.json")
                 saved_name = item.get("saved_name", "")
                 saved_path = SAVED_REPORTS_DIR / saved_name
-                display_name = infer_saved_report_info(original_name).get("label", Path(original_name).stem)
+                display_name = compact_saved_file_label(original_name)
 
-                st.markdown(f'<div class="api-excel-file-name">{display_name}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="excel-saved-name">{display_name}</div>', unsafe_allow_html=True)
 
-                dl_col, rm_col = st.columns(2, gap="medium")
+                col_download, col_remove = st.columns(2, gap="medium")
 
-                with dl_col:
+                with col_download:
                     if saved_path.exists():
                         try:
                             with tempfile.TemporaryDirectory() as tmpdir:
                                 output_path = Path(tmpdir) / f"{display_name}.xlsx"
                                 build_report(saved_path, output_path)
-                                excel_bytes_for_file = output_path.read_bytes()
-
+                                excel_file_bytes = output_path.read_bytes()
                             st.download_button(
                                 "Download Excel Report",
-                                data=excel_bytes_for_file,
+                                data=excel_file_bytes,
                                 file_name=f"{display_name}.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                key=f"download_api_excel_{idx}_{sanitize_token(saved_name)}",
+                                key=f"excel_download_{idx}_{sanitize_token(saved_name)}",
                                 use_container_width=True,
                             )
                         except Exception as exc:
@@ -2507,21 +2525,16 @@ def render_upload_sidebar_page(page_name: str) -> bool:
                     else:
                         st.warning("Saved source file is missing.")
 
-                with rm_col:
-                    if st.button(
-                        "Remove",
-                        key=f"remove_api_excel_{idx}_{sanitize_token(saved_name)}",
-                        use_container_width=True,
-                    ):
+                with col_remove:
+                    if st.button("Remove", key=f"excel_remove_{idx}_{sanitize_token(saved_name)}", use_container_width=True):
                         remove_saved_upload(saved_name)
                         st.rerun()
 
-                st.markdown('<div class="api-excel-row-space"></div>', unsafe_allow_html=True)
+                st.markdown('<div class="excel-row-space"></div>', unsafe_allow_html=True)
 
         return True
 
     if page_name == "AI Chatbot":
-        base_app_url = "https://ciscoiq-report-automation.streamlit.app/"
         run_id_value = st.session_state.get("run_id", "")
         chat_href = f"{base_app_url}?view=dashboard&tab=Chatbot&run_id={run_id_value}" if run_id_value else f"{base_app_url}?view=dashboard&tab=Chatbot"
         st.markdown(f"""
@@ -2537,7 +2550,6 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     if page_name == "Settings":
-        base_app_url = "https://ciscoiq-report-automation.streamlit.app/"
         st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
         st.markdown(f"""
         <div class="settings-grid">
@@ -2575,6 +2587,7 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     return False
+
 
 def render_dashboard_header() -> None:
     st.markdown(
@@ -3834,6 +3847,28 @@ def load_saved_uploads() -> List[Dict[str, str]]:
     except Exception:
         return []
 
+
+
+
+def compact_saved_file_label(file_name: str) -> str:
+    """Return short report label similar to Reports tab: Region-Users-Devices-Date."""
+    info = infer_saved_report_info(file_name)
+    region = info.get("region") or "Unknown"
+    users = info.get("users") or "N/A"
+    devices = info.get("devices") or "N/A"
+    date = info.get("date") or "N/A"
+
+    # Normalize users/devices text.
+    users = str(users).replace(" Users", "Users")
+    if users != "N/A" and "User" not in users:
+        users = f"{users}Users"
+    devices = str(devices).replace(" Devices", "Devices")
+    if devices != "N/A" and "Device" not in devices:
+        devices = f"{devices}Devices"
+
+    if region != "Unknown" and users != "N/A" and devices != "N/A" and date != "N/A":
+        return f"{region}-{users}-{devices}-{date}"
+    return Path(file_name).stem
 
 
 def infer_saved_report_info(file_name: str) -> Dict[str, str]:
