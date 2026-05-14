@@ -1779,6 +1779,41 @@ body:has(.excel-saved-name) .stButton > button {
   border-radius: 10px !important;
 }
 
+
+/* EXCEL API-ONLY PERSISTENT CLEAN FIX */
+.report-program-title {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: #0f2b68 !important;
+  margin-bottom: 12px !important;
+}
+.excel-saved-name {
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: #111827 !important;
+  margin: 16px 0 9px 0 !important;
+  word-break: break-word !important;
+}
+.excel-row-space {
+  height: 18px !important;
+}
+.reports-subtitle {
+  display: none !important;
+}
+/* Hide page headings on Reports/Excel pages; cards have their own headings */
+body:has(.report-program-title) .panel-title {
+  display: none !important;
+}
+body:has(.excel-api-only-page) .stDownloadButton > button,
+body:has(.excel-api-only-page) .stButton > button {
+  height: 38px !important;
+  border-radius: 10px !important;
+}
+/* Defensive: if stale report-tab titles remain after browser refresh/navigation, hide them on Excel page */
+body:has(.excel-api-only-page) div:has(> .report-program-title):has(> div:nth-child(1)):not(:has(.excel-saved-name)) {
+  display: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2506,7 +2541,9 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         return True
 
     if page_name == "Excel Report":
-        # API-only. No page description text, no other program cards.
+        # Marker used for CSS and to prevent stale report columns after refresh/navigation.
+        st.markdown('<div class="excel-api-only-page"></div>', unsafe_allow_html=True)
+
         api_uploads = [
             item for item in normalize_saved_uploads(load_saved_uploads())
             if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == TRACK_API
@@ -2526,6 +2563,7 @@ def render_upload_sidebar_page(page_name: str) -> bool:
                 display_name = compact_saved_file_label(original_name)
 
                 st.markdown(f'<div class="excel-saved-name">{display_name}</div>', unsafe_allow_html=True)
+
                 dl_col, rm_col = st.columns(2, gap="medium")
 
                 with dl_col:
@@ -2535,12 +2573,13 @@ def render_upload_sidebar_page(page_name: str) -> bool:
                                 output_path = Path(tmpdir) / f"{display_name}.xlsx"
                                 build_report(saved_path, output_path)
                                 excel_file_bytes = output_path.read_bytes()
+
                             st.download_button(
                                 "Download Excel Report",
                                 data=excel_file_bytes,
                                 file_name=f"{display_name}.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                key=f"excel_download_{idx}_{sanitize_token(saved_name)}",
+                                key=f"excel_api_download_{idx}_{sanitize_token(saved_name)}",
                                 use_container_width=True,
                             )
                         except Exception as exc:
@@ -2549,11 +2588,18 @@ def render_upload_sidebar_page(page_name: str) -> bool:
                         st.warning("Saved source file is missing.")
 
                 with rm_col:
-                    if st.button("Remove", key=f"excel_remove_{idx}_{sanitize_token(saved_name)}", use_container_width=True):
+                    if st.button("Remove", key=f"excel_api_remove_{idx}_{sanitize_token(saved_name)}", use_container_width=True):
                         remove_saved_upload(saved_name)
                         st.rerun()
 
                 st.markdown('<div class="excel-row-space"></div>', unsafe_allow_html=True)
+
+        # These empty placeholders deliberately clear any stale Report-tab elements from the frontend.
+        clear_a, clear_b = st.columns(2, gap="medium")
+        with clear_a:
+            st.empty()
+        with clear_b:
+            st.empty()
 
         return True
 
