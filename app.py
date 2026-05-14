@@ -1919,6 +1919,95 @@ body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button
   font-size: 15px !important;
 }
 
+
+/* FINAL LEFT SIDEBAR PROFESSIONAL UI - UI ONLY */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] {
+  width: 238px !important;
+  min-width: 238px !important;
+  background: linear-gradient(180deg, #071a3a 0%, #082355 100%) !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] > div:first-child {
+  padding: 22px 14px 18px 14px !important;
+}
+
+/* top logo like reference: small, top-left */
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  color: #ffffff !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  width: 26px !important;
+  height: 26px !important;
+  margin: 10px 0 42px 12px !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  letter-spacing: -3px !important;
+  text-align: left !important;
+}
+
+/* button rows: compact, left aligned, same column */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  margin: 0 0 12px 0 !important;
+  width: 100% !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 14px !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding: 0 14px 0 22px !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.1px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button p {
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  color: inherit !important;
+  white-space: pre !important;
+  text-align: left !important;
+}
+
+/* inactive menu */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="secondary"],
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button:not([kind="primary"]) {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: rgba(255,255,255,.88) !important;
+}
+
+/* active purple pill */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg, #5b45f3 0%, #7d3ef0 100%) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 28px rgba(99,75,241,.28) !important;
+}
+
+/* hover */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button:hover {
+  background: rgba(255,255,255,.08) !important;
+  color: #ffffff !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
+  background: linear-gradient(90deg, #5b45f3 0%, #7d3ef0 100%) !important;
+}
+
+/* reduce oversized Streamlit sidebar collapse/icon spacing side effects */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] [data-testid="stSidebarNav"] {
+  display: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2569,12 +2658,12 @@ def render_upload_left_panel() -> str:
         st.session_state.upload_left_page = "Track Uploads"
 
     nav_items = [
-        ("Dashboard", "⌂ Dashboard"),
-        ("Track Uploads", "▣ Track Uploads"),
-        ("Reports", "▤ Reports"),
-        ("Excel Report", "▥ Excel Report"),
-        ("AI Chatbot", "◉ AI Chatbot"),
-        ("Settings", "⚙ Settings"),
+        ("Dashboard", "⌂  Dashboard"),
+        ("Track Uploads", "▣  Track Uploads"),
+        ("Reports", "▤  Reports"),
+        ("Excel Report", "▥  Excel Report"),
+        ("AI Chatbot", "☻  AI Chatbot"),
+        ("Settings", "⚙  Settings"),
     ]
 
     with st.sidebar:
