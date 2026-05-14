@@ -1770,13 +1770,258 @@ body:has(.excel-only-title) .stButton > button {
 }
 
 
-/* DASHBOARD FILTER + SPEED FIX */
-div[data-testid="stSelectbox"] label {
-  font-size: 13px !important;
-  font-weight: 700 !important;
+/* SIDEBAR ALIGNMENT FIX - UI ONLY */
+.sidebar-nav-item,
+.left-nav-item,
+.nav-link,
+[data-testid="stSidebar"] a {
+  display: flex !important;
+  align-items: center !important;
 }
-div[data-testid="stSelectbox"] div {
-  font-size: 13px !important;
+
+.sidebar-nav-item .icon,
+.left-nav-item .icon {
+  width: 20px !important;
+  min-width: 20px !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-right: 10px !important;
+}
+
+.sidebar-nav-item,
+.left-nav-item {
+  padding-left: 18px !important;
+}
+
+.sidebar-nav-item.active,
+.left-nav-item.active {
+  border-radius: 18px !important;
+}
+
+/* Top logo/dashboard symbol cleanup */
+.sidebar-logo,
+.nav-logo,
+.left-panel-logo {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-bottom: 18px !important;
+}
+
+.sidebar-logo img,
+.nav-logo img,
+.left-panel-logo img {
+  width: 26px !important;
+  height: 26px !important;
+  object-fit: contain !important;
+}
+
+
+/* LEFT PANEL ICON POLISH - UI ONLY, NO FUNCTIONALITY CHANGE */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] {
+  background: linear-gradient(180deg, #071a3a 0%, #09245a 100%) !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding-left: 58px !important;
+  padding-right: 20px !important;
+  height: 54px !important;
+  border-radius: 18px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.1px !important;
+  white-space: nowrap !important;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+}
+
+/* Make the icon character occupy a visually fixed lane */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button p {
+  text-align: left !important;
+  width: 100% !important;
+  margin: 0 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  white-space: pre !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Inactive items: clean text, no boxes */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="secondary"],
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button:not([kind="primary"]) {
+  background: transparent !important;
+  border: 0 !important;
+  color: rgba(255,255,255,.92) !important;
+  box-shadow: none !important;
+}
+
+/* Active item: screenshot-like purple pill */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%) !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  box-shadow: 0 16px 34px rgba(88, 80, 236, .28) !important;
+}
+
+/* Keep all buttons in one straight vertical menu column */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  width: 100% !important;
+  margin: 0 0 22px 0 !important;
+}
+
+/* Top icon/logo: smaller and aligned with menu icon lane */
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  color: #ffffff !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  margin: 44px 0 62px 34px !important;
+  text-align: left !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  letter-spacing: -4px !important;
+}
+
+/* Remove extra default sidebar padding offsets */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] > div:first-child {
+  padding-left: 10px !important;
+  padding-right: 18px !important;
+}
+
+
+/* Exact sidebar icon style from reference image */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  padding-left: 46px !important;
+  height: 50px !important;
+  border-radius: 18px !important;
+  justify-content: flex-start !important;
+}
+
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  font-size: 22px !important;
+  margin-left: 22px !important;
+  margin-top: 26px !important;
+  margin-bottom: 44px !important;
+  letter-spacing: -3px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  margin-bottom: 16px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button p {
+  font-size: 15px !important;
+}
+
+
+/* FINAL LEFT SIDEBAR PROFESSIONAL UI - UI ONLY */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] {
+  width: 238px !important;
+  min-width: 238px !important;
+  background: linear-gradient(180deg, #071a3a 0%, #082355 100%) !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] > div:first-child {
+  padding: 22px 14px 18px 14px !important;
+}
+
+/* top logo like reference: small, top-left */
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  color: #ffffff !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  width: 26px !important;
+  height: 26px !important;
+  margin: 10px 0 42px 12px !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  letter-spacing: -3px !important;
+  text-align: left !important;
+}
+
+/* button rows: compact, left aligned, same column */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  margin: 0 0 12px 0 !important;
+  width: 100% !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 14px !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding: 0 14px 0 22px !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.1px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button p {
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  color: inherit !important;
+  white-space: pre !important;
+  text-align: left !important;
+}
+
+/* inactive menu */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="secondary"],
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button:not([kind="primary"]) {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: rgba(255,255,255,.88) !important;
+}
+
+/* active purple pill */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg, #5b45f3 0%, #7d3ef0 100%) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 28px rgba(99,75,241,.28) !important;
+}
+
+/* hover */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button:hover {
+  background: rgba(255,255,255,.08) !important;
+  color: #ffffff !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
+  background: linear-gradient(90deg, #5b45f3 0%, #7d3ef0 100%) !important;
+}
+
+/* reduce oversized Streamlit sidebar collapse/icon spacing side effects */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] [data-testid="stSidebarNav"] {
+  display: none !important;
+}
+
+
+/* Better top sidebar logo */
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  opacity: 0.95 !important;
+  letter-spacing: 0 !important;
+}
+
+
+/* remove empty sidebar logo spacing */
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  display: none !important;
 }
 
 </style>
@@ -2254,33 +2499,6 @@ def build_standard_report_name(track_name: str, program_name: str, original_name
     return f"{track_token}_{app_token}_{program_token}_{date_token}_{epoch_token}_{users_token}_{devices_token}_{region_token}_{env_token}_{run_token}{ext.lower()}"
 
 
-
-def dashboard_short_result_label_from_frames(frames: Dict[str, pd.DataFrame]) -> str:
-    """Short dashboard filter label matching Reports tab style: REGION-Users-Devices-Date."""
-    info = frames.get("Run_Info")
-    info_row = info.iloc[0].to_dict() if info is not None and not info.empty else {}
-    label = str(frames.get("Label", ""))
-    inferred = infer_saved_report_info(label)
-
-    region = str(frames.get("Region", "") or info_row.get("Region", "") or inferred.get("region", "Unknown")).strip()
-    users = str(info_row.get("Users", "") or inferred.get("users", "N/A")).strip()
-    devices = str(info_row.get("Devices", "") or inferred.get("devices", "N/A")).strip()
-    date = str(info_row.get("Date", "") or inferred.get("date", "N/A")).strip()
-
-    users = users.replace(" Users", "Users")
-    if users and users != "N/A" and "User" not in users:
-        users = f"{users}Users"
-
-    devices = devices.replace(" Devices", "Devices")
-    if devices and devices != "N/A" and "Device" not in devices:
-        devices = f"{devices}Devices"
-
-    if region and region not in {"Unknown", "N/A", "NA"} and users and users != "N/A" and devices and devices != "N/A" and date and date != "N/A":
-        return f"{region.upper()}-{users}-{devices}-{date}"
-
-    return run_display_label(frames)
-
-
 def report_title(region: str, users: str, devices: str, include_users: bool = True) -> str:
     region_token = str(region or "Unknown").strip().upper()
     user_value = re.sub(r"(?i)\s*(concurrent\s*)?users?\s*", "", str(users or "").strip())
@@ -2465,7 +2683,7 @@ def render_upload_left_panel() -> str:
     ]
 
     with st.sidebar:
-        st.markdown('<div class="upload-left-logo">▥</div>', unsafe_allow_html=True)
+        st.markdown('<div class="upload-left-logo"></div>', unsafe_allow_html=True)
         for page_name, label in nav_items:
             active = st.session_state.upload_left_page == page_name
             if st.button(
@@ -2691,6 +2909,21 @@ def dashboard_view_tabs() -> str:
             use_container_width=True,
         ):
             st.session_state["dashboard_tab"] = tab_value
+            if current_run_id:
+                st.query_params["view"] = "dashboard"
+                st.query_params["run_id"] = current_run_id
+                st.query_params["tab"] = tab_value
+            st.rerun()
+
+    if current_run_id:
+        if (
+            st.query_params.get("view", "") != "dashboard"
+            or st.query_params.get("run_id", "") != current_run_id
+            or st.query_params.get("tab", "") != current_tab
+        ):
+            st.query_params["view"] = "dashboard"
+            st.query_params["run_id"] = current_run_id
+            st.query_params["tab"] = current_tab
 
     return current_tab
 
@@ -2964,40 +3197,53 @@ def sla_donut(df: pd.DataFrame):
 
 
 def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region: str = "All", forced_track: str = "API") -> List[Dict[str, pd.DataFrame]]:
-    rows = []
-    for frames in run_frames:
-        info = frames.get("Run_Info")
-        info_row = info.iloc[0].to_dict() if info is not None and not info.empty else {}
-        label = frames["Label"]
-        inferred = infer_saved_report_info(label)
+    def normalize_filter_date(value: str, label: str) -> str:
+        parsed = extract_mmddyyyy_from_text(str(value or "")) or extract_mmddyyyy_from_text(str(label or ""))
+        if parsed:
+            return f"{parsed[:2]}-{parsed[2:4]}-{parsed[4:8]}"
+        return "N/A"
 
-        region = frames.get("Region", region_from_frames(frames))
-        if not region or region == "Unknown":
-            region = inferred.get("region", "Unknown")
+    cache = st.session_state.setdefault("_dashboard_filter_meta_cache", {})
+    labels_key = "|".join([str(frames.get("Label", "")) for frames in run_frames])
+    active_program = st.session_state.get("active_program", PROGRAM_SAAS)
+    meta_key = f"{st.session_state.get('run_id','')}::{active_program}::{forced_track}::{labels_key}"
+    meta = cache.get(meta_key)
+    if meta is None:
+        rows = []
+        for frames in run_frames:
+            info = frames.get("Run_Info")
+            info_row = info.iloc[0].to_dict() if info is not None and not info.empty else {}
+            label = frames["Label"]
+            inferred = infer_saved_report_info(label)
+            region = frames.get("Region", region_from_frames(frames))
+            if not region or region == "Unknown":
+                region = inferred.get("region", "Unknown")
 
-        date = str(info_row.get("Date", "") or inferred.get("date", "N/A"))
-        if not date or date == "N/A":
-            date = inferred.get("date", "N/A")
+            inferred_date = normalize_filter_date(inferred.get("date", "N/A"), label)
+            info_date = normalize_filter_date(info_row.get("Date", "N/A"), label)
+            date = inferred_date if inferred_date != "N/A" else info_date
 
-        duration = str(info_row.get("Duration", "") or inferred.get("duration", "N/A"))
-        track = infer_program_track(label)[1]
-        short_display = dashboard_short_result_label_from_frames(frames)
+            duration = str(info_row.get("Duration", "N/A"))
+            if not duration or duration == "N/A":
+                duration = inferred.get("duration", "N/A")
 
-        rows.append({
-            "Label": label,
-            "Short Display": short_display,
-            "Display": run_display_label(frames),
-            "Region": str(region),
-            "Date": str(date),
-            "Duration": duration,
-            "Track": track,
-            "Application": str(info_row.get("Application", inferred.get("application", APP_NAME_TOKEN))),
-            "Program": str(info_row.get("Program", inferred.get("program", PROGRAM_SAAS))),
-            "Environment": str(info_row.get("Environment", inferred.get("env", "PROD"))),
-            "Run ID": str(info_row.get("Run ID", inferred.get("run_id", "N/A"))),
-        })
+            short_result = run_display_label(frames)
+            rows.append({
+                "Label": label,
+                "Display": short_result,
+                "Region": region,
+                "Date": date,
+                "Duration": duration,
+                "Track": infer_program_track(label)[1],
+                "Application": str(info_row.get("Application", inferred.get("application", APP_NAME_TOKEN))),
+                "Program": str(info_row.get("Program", inferred.get("program", PROGRAM_SAAS))),
+                "Environment": str(info_row.get("Environment", inferred.get("env", "PROD"))),
+                "Run ID": str(info_row.get("Run ID", inferred.get("run_id", "N/A"))),
+                "Result Option": short_result,
+            })
+        meta = pd.DataFrame(rows)
+        cache[meta_key] = meta
 
-    meta = pd.DataFrame(rows)
     if meta.empty:
         return run_frames
 
@@ -3005,40 +3251,20 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
     if meta.empty:
         return []
 
-    # Keep all matching files; no arbitrary head(9), so filters do not miss reports.
-    meta["Result Option"] = meta["Short Display"]
-    # If duplicate short labels exist, append run id to keep select options unique.
-    duplicated = meta["Result Option"].duplicated(keep=False)
-    meta.loc[duplicated, "Result Option"] = meta.loc[duplicated].apply(
-        lambda r: f"{r['Short Display']} | {r.get('Run ID', 'N/A')}",
-        axis=1,
-    )
+    files = meta["Result Option"].astype(str).tolist()
+    dedup = {}
+    for i, name in enumerate(files):
+        dedup[name] = dedup.get(name, 0) + 1
+        if dedup[name] > 1:
+            files[i] = f"{name} ({dedup[name]})"
+    meta["Result Option"] = files
 
-    files = meta["Result Option"].tolist()
-    dates = sorted([d for d in meta["Date"].astype(str).unique().tolist() if d and d != "N/A"])
-    regions = sorted([r for r in meta["Region"].astype(str).unique().tolist() if r and r != "Unknown"])
+    dates = sorted(meta["Date"].astype(str).unique().tolist())
+    regions = sorted(meta["Region"].astype(str).unique().tolist())
 
-    file_all = f"All Results ({len(files)})"
-    date_all = f"All Dates ({len(dates)})"
-    region_all = f"All Regions ({len(regions)})"
-
-    file_options = [file_all] + files
-    date_options = [date_all] + dates
-    region_options = [region_all] + regions
-
-    # Reset stale filter choices when user changes program track or available files.
-    filter_signature = f"{forced_track}|{'/'.join(files)}|{'/'.join(dates)}|{'/'.join(regions)}"
-    if st.session_state.get("dashboard_filter_signature") != filter_signature:
-        st.session_state["dashboard_filter_signature"] = filter_signature
-        st.session_state["applied_dashboard_filters"] = {"file": file_all, "date": date_all, "region": region_all}
-        st.session_state["dashboard_filter_file_choice"] = file_all
-        st.session_state["dashboard_filter_date_choice"] = date_all
-        st.session_state["dashboard_filter_region_choice"] = region_all
-
-    applied = st.session_state.get("applied_dashboard_filters", {"file": file_all, "date": date_all, "region": region_all})
-
-    def safe_index(options, value):
-        return options.index(value) if value in options else 0
+    file_options = [f"Compare Selected ({len(files)})"] + files
+    date_options = [f"All Dates ({len(dates)})"] + dates
+    region_options = [", ".join(regions) + f" ({len(regions)})"] + regions
 
     with st.container(border=True):
         st.markdown(
@@ -3058,35 +3284,74 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
 }
 </style>
 <div class="filter-card-title">DATA & FILTERS</div>
-<div class="filter-help">Choose result file, date and region, then apply.</div>
+<div class="filter-help">Choose reports, test date and region, then apply.</div>
 """,
             unsafe_allow_html=True,
         )
 
-        selected_file_choice = st.selectbox("Result File", file_options, index=safe_index(file_options, applied.get("file")), key="dashboard_filter_file_choice")
-        selected_date_choice = st.selectbox("Date", date_options, index=safe_index(date_options, applied.get("date")), key="dashboard_filter_date_choice")
-        selected_region_choice = st.selectbox("Region", region_options, index=safe_index(region_options, applied.get("region")), key="dashboard_filter_region_choice")
+        scope_key = f"{st.session_state.get('run_id','')}::{active_program}::{forced_track}"
+        scope_token = hashlib.md5(scope_key.encode("utf-8")).hexdigest()[:12]
+        all_filters = st.session_state.setdefault("applied_dashboard_filters", {})
+        current_filters = all_filters.get(scope_key, {
+            "file": file_options[0],
+            "date": date_options[0],
+            "region": region_options[0],
+        })
 
-        apply_clicked = st.button("Apply Filters", type="primary", use_container_width=True, key="dashboard_apply_filters")
-        reset_clicked = st.button("Reset Filters", use_container_width=True, key="dashboard_reset_filters")
+        if current_filters.get("file") not in file_options:
+            current_filters["file"] = file_options[0]
+        if current_filters.get("date") not in date_options:
+            current_filters["date"] = date_options[0]
+        if current_filters.get("region") not in region_options:
+            current_filters["region"] = region_options[0]
+
+        selected_file_choice = st.selectbox(
+            "Result File",
+            file_options,
+            index=file_options.index(current_filters.get("file", file_options[0])),
+            key=f"dashboard_filter_file_choice_{scope_token}",
+        )
+        selected_date_choice = st.selectbox(
+            "Date",
+            date_options,
+            index=date_options.index(current_filters.get("date", date_options[0])),
+            key=f"dashboard_filter_date_choice_{scope_token}",
+        )
+        selected_region_choice = st.selectbox(
+            "Region",
+            region_options,
+            index=region_options.index(current_filters.get("region", region_options[0])),
+            key=f"dashboard_filter_region_choice_{scope_token}",
+        )
+
+        apply_clicked = st.button("Apply Filters", type="primary", use_container_width=True, key=f"dashboard_apply_filters_{scope_token}")
+        reset_clicked = st.button("Reset Filters", use_container_width=True, key=f"dashboard_reset_filters_{scope_token}")
 
         if reset_clicked:
-            st.session_state["applied_dashboard_filters"] = {"file": file_all, "date": date_all, "region": region_all}
+            all_filters[scope_key] = {
+                "file": file_options[0],
+                "date": date_options[0],
+                "region": region_options[0],
+            }
+            st.session_state["applied_dashboard_filters"] = all_filters
             st.rerun()
-
-        if apply_clicked or "applied_dashboard_filters" not in st.session_state:
-            st.session_state["applied_dashboard_filters"] = {
+        if apply_clicked or scope_key not in all_filters:
+            all_filters[scope_key] = {
                 "file": selected_file_choice,
                 "date": selected_date_choice,
                 "region": selected_region_choice,
             }
+            st.session_state["applied_dashboard_filters"] = all_filters
 
-        active_filters = st.session_state.get("applied_dashboard_filters", {"file": file_all, "date": date_all, "region": region_all})
+        active_filters = st.session_state.get("applied_dashboard_filters", {}).get(scope_key, {
+            "file": file_options[0],
+            "date": date_options[0],
+            "region": region_options[0],
+        })
 
-    selected_files = files if active_filters.get("file") == file_all else [active_filters.get("file")]
-    selected_dates = dates if active_filters.get("date") == date_all else [active_filters.get("date")]
-    selected_regions = regions if active_filters.get("region") == region_all else [active_filters.get("region")]
-
+    selected_files = files if active_filters.get("file") == file_options[0] else [active_filters.get("file")]
+    selected_dates = dates if active_filters.get("date") == date_options[0] else [active_filters.get("date")]
+    selected_regions = regions if active_filters.get("region") == region_options[0] else [active_filters.get("region")]
     if forced_region and forced_region != "All":
         selected_regions = [forced_region]
 
@@ -3098,7 +3363,6 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
         & meta["Date"].astype(str).isin(selected_dates)
         & meta["Region"].astype(str).isin(selected_regions)
     ]["Label"].tolist()
-
     return [frames for frames in run_frames if frames["Label"] in keep_labels]
 
 
