@@ -1448,6 +1448,43 @@ body:has(.upload-left-panel-marker) div[data-testid="stVerticalBlockBorderWrappe
   display: none !important;
 }
 
+
+/* DASHBOARD STATIC CARD + TAB RESPONSIVENESS FIX */
+.dashboard-static-card {
+  max-width: 920px !important;
+  padding: 22px 26px !important;
+}
+
+.dashboard-static-title {
+  font-size: 26px !important;
+  line-height: 1.15 !important;
+  margin-bottom: 12px !important;
+}
+
+.dashboard-static-desc {
+  font-size: 15px !important;
+  line-height: 1.45 !important;
+  margin-bottom: 20px !important;
+}
+
+.dashboard-static-btn {
+  height: 40px !important;
+  padding: 0 18px !important;
+  font-size: 15px !important;
+  border-radius: 12px !important;
+}
+
+/* keep top dashboard nav clicks snappy visually */
+button[kind="primary"],
+.stButton > button {
+  transition: none !important;
+}
+
+
+body:has(.upload-left-panel-marker) .panel-title:has(+ .dashboard-static-card) {
+  display: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2122,7 +2159,6 @@ def render_upload_left_panel() -> str:
 def render_upload_sidebar_page(page_name: str) -> bool:
     """Return True if a sidebar page was rendered and upload cards should stop."""
     if page_name == "Dashboard":
-        st.markdown('<div class="panel-title">Dashboard</div>', unsafe_allow_html=True)
         run_id_value = st.session_state.get("run_id", "")
         dash_href = dashboard_url_for_run(run_id_value) if run_id_value else "?view=dashboard"
         st.markdown(f"""
@@ -4006,6 +4042,7 @@ def build_api_like_df_from_csv(csv_path: Path, track_name: str) -> pd.DataFrame:
     return df
 
 
+@st.cache_data(show_spinner=False)
 def build_excel_bytes_from_frames(run_frames: List[Dict[str, pd.DataFrame]]) -> bytes:
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -4553,7 +4590,7 @@ def render_action_cards() -> None:
             st.markdown('<div class="action-card-title">Executive Dashboard</div>', unsafe_allow_html=True)
             st.markdown('<div class="action-card-text">Open the leadership-ready dashboard with KPIs, region comparison, heatmaps and drilldowns.</div>', unsafe_allow_html=True)
             link_class = "action-link" if has_report else "action-link disabled"
-            st.markdown(f'<a class="{link_class}" href="{dashboard_href}" target="_blank">Open Dashboard ↗</a>', unsafe_allow_html=True)
+            st.markdown(f'<a class="{link_class}" href="{dashboard_href}" target="_self">Open Dashboard ↗</a>', unsafe_allow_html=True)
 
     with c2:
         with st.container(border=True):
