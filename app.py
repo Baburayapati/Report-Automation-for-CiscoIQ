@@ -2915,6 +2915,16 @@ def dashboard_view_tabs() -> str:
                 st.query_params["tab"] = tab_value
             st.rerun()
 
+    if current_run_id:
+        if (
+            st.query_params.get("view", "") != "dashboard"
+            or st.query_params.get("run_id", "") != current_run_id
+            or st.query_params.get("tab", "") != current_tab
+        ):
+            st.query_params["view"] = "dashboard"
+            st.query_params["run_id"] = current_run_id
+            st.query_params["tab"] = current_tab
+
     return current_tab
 
 
@@ -3187,34 +3197,53 @@ def sla_donut(df: pd.DataFrame):
 
 
 def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region: str = "All", forced_track: str = "API") -> List[Dict[str, pd.DataFrame]]:
-    rows = []
-    for frames in run_frames:
-        info = frames.get("Run_Info")
-        info_row = info.iloc[0].to_dict() if info is not None and not info.empty else {}
-        label = frames["Label"]
-        inferred = infer_saved_report_info(label)
-        region = frames.get("Region", region_from_frames(frames))
-        if not region or region == "Unknown":
-            region = inferred.get("region", "Unknown")
-        date = str(info_row.get("Date", "N/A"))
-        if not date or date == "N/A":
-            date = inferred.get("date", "N/A")
-        duration = str(info_row.get("Duration", "N/A"))
-        if not duration or duration == "N/A":
-            duration = inferred.get("duration", "N/A")
-        rows.append({
-            "Label": label,
-            "Display": run_display_label(frames),
-            "Region": region,
-            "Date": date,
-            "Duration": duration,
-            "Track": infer_program_track(label)[1],
-            "Application": str(info_row.get("Application", inferred.get("application", APP_NAME_TOKEN))),
-            "Program": str(info_row.get("Program", inferred.get("program", PROGRAM_SAAS))),
-            "Environment": str(info_row.get("Environment", inferred.get("env", "PROD"))),
-            "Run ID": str(info_row.get("Run ID", inferred.get("run_id", "N/A"))),
-        })
-    meta = pd.DataFrame(rows)
+    def normalize_filter_date(value: str, label: str) -> str:
+        parsed = extract_mmddyyyy_from_text(str(value or "")) or extract_mmddyyyy_from_text(str(label or ""))
+        if parsed:
+            return f"{parsed[:2]}-{parsed[2:4]}-{parsed[4:8]}"
+        return "N/A"
+
+    cache = st.session_state.setdefault("_dashboard_filter_meta_cache", {})
+    labels_key = "|".join([str(frames.get("Label", "")) for frames in run_frames])
+    active_program = st.session_state.get("active_program", PROGRAM_SAAS)
+    meta_key = f"{st.session_state.get('run_id','')}::{active_program}::{forced_track}::{labels_key}"
+    meta = cache.get(meta_key)
+    if meta is None:
+        rows = []
+        for frames in run_frames:
+            info = frames.get("Run_Info")
+            info_row = info.iloc[0].to_dict() if info is not None and not info.empty else {}
+            label = frames["Label"]
+            inferred = infer_saved_report_info(label)
+            region = frames.get("Region", region_from_frames(frames))
+            if not region or region == "Unknown":
+                region = inferred.get("region", "Unknown")
+
+            inferred_date = normalize_filter_date(inferred.get("date", "N/A"), label)
+            info_date = normalize_filter_date(info_row.get("Date", "N/A"), label)
+            date = inferred_date if inferred_date != "N/A" else info_date
+
+            duration = str(info_row.get("Duration", "N/A"))
+            if not duration or duration == "N/A":
+                duration = inferred.get("duration", "N/A")
+
+            short_result = run_display_label(frames)
+            rows.append({
+                "Label": label,
+                "Display": short_result,
+                "Region": region,
+                "Date": date,
+                "Duration": duration,
+                "Track": infer_program_track(label)[1],
+                "Application": str(info_row.get("Application", inferred.get("application", APP_NAME_TOKEN))),
+                "Program": str(info_row.get("Program", inferred.get("program", PROGRAM_SAAS))),
+                "Environment": str(info_row.get("Environment", inferred.get("env", "PROD"))),
+                "Run ID": str(info_row.get("Run ID", inferred.get("run_id", "N/A"))),
+                "Result Option": short_result,
+            })
+        meta = pd.DataFrame(rows)
+        cache[meta_key] = meta
+
     if meta.empty:
         return run_frames
 
@@ -3222,14 +3251,14 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
     if meta.empty:
         return []
 
-    meta = meta.head(9).copy()
+    files = meta["Result Option"].astype(str).tolist()
+    dedup = {}
+    for i, name in enumerate(files):
+        dedup[name] = dedup.get(name, 0) + 1
+        if dedup[name] > 1:
+            files[i] = f"{name} ({dedup[name]})"
+    meta["Result Option"] = files
 
-    meta["Detailed Display"] = meta.apply(
-        lambda r: f"{r['Display']} | {r['Date']} | {r.get('Environment', 'PROD')} | {r.get('Run ID', 'N/A')}",
-        axis=1,
-    )
-
-    files = meta["Detailed Display"].tolist()
     dates = sorted(meta["Date"].astype(str).unique().tolist())
     regions = sorted(meta["Region"].astype(str).unique().tolist())
 
@@ -3260,28 +3289,61 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
             unsafe_allow_html=True,
         )
 
-        selected_file_choice = st.selectbox("Result File", file_options, index=0, key="dashboard_filter_file_choice")
-        selected_date_choice = st.selectbox("Date", date_options, index=0, key="dashboard_filter_date_choice")
-        selected_region_choice = st.selectbox("Region", region_options, index=0, key="dashboard_filter_region_choice")
+        scope_key = f"{st.session_state.get('run_id','')}::{active_program}::{forced_track}"
+        scope_token = hashlib.md5(scope_key.encode("utf-8")).hexdigest()[:12]
+        all_filters = st.session_state.setdefault("applied_dashboard_filters", {})
+        current_filters = all_filters.get(scope_key, {
+            "file": file_options[0],
+            "date": date_options[0],
+            "region": region_options[0],
+        })
 
-        apply_clicked = st.button("Apply Filters", type="primary", use_container_width=True, key="dashboard_apply_filters")
-        reset_clicked = st.button("Reset Filters", use_container_width=True, key="dashboard_reset_filters")
+        if current_filters.get("file") not in file_options:
+            current_filters["file"] = file_options[0]
+        if current_filters.get("date") not in date_options:
+            current_filters["date"] = date_options[0]
+        if current_filters.get("region") not in region_options:
+            current_filters["region"] = region_options[0]
+
+        selected_file_choice = st.selectbox(
+            "Result File",
+            file_options,
+            index=file_options.index(current_filters.get("file", file_options[0])),
+            key=f"dashboard_filter_file_choice_{scope_token}",
+        )
+        selected_date_choice = st.selectbox(
+            "Date",
+            date_options,
+            index=date_options.index(current_filters.get("date", date_options[0])),
+            key=f"dashboard_filter_date_choice_{scope_token}",
+        )
+        selected_region_choice = st.selectbox(
+            "Region",
+            region_options,
+            index=region_options.index(current_filters.get("region", region_options[0])),
+            key=f"dashboard_filter_region_choice_{scope_token}",
+        )
+
+        apply_clicked = st.button("Apply Filters", type="primary", use_container_width=True, key=f"dashboard_apply_filters_{scope_token}")
+        reset_clicked = st.button("Reset Filters", use_container_width=True, key=f"dashboard_reset_filters_{scope_token}")
 
         if reset_clicked:
-            st.session_state["applied_dashboard_filters"] = {
+            all_filters[scope_key] = {
                 "file": file_options[0],
                 "date": date_options[0],
                 "region": region_options[0],
             }
+            st.session_state["applied_dashboard_filters"] = all_filters
             st.rerun()
-        if apply_clicked or "applied_dashboard_filters" not in st.session_state:
-            st.session_state["applied_dashboard_filters"] = {
+        if apply_clicked or scope_key not in all_filters:
+            all_filters[scope_key] = {
                 "file": selected_file_choice,
                 "date": selected_date_choice,
                 "region": selected_region_choice,
             }
+            st.session_state["applied_dashboard_filters"] = all_filters
 
-        active_filters = st.session_state.get("applied_dashboard_filters", {
+        active_filters = st.session_state.get("applied_dashboard_filters", {}).get(scope_key, {
             "file": file_options[0],
             "date": date_options[0],
             "region": region_options[0],
@@ -3297,7 +3359,7 @@ def get_filtered_frames(run_frames: List[Dict[str, pd.DataFrame]], forced_region
         return []
 
     keep_labels = meta[
-        meta["Detailed Display"].isin(selected_files)
+        meta["Result Option"].isin(selected_files)
         & meta["Date"].astype(str).isin(selected_dates)
         & meta["Region"].astype(str).isin(selected_regions)
     ]["Label"].tolist()
