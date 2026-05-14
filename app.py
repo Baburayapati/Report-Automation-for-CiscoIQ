@@ -2008,6 +2008,16 @@ body:has(.upload-left-panel-marker) [data-testid="stSidebar"] [data-testid="stSi
   display: none !important;
 }
 
+
+/* Better top sidebar logo */
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  opacity: 0.95 !important;
+  letter-spacing: 0 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2667,7 +2677,7 @@ def render_upload_left_panel() -> str:
     ]
 
     with st.sidebar:
-        st.markdown('<div class="upload-left-logo">▥</div>', unsafe_allow_html=True)
+        st.markdown('<div class="upload-left-logo">◫</div>', unsafe_allow_html=True)
         for page_name, label in nav_items:
             active = st.session_state.upload_left_page == page_name
             if st.button(
