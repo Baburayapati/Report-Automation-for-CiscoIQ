@@ -1568,11 +1568,40 @@ button,
   transition: none !important;
 }
 
+
+/* ROUTES + DASHBOARD SPEED FIX */
+.dashboard-static-title {
+  font-size: 18px !important;
+  line-height: 1.15 !important;
+}
+.dashboard-static-card {
+  max-width: 900px !important;
+  padding: 18px 22px !important;
+}
+.dashboard-static-desc {
+  font-size: 13px !important;
+  margin-bottom: 14px !important;
+}
+.dashboard-static-btn {
+  height: 36px !important;
+  font-size: 13px !important;
+}
+.ciq-tab-link,
+.ciq-track-link,
+.ciq-program-link,
+.stButton > button {
+  transition: none !important;
+  animation: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 params = st.query_params
 view_param = str(params.get("view", "")).strip().strip("./ ").lower()
+page_param = str(params.get("page", "")).strip().strip("./ ").lower()
+if page_param == "login":
+    st.session_state.team_authenticated = False
 dashboard_only = view_param == "dashboard"
 team_upload_view = not dashboard_only
 run_id = params.get("run_id", "")
@@ -2249,14 +2278,14 @@ def render_upload_sidebar_page(page_name: str) -> bool:
         <div class="dashboard-static-card">
           <div class="dashboard-static-title">View All Results</div>
           <div class="dashboard-static-desc">
-            Share this static dashboard URL with management. After you generate results, this link opens the latest dashboard view.
+            Share this dashboard URL with management. After you generate results, this opens the latest dashboard view.
           </div>
-          <a class="dashboard-static-btn" href="{dash_href}" target="_self">Open Results Dashboard ↗</a>
+          <a class="dashboard-static-btn" href="{dash_href}" target="_blank">Open Results Dashboard ↗</a>
           <div class="static-url-box">{dash_href}</div>
           <div class="page-url-row">
-            <span>Upload:</span> <code>{base_app_url}</code><br/>
+            <span>Login:</span> <code>{base_app_url}?page=login</code><br/>
+            <span>Upload:</span> <code>{base_app_url}?page=upload</code><br/>
             <span>Dashboard:</span> <code>{base_app_url}?view=dashboard</code><br/>
-            <span>Track Comparison:</span> <code>{base_app_url}?view=dashboard&tab=Track%20Comparison</code><br/>
             <span>Chatbot:</span> <code>{base_app_url}?view=dashboard&tab=Chatbot</code>
           </div>
         </div>
