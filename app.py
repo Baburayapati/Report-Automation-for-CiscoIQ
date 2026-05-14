@@ -1817,6 +1817,108 @@ body:has(.excel-only-title) .stButton > button {
   object-fit: contain !important;
 }
 
+
+/* LEFT PANEL ICON POLISH - UI ONLY, NO FUNCTIONALITY CHANGE */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] {
+  background: linear-gradient(180deg, #071a3a 0%, #09245a 100%) !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding-left: 58px !important;
+  padding-right: 20px !important;
+  height: 54px !important;
+  border-radius: 18px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.1px !important;
+  white-space: nowrap !important;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+}
+
+/* Make the icon character occupy a visually fixed lane */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button p {
+  text-align: left !important;
+  width: 100% !important;
+  margin: 0 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  white-space: pre !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Inactive items: clean text, no boxes */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="secondary"],
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button:not([kind="primary"]) {
+  background: transparent !important;
+  border: 0 !important;
+  color: rgba(255,255,255,.92) !important;
+  box-shadow: none !important;
+}
+
+/* Active item: screenshot-like purple pill */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%) !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  box-shadow: 0 16px 34px rgba(88, 80, 236, .28) !important;
+}
+
+/* Keep all buttons in one straight vertical menu column */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  width: 100% !important;
+  margin: 0 0 22px 0 !important;
+}
+
+/* Top icon/logo: smaller and aligned with menu icon lane */
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  color: #ffffff !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  margin: 44px 0 62px 34px !important;
+  text-align: left !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  letter-spacing: -4px !important;
+}
+
+/* Remove extra default sidebar padding offsets */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] > div:first-child {
+  padding-left: 10px !important;
+  padding-right: 18px !important;
+}
+
+
+/* Exact sidebar icon style from reference image */
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  padding-left: 46px !important;
+  height: 50px !important;
+  border-radius: 18px !important;
+  justify-content: flex-start !important;
+}
+
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  font-size: 22px !important;
+  margin-left: 22px !important;
+  margin-top: 26px !important;
+  margin-bottom: 44px !important;
+  letter-spacing: -3px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton {
+  margin-bottom: 16px !important;
+}
+
+body:has(.upload-left-panel-marker) [data-testid="stSidebar"] .stButton > button p {
+  font-size: 15px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2467,12 +2569,12 @@ def render_upload_left_panel() -> str:
         st.session_state.upload_left_page = "Track Uploads"
 
     nav_items = [
-        ("Dashboard", "⌂  Dashboard"),
-        ("Track Uploads", "▣  Track Uploads"),
-        ("Reports", "▤  Reports"),
-        ("Excel Report", "▥  Excel Report"),
-        ("AI Chatbot", "☻  AI Chatbot"),
-        ("Settings", "⚙  Settings"),
+        ("Dashboard", "⌂ Dashboard"),
+        ("Track Uploads", "▣ Track Uploads"),
+        ("Reports", "▤ Reports"),
+        ("Excel Report", "▥ Excel Report"),
+        ("AI Chatbot", "◉ AI Chatbot"),
+        ("Settings", "⚙ Settings"),
     ]
 
     with st.sidebar:
