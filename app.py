@@ -1788,12 +1788,6 @@ body:has(.excel-report-active-page) .stButton > button {
   border-radius: 10px !important;
 }
 
-
-/* PAGE SWITCH FLASH FIX */
-#excel-page-switch-overlay {
-  font-family: inherit !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -2429,58 +2423,6 @@ def combined_df(run_frames: List[Dict[str, pd.DataFrame]]) -> pd.DataFrame:
 
 def render_upload_left_panel() -> str:
     """Native Streamlit sidebar navigation; does not reload app or lose login session."""
-
-    components.html(
-        """
-        <script>
-        (function installExcelFlashGuard(){
-          const doc = window.parent.document;
-          if (doc.__excelFlashGuardInstalled) return;
-          doc.__excelFlashGuardInstalled = true;
-
-          const hideMainInstantly = () => {
-            const main = doc.querySelector('section.main .block-container') ||
-                         doc.querySelector('[data-testid="stAppViewContainer"] .main .block-container') ||
-                         doc.querySelector('.block-container');
-            if (main) {
-              main.style.opacity = '0';
-              main.style.transition = 'none';
-            }
-
-            let overlay = doc.getElementById('excel-page-switch-overlay');
-            if (!overlay) {
-              overlay = doc.createElement('div');
-              overlay.id = 'excel-page-switch-overlay';
-              overlay.innerHTML = '<div style="font-weight:800;color:#0f2b68;">Loading...</div>';
-              overlay.style.position = 'fixed';
-              overlay.style.left = '244px';
-              overlay.style.right = '0';
-              overlay.style.top = '86px';
-              overlay.style.bottom = '0';
-              overlay.style.zIndex = '99999';
-              overlay.style.background = 'linear-gradient(135deg,#eef5ff 0%,#f8fbff 48%,#f4efff 100%)';
-              overlay.style.display = 'flex';
-              overlay.style.alignItems = 'center';
-              overlay.style.justifyContent = 'center';
-              doc.body.appendChild(overlay);
-            }
-            overlay.style.display = 'flex';
-          };
-
-          doc.addEventListener('click', function(e) {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            const text = (btn.innerText || '').trim();
-            if (text.includes('Excel Report') || text.includes('Reports') || text.includes('Track Uploads') || text.includes('Dashboard') || text.includes('AI Chatbot') || text.includes('Settings')) {
-              hideMainInstantly();
-            }
-          }, true);
-        })();
-        </script>
-        """,
-        height=0,
-    )
-
     st.markdown('<div class="upload-left-panel-marker"></div>', unsafe_allow_html=True)
     st.markdown(
         """
@@ -2518,6 +2460,7 @@ def render_upload_left_panel() -> str:
                 st.rerun()
 
     return st.session_state.upload_left_page
+
 
 def render_upload_sidebar_page(page_name: str) -> bool:
     """Return True if a sidebar page was rendered and upload cards should stop."""
@@ -5175,24 +5118,6 @@ elif team_upload_view:
     access_granted = team_upload_access_granted()
     if access_granted:
         upload_left_page = render_upload_left_panel()
-        
-        components.html(
-            """
-            <script>
-            setTimeout(function(){
-              const doc = window.parent.document;
-              const main = doc.querySelector('section.main .block-container') ||
-                           doc.querySelector('[data-testid="stAppViewContainer"] .main .block-container') ||
-                           doc.querySelector('.block-container');
-              if (main) main.style.opacity = '1';
-              const overlay = doc.getElementById('excel-page-switch-overlay');
-              if (overlay) overlay.style.display = 'none';
-            }, 50);
-            </script>
-            """,
-            height=0,
-        )
-        
         if render_upload_sidebar_page(upload_left_page):
             st.stop()
         st.markdown('<div class="clean-upload-page-marker"></div>', unsafe_allow_html=True)
