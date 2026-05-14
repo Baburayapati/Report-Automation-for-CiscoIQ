@@ -1644,6 +1644,18 @@ button,
   .settings-grid { grid-template-columns: 1fr; }
 }
 
+
+/* EXCEL SAVED REPORTS LIST */
+.excel-report-name {
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  color: #111827 !important;
+  margin: 18px 0 10px 0 !important;
+}
+.excel-row-gap {
+  height: 18px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2376,23 +2388,65 @@ def render_upload_sidebar_page(page_name: str) -> bool:
 
     if page_name == "Excel Report":
         st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
-        st.markdown("""
-        <div class="dashboard-static-card">
-          <div class="dashboard-static-title">API Excel Report</div>
-          <div class="dashboard-static-desc">
-            Excel download is generated and saved for API/JMeter JSON reports only. UI, Cloud Assist and Inventory uploads are available in Dashboard/Reports, but do not create a separate Excel workbook.
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.session_state.get("excel_bytes") and st.session_state.get("excel_api_only", True):
-            st.download_button(
-                "Download API Excel Report",
-                data=st.session_state.excel_bytes,
-                file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
-                use_container_width=True,
-            )
-        else:
-            st.info("Generate API results first to enable Excel download. This page is available even without data.")
+        st.markdown(
+            '<div class="reports-subtitle">Download generated Excel workbooks for saved API/JMeter JSON reports.</div>',
+            unsafe_allow_html=True,
+        )
+
+        api_uploads = [
+            item for item in normalize_saved_uploads(load_saved_uploads())
+            if (item.get("track") or infer_program_track(item.get("file_name", ""))[1]) == TRACK_API
+        ]
+
+        if not api_uploads:
+            st.info("No saved API reports yet. Upload and save API JSON files first.")
+            return True
+
+        with st.container(border=True):
+            st.markdown('<div class="report-program-title">API Excel Reports</div>', unsafe_allow_html=True)
+
+            for idx, item in enumerate(api_uploads):
+                original_name = item.get("file_name", "API_Report.json")
+                saved_name = item.get("saved_name", "")
+                saved_path = SAVED_REPORTS_DIR / saved_name
+                report_label = infer_saved_report_info(original_name).get("label", Path(original_name).stem)
+
+                st.markdown(f'<div class="excel-report-name">{report_label}</div>', unsafe_allow_html=True)
+
+                col_download, col_remove = st.columns(2, gap="medium")
+
+                with col_download:
+                    if saved_path.exists():
+                        try:
+                            with tempfile.TemporaryDirectory() as tmpdir:
+                                output_path = Path(tmpdir) / f"{Path(original_name).stem}.xlsx"
+                                build_report(saved_path, output_path)
+                                excel_data = output_path.read_bytes()
+
+                            st.download_button(
+                                "Download Excel Report",
+                                data=excel_data,
+                                file_name=f"{Path(original_name).stem}.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                key=f"excel_saved_download_{idx}_{sanitize_token(saved_name)}",
+                                use_container_width=True,
+                            )
+                        except Exception as exc:
+                            st.error(f"Unable to prepare Excel for {original_name}: {exc}")
+                    else:
+                        st.warning("Saved source file is missing.")
+
+                with col_remove:
+                    if st.button(
+                        "Remove",
+                        key=f"excel_saved_remove_{idx}_{sanitize_token(saved_name)}",
+                        use_container_width=True,
+                    ):
+                        remove_saved_upload(saved_name)
+                        st.rerun()
+
+                st.markdown('<div class="excel-row-gap"></div>', unsafe_allow_html=True)
+
         return True
 
     if page_name == "AI Chatbot":
