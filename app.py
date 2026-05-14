@@ -1594,6 +1594,56 @@ button,
   animation: none !important;
 }
 
+
+/* Login/upload routes, chatbot/settings cards */
+.dashboard-static-title {
+  font-size: 18px !important;
+  line-height: 1.15 !important;
+}
+.static-url-box {
+  margin-top: 14px;
+  background: #f8fbff;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #0f2b68;
+  font-size: 13px;
+  font-weight: 700;
+  word-break: break-all;
+}
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.settings-card {
+  display: block;
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 18px;
+  text-decoration: none !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04);
+}
+.settings-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 14px 30px rgba(37,99,235,.12);
+}
+.settings-title {
+  font-size: 17px;
+  font-weight: 950;
+  color: #0f2b68;
+  margin-bottom: 8px;
+}
+.settings-desc {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.45;
+}
+@media(max-width: 1100px) {
+  .settings-grid { grid-template-columns: 1fr; }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2326,39 +2376,76 @@ def render_upload_sidebar_page(page_name: str) -> bool:
 
     if page_name == "Excel Report":
         st.markdown('<div class="panel-title">Excel Report</div>', unsafe_allow_html=True)
-        if st.session_state.get("excel_bytes"):
+        st.markdown("""
+        <div class="dashboard-static-card">
+          <div class="dashboard-static-title">API Excel Report</div>
+          <div class="dashboard-static-desc">
+            Excel download is generated and saved for API/JMeter JSON reports only. UI, Cloud Assist and Inventory uploads are available in Dashboard/Reports, but do not create a separate Excel workbook.
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.session_state.get("excel_bytes") and st.session_state.get("excel_api_only", True):
             st.download_button(
-                "Download Excel Report",
+                "Download API Excel Report",
                 data=st.session_state.excel_bytes,
                 file_name=st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
                 use_container_width=True,
             )
         else:
-            st.info("Generate results first to enable Excel download. This page is available even without data.")
+            st.info("Generate API results first to enable Excel download. This page is available even without data.")
         return True
 
     if page_name == "AI Chatbot":
-        st.markdown('<div class="panel-title">AI Chatbot</div>', unsafe_allow_html=True)
-        if st.session_state.get("run_frames"):
-            st.session_state["dashboard_tab"] = "Chatbot"
-            render_executive_dashboard(st.session_state.run_frames)
-        else:
-            st.info("Generate results first to use chatbot. This page is available even without data.")
+        base_app_url = "https://ciscoiq-report-automation.streamlit.app/"
+        run_id_value = st.session_state.get("run_id", "")
+        chat_href = f"{base_app_url}?view=dashboard&tab=Chatbot&run_id={run_id_value}" if run_id_value else f"{base_app_url}?view=dashboard&tab=Chatbot"
+        st.markdown(f"""
+        <div class="dashboard-static-card">
+          <div class="dashboard-static-title">AI Chatbot</div>
+          <div class="dashboard-static-desc">
+            Share this static chatbot URL to open the dashboard chatbot. After results are generated, it opens with the latest available data.
+          </div>
+          <a class="dashboard-static-btn" href="{chat_href}" target="_blank">Open AI Chatbot ↗</a>
+          <div class="static-url-box">{chat_href}</div>
+        </div>
+        """, unsafe_allow_html=True)
         return True
 
     if page_name == "Settings":
+        base_app_url = "https://ciscoiq-report-automation.streamlit.app/"
         st.markdown('<div class="panel-title">Settings</div>', unsafe_allow_html=True)
-        st.markdown("""
-        <div style="background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;">
-          <h4>Settings</h4>
-          <p>• Help and support</p>
-          <p>• Report retention preferences</p>
-          <p>• Session management</p>
+        st.markdown(f"""
+        <div class="settings-grid">
+          <a class="settings-card" href="{base_app_url}?page=login" target="_self">
+            <div class="settings-title">Logout / Login</div>
+            <div class="settings-desc">Return to the secure login page.</div>
+          </a>
+          <a class="settings-card" href="{base_app_url}?page=upload" target="_self">
+            <div class="settings-title">Upload Page</div>
+            <div class="settings-desc">Open Program Track Uploads.</div>
+          </a>
+          <a class="settings-card" href="{base_app_url}?view=dashboard" target="_blank">
+            <div class="settings-title">Dashboard Link</div>
+            <div class="settings-desc">Open management dashboard in a new tab.</div>
+          </a>
+          <a class="settings-card" href="{base_app_url}?view=dashboard&tab=Chatbot" target="_blank">
+            <div class="settings-title">Chatbot Link</div>
+            <div class="settings-desc">Open AI Chatbot in dashboard view.</div>
+          </a>
+          <a class="settings-card" href="mailto:support@example.com?subject=CiscoIQ%20Report%20Automation%20Help">
+            <div class="settings-title">Help / Support</div>
+            <div class="settings-desc">Contact support for upload or dashboard issues.</div>
+          </a>
+          <a class="settings-card" href="https://docs.streamlit.io/" target="_blank">
+            <div class="settings-title">Reference Docs</div>
+            <div class="settings-desc">Open Streamlit reference documentation.</div>
+          </a>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Logout", type="primary"):
             st.session_state.team_authenticated = False
             st.session_state.upload_left_page = "Track Uploads"
+            st.query_params["page"] = "login"
             st.rerun()
         return True
 
@@ -4016,6 +4103,7 @@ def generate_dashboard_from_json_paths(json_paths: List[Path], labels: List[str]
         st.session_state.excel_bytes = excel_bytes
         st.session_state.run_frames = run_frames
         st.session_state.report_file_name = "JMeter_Report.xlsx"
+        st.session_state.excel_api_only = True
         st.session_state.messages = []
         st.session_state.run_id = new_run_id
 
@@ -4297,17 +4385,13 @@ def generate_dashboard_from_uploaded_csv_files(track_name: str, uploaded_files) 
         except Exception:
             pass
 
-    excel_bytes = build_excel_bytes_from_frames(run_frames)
     new_run_id = uuid.uuid4().hex
-    report_name = f"{track_name.replace(' ', '_')}_Report.xlsx"
     dashboard_store[new_run_id] = {
         "run_frames": run_frames,
-        "excel_bytes": excel_bytes,
-        "report_file_name": report_name,
+        "excel_bytes": st.session_state.get("excel_bytes"),
+        "report_file_name": st.session_state.get("report_file_name", "JMeter_Report.xlsx"),
     }
-    st.session_state.excel_bytes = excel_bytes
     st.session_state.run_frames = run_frames
-    st.session_state.report_file_name = report_name
     st.session_state.messages = []
     st.session_state.run_id = new_run_id
     st.session_state["active_track"] = track_name
@@ -4638,6 +4722,7 @@ def team_upload_access_granted() -> bool:
     if login_clicked:
         if valid_user and valid_password:
             st.session_state.team_authenticated = True
+            st.query_params["page"] = "upload"
             st.rerun()
         st.error("Invalid username or password.")
     return False
@@ -4859,11 +4944,12 @@ elif team_upload_view:
                     st.session_state.excel_bytes = excel_bytes
                     st.session_state.run_frames = run_frames
                     st.session_state.report_file_name = "JMeter_Report.xlsx"
+                    st.session_state.excel_api_only = True
                     st.session_state.messages = []
                     st.session_state.run_id = new_run_id
                     st.toast("Report generated successfully.", icon="✅")
                     st.success("Dashboard generated. Share the dashboard link below with management.")
-                    st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_self">Open Results Dashboard ↗</a>', unsafe_allow_html=True)
+                    st.markdown(f'<a class="primary-pill" href="{dashboard_url_for_run(new_run_id)}" target="_blank">Open Results Dashboard ↗</a>', unsafe_allow_html=True)
                     st.info("Dashboard, Excel Report, and AI Chatbot are now available from the left panel.")
                 except Exception as exc:
                     st.error(f"Failed to generate report: {exc}")
