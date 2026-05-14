@@ -2018,6 +2018,12 @@ body:has(.upload-left-panel-marker) .upload-left-logo {
   letter-spacing: 0 !important;
 }
 
+
+/* remove empty sidebar logo spacing */
+body:has(.upload-left-panel-marker) .upload-left-logo {
+  display: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2677,7 +2683,7 @@ def render_upload_left_panel() -> str:
     ]
 
     with st.sidebar:
-        st.markdown('<div class="upload-left-logo">◫</div>', unsafe_allow_html=True)
+        st.markdown('<div class="upload-left-logo"></div>', unsafe_allow_html=True)
         for page_name, label in nav_items:
             active = st.session_state.upload_left_page == page_name
             if st.button(
